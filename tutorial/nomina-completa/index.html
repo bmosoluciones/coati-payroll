@@ -1,0 +1,2995 @@
+<!DOCTYPE html><html lang="es" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Sistema de administración de nóminas y planillas">
+      
+      
+        <meta name="author" content="BMO Soluciones, S.A.">
+      
+      
+        <link rel="canonical" href="https://williamjmorenor.github.io/coati/tutorial/nomina-completa/">
+      
+      
+        <link rel="prev" href="../../guia/nomina/">
+      
+      
+        <link rel="next" href="../../referencia/glosario/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Paso a Paso - Nómina Completa - Coati Payroll - Documentación</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-nomina-completa-paso-a-paso" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="Coati Payroll - Documentación" class="md-header__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Coati Payroll - Documentación
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Paso a Paso - Nómina Completa
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo oscuro" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo claro" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../instalacion/requisitos/" class="md-tabs__link">
+          
+  
+  
+  Instalación
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guia/primeros-pasos/" class="md-tabs__link">
+          
+  
+  
+  Guía de Uso
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Tutorial Completo
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../referencia/glosario/" class="md-tabs__link">
+          
+  
+  
+  Referencia
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Coati Payroll - Documentación" class="md-nav__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    Coati Payroll - Documentación
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Instalación
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instalacion/requisitos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos del Sistema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instalacion/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instalacion/configuracion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración Inicial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de Uso
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guía de Uso
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/primeros-pasos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros Pasos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/usuarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Usuarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/monedas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monedas y Tipos de Cambio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/empleados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Empleados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/percepciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Percepciones (Ingresos)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/deducciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deducciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/prestaciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prestaciones (Aportes Patronales)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/prestamos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Préstamos y Adelantos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/planillas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración de Planillas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guia/nomina/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejecución de Nómina
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Completo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorial Completo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paso a Paso - Nómina Completa
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paso a Paso - Nómina Completa
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#escenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-1-configuracion-inicial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 1: Configuración Inicial
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 1: Configuración Inicial">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-iniciar-sesion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 Iniciar Sesión
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-crear-la-moneda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 Crear la Moneda
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-2-crear-percepciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 2: Crear Percepciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 2: Crear Percepciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-percepcion-horas-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Percepción: Horas Extras
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-percepcion-bono-de-productividad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Percepción: Bono de Productividad
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-3-crear-deducciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 3: Crear Deducciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 3: Crear Deducciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-deduccion-inss-laboral" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Deducción: INSS Laboral
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-deduccion-impuesto-sobre-la-renta-ir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Deducción: Impuesto sobre la Renta (IR)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-deduccion-cuota-sindical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Deducción: Cuota Sindical
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-4-crear-prestaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 4: Crear Prestaciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 4: Crear Prestaciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-prestacion-inss-patronal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Prestación: INSS Patronal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-prestacion-inatec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Prestación: INATEC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-prestacion-provision-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Prestación: Provisión de Vacaciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-prestacion-provision-de-aguinaldo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Prestación: Provisión de Aguinaldo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-prestacion-provision-de-indemnizacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Prestación: Provisión de Indemnización
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-5-registrar-empleados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 5: Registrar Empleados
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 5: Registrar Empleados">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-empleado-juan-perez" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Empleado: Juan Pérez
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-empleado-maria-lopez" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Empleado: María López
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-empleado-carlos-ruiz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Empleado: Carlos Ruiz
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-6-registrar-prestamo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 6: Registrar Préstamo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-7-crear-la-planilla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 7: Crear la Planilla
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 7: Crear la Planilla">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-crear-planilla-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Crear Planilla Base
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-asignar-empleados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Asignar Empleados
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-asignar-percepciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Asignar Percepciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-asignar-deducciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Asignar Deducciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-asignar-prestaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.5 Asignar Prestaciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paso-8-ejecutar-la-nomina" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 8: Ejecutar la Nómina
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 8: Ejecutar la Nómina">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-iniciar-ejecucion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Iniciar Ejecución
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-resultado-esperado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Resultado Esperado
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.2 Resultado Esperado">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resumen-de-la-nomina" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resumen de la Nómina
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detalle-juan-perez" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detalle: Juan Pérez
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detalle-carlos-ruiz-con-prestamo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detalle: Carlos Ruiz (con préstamo)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-aprobar-la-nomina" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Aprobar la Nómina
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-aplicar-la-nomina" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Aplicar la Nómina
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resumen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resumen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#siguientes-pasos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Siguientes Pasos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recursos-adicionales" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recursos Adicionales
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencia
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/glosario/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glosario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preguntas Frecuentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="tutorial-nomina-completa-paso-a-paso">Tutorial: Nómina Completa Paso a Paso<a class="headerlink" href="#tutorial-nomina-completa-paso-a-paso" title="Permanent link">¶</a></h1>
+<p>Este tutorial le guiará paso a paso para configurar Coati Payroll desde cero y ejecutar una nómina completa con percepciones, deducciones, prestaciones y préstamos a empleados.</p>
+<h2 id="escenario">Escenario<a class="headerlink" href="#escenario" title="Permanent link">¶</a></h2>
+<p>Configuraremos una empresa ficticia con:</p>
+<ul>
+<li><strong>Empresa</strong>: Comercial ABC, S.A.</li>
+<li><strong>País</strong>: Nicaragua</li>
+<li><strong>Moneda</strong>: Córdoba Nicaragüense (NIO)</li>
+<li><strong>Periodicidad</strong>: Mensual</li>
+<li><strong>Empleados</strong>: 3 empleados</li>
+<li><strong>Componentes</strong>:</li>
+<li>Percepciones: Salario base, horas extras, bonificaciones</li>
+<li>Deducciones: INSS laboral, IR, cuota sindical</li>
+<li>Prestaciones: INSS patronal, INATEC, vacaciones, aguinaldo, indemnización</li>
+<li>Préstamos: Un empleado tiene un préstamo activo</li>
+</ul>
+<h2 id="paso-1-configuracion-inicial">Paso 1: Configuración Inicial<a class="headerlink" href="#paso-1-configuracion-inicial" title="Permanent link">¶</a></h2>
+<h3 id="11-iniciar-sesion">1.1 Iniciar Sesión<a class="headerlink" href="#11-iniciar-sesion" title="Permanent link">¶</a></h3>
+<ol>
+<li>Abra el navegador y acceda a <code>http://localhost:5000</code></li>
+<li>Inicie sesión con:</li>
+<li>Usuario: <code>coati-admin</code></li>
+<li>Contraseña: <code>coati-admin</code></li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Cambiar Contraseña</p>
+<p>En un entorno de producción, cambie estas credenciales inmediatamente.</p>
+</div>
+<h3 id="12-crear-la-moneda">1.2 Crear la Moneda<a class="headerlink" href="#12-crear-la-moneda" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Catálogos &gt; Monedas</strong></li>
+<li>Haga clic en <strong>Nueva Moneda</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>NIO</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Córdoba Nicaragüense</code></td>
+</tr>
+<tr>
+<td>Símbolo</td>
+<td><code>C$</code></td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<hr>
+<h2 id="paso-2-crear-percepciones">Paso 2: Crear Percepciones<a class="headerlink" href="#paso-2-crear-percepciones" title="Permanent link">¶</a></h2>
+<p>Las percepciones son los ingresos del empleado.</p>
+<h3 id="21-percepcion-horas-extras">2.1 Percepción: Horas Extras<a class="headerlink" href="#21-percepcion-horas-extras" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Conceptos &gt; Percepciones</strong></li>
+<li>Haga clic en <strong>Nueva Percepción</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>HRS_EXTRA</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Horas Extras</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Pago por horas trabajadas adicionales</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Por Horas</code></td>
+</tr>
+<tr>
+<td>Gravable</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="22-percepcion-bono-de-productividad">2.2 Percepción: Bono de Productividad<a class="headerlink" href="#22-percepcion-bono-de-productividad" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nueva Percepción</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>BONO_PROD</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Bono de Productividad</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Bonificación mensual por cumplimiento de metas</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Monto Fijo</code></td>
+</tr>
+<tr>
+<td>Monto Predeterminado</td>
+<td><code>1500.00</code></td>
+</tr>
+<tr>
+<td>Gravable</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<hr>
+<h2 id="paso-3-crear-deducciones">Paso 3: Crear Deducciones<a class="headerlink" href="#paso-3-crear-deducciones" title="Permanent link">¶</a></h2>
+<p>Las deducciones son los descuentos del salario.</p>
+<h3 id="31-deduccion-inss-laboral">3.1 Deducción: INSS Laboral<a class="headerlink" href="#31-deduccion-inss-laboral" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Conceptos &gt; Deducciones</strong></li>
+<li>Haga clic en <strong>Nueva Deducción</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>INSS_LABORAL</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>INSS Laboral</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Aporte del trabajador al Seguro Social (7%)</code></td>
+</tr>
+<tr>
+<td>Tipo de Deducción</td>
+<td><code>Seguro Social</code></td>
+</tr>
+<tr>
+<td>Es Impuesto</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Bruto</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>7.00</code></td>
+</tr>
+<tr>
+<td>Antes de Impuesto</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="32-deduccion-impuesto-sobre-la-renta-ir">3.2 Deducción: Impuesto sobre la Renta (IR)<a class="headerlink" href="#32-deduccion-impuesto-sobre-la-renta-ir" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nueva Deducción</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>IR</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Impuesto sobre la Renta</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Retención de IR según tabla progresiva</code></td>
+</tr>
+<tr>
+<td>Tipo de Deducción</td>
+<td><code>Impuesto</code></td>
+</tr>
+<tr>
+<td>Es Impuesto</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Gravable</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>15.00</code></td>
+</tr>
+<tr>
+<td>Antes de Impuesto</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Cálculo del IR</p>
+<p>En este ejemplo simplificado usamos un porcentaje fijo del 15%. En producción, configure una regla de cálculo con la tabla progresiva completa del IR Nicaragua. Consulte la <a href="../../guia/planillas/">Guía de Configuración de Planillas</a> para más detalles sobre reglas de cálculo y la sección de <a href="../../guia/deducciones/#tablas-de-impuesto">Deducciones</a> para información sobre tablas de impuestos.</p>
+</div>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="33-deduccion-cuota-sindical">3.3 Deducción: Cuota Sindical<a class="headerlink" href="#33-deduccion-cuota-sindical" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nueva Deducción</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>SINDICATO</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Cuota Sindical</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Aporte al sindicato de trabajadores</code></td>
+</tr>
+<tr>
+<td>Tipo de Deducción</td>
+<td><code>Sindical</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Base</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>2.00</code></td>
+</tr>
+<tr>
+<td>Antes de Impuesto</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<hr>
+<h2 id="paso-4-crear-prestaciones">Paso 4: Crear Prestaciones<a class="headerlink" href="#paso-4-crear-prestaciones" title="Permanent link">¶</a></h2>
+<p>Las prestaciones son aportes patronales (la empresa paga, no el empleado).</p>
+<h3 id="41-prestacion-inss-patronal">4.1 Prestación: INSS Patronal<a class="headerlink" href="#41-prestacion-inss-patronal" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Conceptos &gt; Prestaciones</strong></li>
+<li>Haga clic en <strong>Nueva Prestación</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>INSS_PATRONAL</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>INSS Patronal</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Aporte patronal al Seguro Social (22.5%)</code></td>
+</tr>
+<tr>
+<td>Tipo de Prestación</td>
+<td><code>Seguro Social Patronal</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Bruto</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>22.50</code></td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="42-prestacion-inatec">4.2 Prestación: INATEC<a class="headerlink" href="#42-prestacion-inatec" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nueva Prestación</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>INATEC</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Aporte INATEC</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Aporte para capacitación técnica (2%)</code></td>
+</tr>
+<tr>
+<td>Tipo de Prestación</td>
+<td><code>Capacitación</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Bruto</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>2.00</code></td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="43-prestacion-provision-de-vacaciones">4.3 Prestación: Provisión de Vacaciones<a class="headerlink" href="#43-prestacion-provision-de-vacaciones" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nueva Prestación</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>VACACIONES</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Provisión de Vacaciones</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Provisión mensual para vacaciones (8.33%)</code></td>
+</tr>
+<tr>
+<td>Tipo de Prestación</td>
+<td><code>Vacaciones</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Bruto</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>8.33</code></td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="44-prestacion-provision-de-aguinaldo">4.4 Prestación: Provisión de Aguinaldo<a class="headerlink" href="#44-prestacion-provision-de-aguinaldo" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nueva Prestación</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>AGUINALDO</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Provisión de Aguinaldo</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Provisión mensual para treceavo mes (8.33%)</code></td>
+</tr>
+<tr>
+<td>Tipo de Prestación</td>
+<td><code>Aguinaldo</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Bruto</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>8.33</code></td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="45-prestacion-provision-de-indemnizacion">4.5 Prestación: Provisión de Indemnización<a class="headerlink" href="#45-prestacion-provision-de-indemnizacion" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nueva Prestación</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td><code>INDEMNIZACION</code></td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td><code>Provisión de Indemnización</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Provisión mensual por antigüedad (8.33%)</code></td>
+</tr>
+<tr>
+<td>Tipo de Prestación</td>
+<td><code>Indemnización</code></td>
+</tr>
+<tr>
+<td>Tipo de Cálculo</td>
+<td><code>Porcentaje del Salario Bruto</code></td>
+</tr>
+<tr>
+<td>Porcentaje</td>
+<td><code>8.33</code></td>
+</tr>
+<tr>
+<td>Recurrente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<hr>
+<h2 id="paso-5-registrar-empleados">Paso 5: Registrar Empleados<a class="headerlink" href="#paso-5-registrar-empleados" title="Permanent link">¶</a></h2>
+<h3 id="51-empleado-juan-perez">5.1 Empleado: Juan Pérez<a class="headerlink" href="#51-empleado-juan-perez" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Personal &gt; Empleados</strong></li>
+<li>Haga clic en <strong>Nuevo Empleado</strong></li>
+<li>Complete:</li>
+</ol>
+<p><strong>Datos Personales:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primer Nombre</td>
+<td><code>Juan</code></td>
+</tr>
+<tr>
+<td>Primer Apellido</td>
+<td><code>Pérez</code></td>
+</tr>
+<tr>
+<td>Segundo Apellido</td>
+<td><code>García</code></td>
+</tr>
+<tr>
+<td>Identificación Personal</td>
+<td><code>001-150585-0001A</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Datos Laborales:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fecha de Alta</td>
+<td><code>01/01/2020</code></td>
+</tr>
+<tr>
+<td>Cargo</td>
+<td><code>Contador</code></td>
+</tr>
+<tr>
+<td>Área</td>
+<td><code>Administración</code></td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Datos de Pago:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Salario Base</td>
+<td><code>20000.00</code></td>
+</tr>
+<tr>
+<td>Moneda</td>
+<td><code>NIO - Córdoba Nicaragüense</code></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="52-empleado-maria-lopez">5.2 Empleado: María López<a class="headerlink" href="#52-empleado-maria-lopez" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nuevo Empleado</strong></li>
+<li>Complete:</li>
+</ol>
+<p><strong>Datos Personales:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primer Nombre</td>
+<td><code>María</code></td>
+</tr>
+<tr>
+<td>Primer Apellido</td>
+<td><code>López</code></td>
+</tr>
+<tr>
+<td>Segundo Apellido</td>
+<td><code>Rodríguez</code></td>
+</tr>
+<tr>
+<td>Identificación Personal</td>
+<td><code>001-200690-0002B</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Datos Laborales:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fecha de Alta</td>
+<td><code>15/06/2022</code></td>
+</tr>
+<tr>
+<td>Cargo</td>
+<td><code>Asistente Administrativa</code></td>
+</tr>
+<tr>
+<td>Área</td>
+<td><code>Administración</code></td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Datos de Pago:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Salario Base</td>
+<td><code>15000.00</code></td>
+</tr>
+<tr>
+<td>Moneda</td>
+<td><code>NIO - Córdoba Nicaragüense</code></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="53-empleado-carlos-ruiz">5.3 Empleado: Carlos Ruiz<a class="headerlink" href="#53-empleado-carlos-ruiz" title="Permanent link">¶</a></h3>
+<ol>
+<li>Haga clic en <strong>Nuevo Empleado</strong></li>
+<li>Complete:</li>
+</ol>
+<p><strong>Datos Personales:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primer Nombre</td>
+<td><code>Carlos</code></td>
+</tr>
+<tr>
+<td>Primer Apellido</td>
+<td><code>Ruiz</code></td>
+</tr>
+<tr>
+<td>Segundo Apellido</td>
+<td><code>Mendoza</code></td>
+</tr>
+<tr>
+<td>Identificación Personal</td>
+<td><code>001-180795-0003C</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Datos Laborales:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fecha de Alta</td>
+<td><code>01/03/2024</code></td>
+</tr>
+<tr>
+<td>Cargo</td>
+<td><code>Vendedor</code></td>
+</tr>
+<tr>
+<td>Área</td>
+<td><code>Ventas</code></td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Datos de Pago:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Salario Base</td>
+<td><code>12000.00</code></td>
+</tr>
+<tr>
+<td>Moneda</td>
+<td><code>NIO - Córdoba Nicaragüense</code></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<hr>
+<h2 id="paso-6-registrar-prestamo">Paso 6: Registrar Préstamo<a class="headerlink" href="#paso-6-registrar-prestamo" title="Permanent link">¶</a></h2>
+<p>Carlos Ruiz tiene un préstamo aprobado.</p>
+<ol>
+<li>Navegue al módulo de <strong>Adelantos/Préstamos</strong> (o desde el registro del empleado)</li>
+<li>Haga clic en <strong>Nuevo</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Empleado</td>
+<td><code>Carlos Ruiz</code></td>
+</tr>
+<tr>
+<td>Fecha de Solicitud</td>
+<td><code>01/01/2025</code></td>
+</tr>
+<tr>
+<td>Monto Solicitado</td>
+<td><code>6000.00</code></td>
+</tr>
+<tr>
+<td>Cuotas Pactadas</td>
+<td><code>6</code></td>
+</tr>
+<tr>
+<td>Motivo</td>
+<td><code>Gastos médicos</code></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Aprobar el préstamo:</strong></li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Monto Aprobado</td>
+<td><code>6000.00</code></td>
+</tr>
+<tr>
+<td>Fecha de Aprobación</td>
+<td><code>02/01/2025</code></td>
+</tr>
+<tr>
+<td>Monto por Cuota</td>
+<td><code>1000.00</code></td>
+</tr>
+<tr>
+<td>Estado</td>
+<td><code>Aprobado</code></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<hr>
+<h2 id="paso-7-crear-la-planilla">Paso 7: Crear la Planilla<a class="headerlink" href="#paso-7-crear-la-planilla" title="Permanent link">¶</a></h2>
+<h3 id="71-crear-planilla-base">7.1 Crear Planilla Base<a class="headerlink" href="#71-crear-planilla-base" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Planillas</strong></li>
+<li>Haga clic en <strong>Nueva Planilla</strong></li>
+<li>Complete:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nombre</td>
+<td><code>Planilla Mensual NIO</code></td>
+</tr>
+<tr>
+<td>Descripción</td>
+<td><code>Planilla mensual en córdobas</code></td>
+</tr>
+<tr>
+<td>Tipo de Planilla</td>
+<td><code>Mensual</code></td>
+</tr>
+<tr>
+<td>Moneda</td>
+<td><code>NIO - Córdoba Nicaragüense</code></td>
+</tr>
+<tr>
+<td>Aplicar Préstamos Automáticamente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Prioridad Préstamos</td>
+<td><code>250</code></td>
+</tr>
+<tr>
+<td>Aplicar Adelantos Automáticamente</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Prioridad Adelantos</td>
+<td><code>251</code></td>
+</tr>
+<tr>
+<td>Activo</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Guardar</strong></li>
+</ol>
+<h3 id="72-asignar-empleados">7.2 Asignar Empleados<a class="headerlink" href="#72-asignar-empleados" title="Permanent link">¶</a></h3>
+<p>En la pantalla de edición de la planilla:</p>
+<ol>
+<li>En la sección <strong>Empleados</strong>, haga clic en <strong>Agregar</strong></li>
+<li>Agregue cada empleado:</li>
+<li>Juan Pérez</li>
+<li>María López</li>
+<li>Carlos Ruiz</li>
+</ol>
+<h3 id="73-asignar-percepciones">7.3 Asignar Percepciones<a class="headerlink" href="#73-asignar-percepciones" title="Permanent link">¶</a></h3>
+<ol>
+<li>En la sección <strong>Percepciones</strong>, agregue:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Percepción</th>
+<th>Orden</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Horas Extras</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Bono de Productividad</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="74-asignar-deducciones">7.4 Asignar Deducciones<a class="headerlink" href="#74-asignar-deducciones" title="Permanent link">¶</a></h3>
+<ol>
+<li>En la sección <strong>Deducciones</strong>, agregue con las siguientes prioridades:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Deducción</th>
+<th>Prioridad</th>
+<th>Obligatoria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INSS Laboral</td>
+<td>10</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Impuesto sobre la Renta</td>
+<td>50</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Cuota Sindical</td>
+<td>300</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Prioridad de Préstamos</p>
+<p>Los préstamos se deducen automáticamente con prioridad 250 (configurada en la planilla).</p>
+</div>
+<h3 id="75-asignar-prestaciones">7.5 Asignar Prestaciones<a class="headerlink" href="#75-asignar-prestaciones" title="Permanent link">¶</a></h3>
+<ol>
+<li>En la sección <strong>Prestaciones</strong>, agregue:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Prestación</th>
+<th>Orden</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INSS Patronal</td>
+<td>1</td>
+</tr>
+<tr>
+<td>INATEC</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Provisión de Vacaciones</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Provisión de Aguinaldo</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Provisión de Indemnización</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="paso-8-ejecutar-la-nomina">Paso 8: Ejecutar la Nómina<a class="headerlink" href="#paso-8-ejecutar-la-nomina" title="Permanent link">¶</a></h2>
+<h3 id="81-iniciar-ejecucion">8.1 Iniciar Ejecución<a class="headerlink" href="#81-iniciar-ejecucion" title="Permanent link">¶</a></h3>
+<ol>
+<li>Desde la planilla, haga clic en <strong>Ejecutar Nómina</strong></li>
+<li>Configure el período:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Período Inicio</td>
+<td><code>01/01/2025</code></td>
+</tr>
+<tr>
+<td>Período Fin</td>
+<td><code>31/01/2025</code></td>
+</tr>
+<tr>
+<td>Fecha de Cálculo</td>
+<td><code>31/01/2025</code></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Haga clic en <strong>Ejecutar</strong></li>
+</ol>
+<h3 id="82-resultado-esperado">8.2 Resultado Esperado<a class="headerlink" href="#82-resultado-esperado" title="Permanent link">¶</a></h3>
+<h4 id="resumen-de-la-nomina">Resumen de la Nómina<a class="headerlink" href="#resumen-de-la-nomina" title="Permanent link">¶</a></h4>
+<table>
+<thead>
+<tr>
+<th>Empleado</th>
+<th>Salario Bruto</th>
+<th>Deducciones</th>
+<th>Salario Neto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Juan Pérez</td>
+<td>C$ 21,500.00</td>
+<td>C$ 4,285.00</td>
+<td>C$ 17,215.00</td>
+</tr>
+<tr>
+<td>María López</td>
+<td>C$ 16,500.00</td>
+<td>C$ 3,129.00</td>
+<td>C$ 13,371.00</td>
+</tr>
+<tr>
+<td>Carlos Ruiz</td>
+<td>C$ 13,500.00</td>
+<td>C$ 3,460.50</td>
+<td>C$ 10,039.50</td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td><strong>C$ 51,500.00</strong></td>
+<td><strong>C$ 10,874.50</strong></td>
+<td><strong>C$ 40,625.50</strong></td>
+</tr>
+</tbody>
+</table>
+<h4 id="detalle-juan-perez">Detalle: Juan Pérez<a class="headerlink" href="#detalle-juan-perez" title="Permanent link">¶</a></h4>
+<p><strong>Percepciones:</strong>
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Salario Base:           C$ 20,000.00
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Bono de Productividad:  C$  1,500.00
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>---------------------------------
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>SALARIO BRUTO:          C$ 21,500.00
+</span></code></pre></div><p></p>
+<p><strong>Deducciones:</strong>
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>INSS Laboral (7%):      C$  1,505.00
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>IR (15% de base):       C$  2,380.00  (sobre C$ 19,995)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Cuota Sindical (2%):    C$    400.00
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>---------------------------------
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>TOTAL DEDUCCIONES:      C$  4,285.00
+</span></code></pre></div><p></p>
+<p><strong>Salario Neto:</strong> C$ 21,500.00 - C$ 4,285.00 = <strong>C$ 17,215.00</strong></p>
+<p><strong>Prestaciones Patronales:</strong>
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>INSS Patronal (22.5%):  C$  4,837.50
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>INATEC (2%):            C$    430.00
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Vacaciones (8.33%):     C$  1,790.95
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Aguinaldo (8.33%):      C$  1,790.95
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Indemnización (8.33%):  C$  1,790.95
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>---------------------------------
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>TOTAL PRESTACIONES:     C$ 10,640.35
+</span></code></pre></div><p></p>
+<p><strong>Costo Total Empleado:</strong> C$ 21,500.00 + C$ 10,640.35 = <strong>C$ 32,140.35</strong></p>
+<h4 id="detalle-carlos-ruiz-con-prestamo">Detalle: Carlos Ruiz (con préstamo)<a class="headerlink" href="#detalle-carlos-ruiz-con-prestamo" title="Permanent link">¶</a></h4>
+<p><strong>Percepciones:</strong>
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Salario Base:           C$ 12,000.00
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Bono de Productividad:  C$  1,500.00
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>---------------------------------
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>SALARIO BRUTO:          C$ 13,500.00
+</span></code></pre></div><p></p>
+<p><strong>Deducciones:</strong>
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>INSS Laboral (7%):      C$    945.00
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>IR (15% de base):       C$  1,275.50  (sobre C$ 12,555)
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Cuota Préstamo:         C$  1,000.00  ← Automático
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>Cuota Sindical (2%):    C$    240.00
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>---------------------------------
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>TOTAL DEDUCCIONES:      C$  3,460.50
+</span></code></pre></div><p></p>
+<p><strong>Salario Neto:</strong> C$ 13,500.00 - C$ 3,460.50 = <strong>C$ 10,039.50</strong></p>
+<div class="admonition success">
+<p class="admonition-title">Préstamo Actualizado</p>
+<p>Después de la nómina, el préstamo de Carlos Ruiz queda:</p>
+<ul>
+<li>Saldo anterior: C$ 6,000.00</li>
+<li>Cuota pagada: C$ 1,000.00</li>
+<li>Saldo nuevo: C$ 5,000.00</li>
+<li>Cuotas restantes: 5</li>
+</ul>
+</div>
+<h3 id="83-aprobar-la-nomina">8.3 Aprobar la Nómina<a class="headerlink" href="#83-aprobar-la-nomina" title="Permanent link">¶</a></h3>
+<ol>
+<li>Revise todos los detalles</li>
+<li>Verifique que los cálculos son correctos</li>
+<li>Haga clic en <strong>Aprobar</strong></li>
+</ol>
+<h3 id="84-aplicar-la-nomina">8.4 Aplicar la Nómina<a class="headerlink" href="#84-aplicar-la-nomina" title="Permanent link">¶</a></h3>
+<ol>
+<li>Una vez aprobada, haga clic en <strong>Aplicar</strong></li>
+<li>La nómina queda marcada como pagada</li>
+</ol>
+<hr>
+<h2 id="resumen">Resumen<a class="headerlink" href="#resumen" title="Permanent link">¶</a></h2>
+<p>En este tutorial ha aprendido a:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Configurar monedas</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Crear percepciones (ingresos)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Crear deducciones (descuentos)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Crear prestaciones (aportes patronales)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Registrar empleados</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Registrar y aprobar préstamos</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Configurar una planilla completa</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Ejecutar una nómina con todos los componentes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Revisar, aprobar y aplicar la nómina</li>
+</ul>
+<h2 id="siguientes-pasos">Siguientes Pasos<a class="headerlink" href="#siguientes-pasos" title="Permanent link">¶</a></h2>
+<ul>
+<li>Explore las diferentes configuraciones de percepciones y deducciones</li>
+<li>Configure reglas de cálculo para el IR con tabla progresiva</li>
+<li>Configure tipos de cambio si trabaja con múltiples monedas</li>
+<li>Genere reportes de nómina</li>
+<li>Configure campos personalizados para empleados</li>
+</ul>
+<h2 id="recursos-adicionales">Recursos Adicionales<a class="headerlink" href="#recursos-adicionales" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../../guia/empleados/">Gestión de Empleados</a></li>
+<li><a href="../../guia/percepciones/">Percepciones</a></li>
+<li><a href="../../guia/deducciones/">Deducciones</a></li>
+<li><a href="../../guia/prestaciones/">Prestaciones</a></li>
+<li><a href="../../guia/prestamos/">Préstamos y Adelantos</a></li>
+<li><a href="../../guia/planillas/">Configuración de Planillas</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Pie">
+        
+          
+          <a href="../../guia/nomina/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Ejecución de Nómina">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Anterior
+              </span>
+              <div class="md-ellipsis">
+                Ejecución de Nómina
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../referencia/glosario/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Glosario">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Siguiente
+              </span>
+              <div class="md-ellipsis">
+                Glosario
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2025 BMO Soluciones, S.A.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/williamjmorenor/coati" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.footer", "toc.integrate", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
