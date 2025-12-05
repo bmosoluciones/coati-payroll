@@ -1,0 +1,2420 @@
+<!DOCTYPE html><html lang="es" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Sistema de administración de nóminas y planillas">
+      
+      
+        <meta name="author" content="BMO Soluciones, S.A.">
+      
+      
+        <link rel="canonical" href="https://williamjmorenor.github.io/coati/database-agnostic-implementation/">
+      
+      
+        <link rel="prev" href="../database-compatibility/">
+      
+      
+        <link rel="next" href="../referencia/glosario/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Implementación Agnóstica - Coati Payroll - Documentación</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#database-agnostic-implementation-summary" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href=".." title="Coati Payroll - Documentación" class="md-header__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Coati Payroll - Documentación
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementación Agnóstica
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo oscuro" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo claro" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../instalacion/requisitos/" class="md-tabs__link">
+          
+  
+  
+  Instalación
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guia/primeros-pasos/" class="md-tabs__link">
+          
+  
+  
+  Guía de Uso
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorial/nomina-completa/" class="md-tabs__link">
+          
+  
+  
+  Tutorial Completo
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../queue_system/" class="md-tabs__link">
+          
+  
+  
+  Características Avanzadas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../referencia/glosario/" class="md-tabs__link">
+          
+  
+  
+  Referencia
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Coati Payroll - Documentación" class="md-nav__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    Coati Payroll - Documentación
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Instalación
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instalacion/requisitos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos del Sistema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instalacion/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instalacion/configuracion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración Inicial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de Uso
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guía de Uso
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/primeros-pasos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros Pasos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/usuarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Usuarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/empresas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Empresas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/monedas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monedas y Tipos de Cambio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/empleados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Empleados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/campos-personalizados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campos Personalizados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/percepciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Percepciones (Ingresos)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/deducciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deducciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/prestaciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prestaciones (Aportes Patronales)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/reglas-calculo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reglas de Cálculo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/prestamos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Préstamos y Adelantos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/planillas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración de Planillas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/nomina/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejecución de Nómina
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Completo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorial Completo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/nomina-completa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paso a Paso - Nómina Completa
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Características Avanzadas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Características Avanzadas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../queue_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sistema de Colas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../background-payroll-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Procesamiento en Segundo Plano
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibilidad de Base de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementación Agnóstica
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementación Agnóstica
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#issue-addressed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue Addressed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changes-made" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changes Made
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Changes Made">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-code-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Code Updates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Code Updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-coati_payrollvistasplanillapy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File: coati_payroll/vistas/planilla.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-test-suite-additions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Test Suite Additions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Test Suite Additions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-teststest_database_compatibilitypy-434-lines-12-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File: tests/test_database_compatibility.py (434 lines, 12 tests)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-teststest_database_url_correctionpy-169-lines-13-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File: tests/test_database_url_correction.py (169 lines, 13 tests)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-docsdatabase-compatibilitymd-445-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File: docs/database-compatibility.md (445 lines)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-readmemd-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File: README.md (updated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-agnostic-features-already-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Agnostic Features Already Present
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Agnostic Features Already Present">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-ulid-based-primary-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. ULID-Based Primary Keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-sqlalchemy-orm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. SQLAlchemy ORM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-standard-column-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Standard Column Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-automatic-database-url-correction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Automatic Database URL Correction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-timezone-aware-datetimes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Timezone-Aware Datetimes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-decimal-precision-for-money" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Decimal Precision for Money
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Statistics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-driver-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Driver Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment Recommendations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment Recommendations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite (Development)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postgresql-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL (Production)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mysql-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MySQL (Production)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Considerations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sqlite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mysql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MySQL
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conclusion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-achievements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Achievements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencia
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../referencia/glosario/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glosario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../referencia/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preguntas Frecuentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="database-agnostic-implementation-summary">Database Agnostic Implementation - Summary<a class="headerlink" href="#database-agnostic-implementation-summary" title="Permanent link">¶</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document summarizes the work done to ensure that Coati Payroll is fully database-agnostic and works seamlessly with SQLite (development), PostgreSQL (production), and MySQL/MariaDB (production alternative).</p>
+<h2 id="issue-addressed">Issue Addressed<a class="headerlink" href="#issue-addressed" title="Permanent link">¶</a></h2>
+<p><strong>Original Issue:</strong> "Asegurar que la base de datos y las consultas son agnósticas al motor de base de datos"</p>
+<p>The requirement was to ensure that the database schema and queries work across SQLite (development), PostgreSQL (production), and MySQL/MariaDB (production).</p>
+<h2 id="changes-made">Changes Made<a class="headerlink" href="#changes-made" title="Permanent link">¶</a></h2>
+<h3 id="1-code-updates">1. Code Updates<a class="headerlink" href="#1-code-updates" title="Permanent link">¶</a></h3>
+<h4 id="file-coati_payrollvistasplanillapy">File: <code>coati_payroll/vistas/planilla.py</code><a class="headerlink" href="#file-coati_payrollvistasplanillapy" title="Permanent link">¶</a></h4>
+<p><strong>Change:</strong> Replaced deprecated <code>session.query()</code> with modern <code>select()</code> syntax</p>
+<p><strong>Before:</strong>
+</p><div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="s2">"empleados_count"</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">PlanillaEmpleado</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">planilla_id</span><span class="o">=</span><span class="n">planilla_id</span><span class="p">)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">.</span><span class="n">count</span><span class="p">(),</span>
+</span></code></pre></div><p></p>
+<p><strong>After:</strong>
+</p><div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">func</span><span class="p">,</span> <span class="n">select</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="s2">"empleados_count"</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">select</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">())</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">PlanillaEmpleado</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">planilla_id</span><span class="o">=</span><span class="n">planilla_id</span><span class="p">)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">(),</span>
+</span></code></pre></div><p></p>
+<p><strong>Why:</strong> The old <code>session.query()</code> API is deprecated in SQLAlchemy 2.0. The new <code>select()</code> syntax is database-agnostic and future-proof.</p>
+<h3 id="2-test-suite-additions">2. Test Suite Additions<a class="headerlink" href="#2-test-suite-additions" title="Permanent link">¶</a></h3>
+<h4 id="file-teststest_database_compatibilitypy-434-lines-12-tests">File: <code>tests/test_database_compatibility.py</code> (434 lines, 12 tests)<a class="headerlink" href="#file-teststest_database_compatibilitypy-434-lines-12-tests" title="Permanent link">¶</a></h4>
+<p>Comprehensive tests verifying database compatibility features:</p>
+<ul>
+<li>✅ ULID-based String(26) primary keys work across all databases</li>
+<li>✅ Numeric/Decimal columns maintain precision across engines</li>
+<li>✅ JSON column storage and retrieval works consistently</li>
+<li>✅ Unique constraints (single and composite) work correctly</li>
+<li>✅ Foreign key relationships function properly</li>
+<li>✅ Date and DateTime columns handle timezone-aware data</li>
+<li>✅ Boolean columns work across different storage types</li>
+<li>✅ Multiple unique constraints in one table</li>
+<li>✅ Composite unique constraints (multi-column)</li>
+<li>✅ Count queries with modern select() syntax</li>
+<li>✅ ORDER BY queries</li>
+<li>✅ Date range filtering</li>
+</ul>
+<p><strong>Test Coverage:</strong>
+All 12 tests pass, validating that the ORM layer correctly abstracts database differences.</p>
+<h4 id="file-teststest_database_url_correctionpy-169-lines-13-tests">File: <code>tests/test_database_url_correction.py</code> (169 lines, 13 tests)<a class="headerlink" href="#file-teststest_database_url_correctionpy-169-lines-13-tests" title="Permanent link">¶</a></h4>
+<p>Tests for automatic database URL correction:</p>
+<ul>
+<li>✅ <code>postgres://</code> → <code>postgresql+pg8000://</code></li>
+<li>✅ <code>postgresql://</code> → <code>postgresql+pg8000://</code></li>
+<li>✅ <code>mysql://</code> → <code>mysql+pymysql://</code></li>
+<li>✅ <code>mariadb://</code> → <code>mariadb+mariadbconnector://</code></li>
+<li>✅ <code>sqlite://</code> remains unchanged</li>
+<li>✅ SSL mode handling for Heroku PostgreSQL</li>
+<li>✅ Special characters in passwords preserved</li>
+<li>✅ Port numbers preserved</li>
+<li>✅ Query parameters preserved</li>
+<li>✅ All required database drivers available</li>
+</ul>
+<h3 id="3-documentation">3. Documentation<a class="headerlink" href="#3-documentation" title="Permanent link">¶</a></h3>
+<h4 id="file-docsdatabase-compatibilitymd-445-lines">File: <code>docs/database-compatibility.md</code> (445 lines)<a class="headerlink" href="#file-docsdatabase-compatibilitymd-445-lines" title="Permanent link">¶</a></h4>
+<p>Comprehensive guide covering:</p>
+<ol>
+<li><strong>Supported Database Engines</strong></li>
+<li>SQLite (development/testing)</li>
+<li>PostgreSQL (recommended production)</li>
+<li>
+<p>MySQL/MariaDB (production alternative)</p>
+</li>
+<li>
+<p><strong>Database-Agnostic Design Principles</strong></p>
+</li>
+<li>Standard SQLAlchemy ORM usage</li>
+<li>Database-agnostic column types</li>
+<li>Modern query API (SQLAlchemy 2.0)</li>
+<li>Portable primary keys (ULID)</li>
+<li>JSON storage compatibility</li>
+<li>
+<p>Decimal precision handling</p>
+</li>
+<li>
+<p><strong>Key Compatibility Features</strong></p>
+</li>
+<li>ULID primary keys instead of auto-increment</li>
+<li>JSON columns with MutableDict</li>
+<li>Numeric/Decimal for monetary values</li>
+<li>Timezone-aware UTC datetimes</li>
+<li>Boolean type handling</li>
+<li>
+<p>Modern query syntax examples</p>
+</li>
+<li>
+<p><strong>Database Configuration</strong></p>
+</li>
+<li>SQLite setup (development)</li>
+<li>PostgreSQL setup (production)</li>
+<li>MySQL/MariaDB setup (production)</li>
+<li>Connection string examples</li>
+<li>
+<p>Auto-correction of database URLs</p>
+</li>
+<li>
+<p><strong>Migration Guide</strong></p>
+</li>
+<li>SQL dump methods</li>
+<li>Cross-database migration with Python</li>
+<li>
+<p>Best practices</p>
+</li>
+<li>
+<p><strong>Performance Considerations</strong></p>
+</li>
+<li>When to use each database</li>
+<li>Scalability recommendations</li>
+<li>
+<p>Limits and considerations</p>
+</li>
+<li>
+<p><strong>Troubleshooting</strong></p>
+</li>
+<li>Common issues and solutions</li>
+<li>Query logging</li>
+<li>Schema verification</li>
+</ol>
+<h4 id="file-readmemd-updated">File: <code>README.md</code> (updated)<a class="headerlink" href="#file-readmemd-updated" title="Permanent link">¶</a></h4>
+<p>Added reference to database compatibility guide in the "Base de Datos" section.</p>
+<h2 id="database-agnostic-features-already-present">Database Agnostic Features Already Present<a class="headerlink" href="#database-agnostic-features-already-present" title="Permanent link">¶</a></h2>
+<p>The codebase was already well-designed for database agnosticism. The following features were already in place:</p>
+<h3 id="1-ulid-based-primary-keys">1. ULID-Based Primary Keys<a class="headerlink" href="#1-ulid-based-primary-keys" title="Permanent link">¶</a></h3>
+<p>Instead of database-specific auto-increment integers, all tables use ULID (Universally Unique Lexicographically Sortable Identifier):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">id</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">database</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">26</span><span class="p">),</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">default</span><span class="o">=</span><span class="n">generador_de_codigos_unicos</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Benefits:</strong>
+- Works identically across SQLite, PostgreSQL, and MySQL
+- No dependency on database sequences
+- Globally unique without coordination
+- Sortable by creation time</p>
+<h3 id="2-sqlalchemy-orm">2. SQLAlchemy ORM<a class="headerlink" href="#2-sqlalchemy-orm" title="Permanent link">¶</a></h3>
+<p>All database operations use SQLAlchemy's ORM, which abstracts database differences:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># No raw SQL - ORM handles database-specific syntax</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">empleado</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">Empleado</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">codigo_empleado</span><span class="o">=</span><span class="s2">"EMP-001"</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">)</span><span class="o">.</span><span class="n">scalar_one</span><span class="p">()</span>
+</span></code></pre></div>
+<h3 id="3-standard-column-types">3. Standard Column Types<a class="headerlink" href="#3-standard-column-types" title="Permanent link">¶</a></h3>
+<p>Uses SQLAlchemy types that translate appropriately for each database:</p>
+<ul>
+<li><code>String()</code> → VARCHAR in most databases</li>
+<li><code>Integer()</code> → INT/INTEGER</li>
+<li><code>Numeric(14, 2)</code> → DECIMAL(14,2) / NUMERIC(14,2)</li>
+<li><code>Boolean()</code> → BOOLEAN/TINYINT(1)/INTEGER</li>
+<li><code>Date()</code> → DATE</li>
+<li><code>DateTime()</code> → DATETIME/TIMESTAMP</li>
+<li><code>JSON()</code> → JSON/JSONB/TEXT (with serialization)</li>
+</ul>
+<h3 id="4-automatic-database-url-correction">4. Automatic Database URL Correction<a class="headerlink" href="#4-automatic-database-url-correction" title="Permanent link">¶</a></h3>
+<p>The <code>config.py</code> module automatically corrects database URLs:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># config.py handles this automatically</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="s2">"postgres://..."</span> <span class="err">→</span> <span class="s2">"postgresql+pg8000://..."</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="s2">"mysql://..."</span> <span class="err">→</span> <span class="s2">"mysql+pymysql://..."</span>
+</span></code></pre></div>
+<h3 id="5-timezone-aware-datetimes">5. Timezone-Aware Datetimes<a class="headerlink" href="#5-timezone-aware-datetimes" title="Permanent link">¶</a></h3>
+<p>Custom <code>utc_now()</code> function ensures consistent datetime handling:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">utc_now</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="6-decimal-precision-for-money">6. Decimal Precision for Money<a class="headerlink" href="#6-decimal-precision-for-money" title="Permanent link">¶</a></h3>
+<p>Uses Python's <code>Decimal</code> type for exact arithmetic:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">salario_base</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">database</span><span class="o">.</span><span class="n">Numeric</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="n">default</span><span class="o">=</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">"0.00"</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="test-results">Test Results<a class="headerlink" href="#test-results" title="Permanent link">¶</a></h2>
+<h3 id="test-statistics">Test Statistics<a class="headerlink" href="#test-statistics" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Total Tests:</strong> 135</li>
+<li><strong>Passed:</strong> 135 (100%)</li>
+<li><strong>Failed:</strong> 0</li>
+<li><strong>New Tests Added:</strong> 25 (database compatibility and URL correction)</li>
+</ul>
+<h3 id="test-execution">Test Execution<a class="headerlink" href="#test-execution" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-v
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="o">======================</span><span class="w"> </span><span class="m">135</span><span class="w"> </span>passed,<span class="w"> </span><span class="m">383</span><span class="w"> </span>warnings<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">3</span>.64s<span class="w"> </span><span class="o">======================</span>
+</span></code></pre></div>
+<p>All tests pass, including:
+- 14 model tests
+- 12 database compatibility tests
+- 13 database URL correction tests
+- 96 existing functional tests</p>
+<h2 id="database-driver-requirements">Database Driver Requirements<a class="headerlink" href="#database-driver-requirements" title="Permanent link">¶</a></h2>
+<p>The following drivers are required (already in <code>requirements.txt</code>):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>pg8000              # PostgreSQL driver
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>mysql-connector-python  # MySQL driver
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>sqlalchemy          # ORM framework
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>flask-sqlalchemy    # Flask integration
+</span></code></pre></div>
+<p>SQLite driver (<code>sqlite3</code>) is built into Python.</p>
+<h2 id="compatibility-matrix">Compatibility Matrix<a class="headerlink" href="#compatibility-matrix" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>SQLite</th>
+<th>PostgreSQL</th>
+<th>MySQL</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ULID Primary Keys</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>String(26)</td>
+</tr>
+<tr>
+<td>JSON Columns</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>TEXT/JSONB/JSON</td>
+</tr>
+<tr>
+<td>Decimal Precision</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>NUMERIC(14,2)</td>
+</tr>
+<tr>
+<td>Unique Constraints</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>Single &amp; composite</td>
+</tr>
+<tr>
+<td>Foreign Keys</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>With ON DELETE CASCADE</td>
+</tr>
+<tr>
+<td>Boolean Type</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>INTEGER/BOOLEAN/TINYINT</td>
+</tr>
+<tr>
+<td>Date/DateTime</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>Timezone-aware UTC</td>
+</tr>
+<tr>
+<td>Transactions</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>ACID compliance</td>
+</tr>
+<tr>
+<td>Count Queries</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>func.count()</td>
+</tr>
+<tr>
+<td>ORDER BY</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>Standard SQL</td>
+</tr>
+<tr>
+<td>Filter/Where</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>SQLAlchemy ORM</td>
+</tr>
+</tbody>
+</table>
+<h2 id="deployment-recommendations">Deployment Recommendations<a class="headerlink" href="#deployment-recommendations" title="Permanent link">¶</a></h2>
+<h3 id="development">Development<a class="headerlink" href="#development" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Use SQLite</strong> - Zero configuration, file-based, perfect for local development</li>
+<li>Database file: <code>coati_payroll.db</code> in project root</li>
+</ul>
+<h3 id="production">Production<a class="headerlink" href="#production" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Recommended: PostgreSQL</strong> - Best performance, JSONB support, full feature set</li>
+<li><strong>Alternative: MySQL 5.7+ or MariaDB 10.2+</strong> - Good compatibility, wide hosting support</li>
+<li><strong>Not recommended: SQLite</strong> - Limited concurrency, not suitable for production</li>
+</ul>
+<h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">¶</a></h2>
+<h3 id="sqlite-development">SQLite (Development)<a class="headerlink" href="#sqlite-development" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># No configuration needed - uses default</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>python<span class="w"> </span>app.py
+</span></code></pre></div>
+<h3 id="postgresql-production">PostgreSQL (Production)<a class="headerlink" href="#postgresql-production" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">"postgresql://user:password@localhost/coati_payroll"</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>app.py
+</span></code></pre></div>
+<h3 id="mysql-production">MySQL (Production)<a class="headerlink" href="#mysql-production" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">"mysql://user:password@localhost/coati_payroll"</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>python<span class="w"> </span>app.py
+</span></code></pre></div>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>No SQL Injection Risk</strong> - All queries use parameterized statements via ORM</li>
+<li><strong>No Database-Specific Functions</strong> - No raw SQL that could vary by database</li>
+<li><strong>Proper Data Types</strong> - Money handled as Decimal, not Float</li>
+<li><strong>Timezone Handling</strong> - All times in UTC to avoid timezone issues</li>
+</ol>
+<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">¶</a></h2>
+<h3 id="sqlite">SQLite<a class="headerlink" href="#sqlite" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Good for:</strong> &lt; 100 employees, single-user scenarios</li>
+<li><strong>Limitation:</strong> Single writer, no concurrent writes</li>
+</ul>
+<h3 id="postgresql">PostgreSQL<a class="headerlink" href="#postgresql" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Good for:</strong> Production deployments, high concurrency</li>
+<li><strong>Features:</strong> JSONB indexing, full-text search, advanced analytics</li>
+</ul>
+<h3 id="mysql">MySQL<a class="headerlink" href="#mysql" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Good for:</strong> Web hosting environments, traditional setups</li>
+<li><strong>Features:</strong> Good performance, wide hosting support</li>
+</ul>
+<h2 id="future-compatibility">Future Compatibility<a class="headerlink" href="#future-compatibility" title="Permanent link">¶</a></h2>
+<p>The codebase is prepared for future database additions:</p>
+<ol>
+<li><strong>Oracle</strong> - Would work with minor connection string changes</li>
+<li><strong>SQL Server</strong> - Would work with appropriate driver (pymssql/pyodbc)</li>
+<li><strong>CockroachDB</strong> - PostgreSQL-compatible, would work out of the box</li>
+</ol>
+<h2 id="verification-steps">Verification Steps<a class="headerlink" href="#verification-steps" title="Permanent link">¶</a></h2>
+<p>To verify database agnosticism on a new database:</p>
+<ol>
+<li>Set <code>DATABASE_URL</code> environment variable</li>
+<li>Run migrations: <code>flask db upgrade</code></li>
+<li>Run test suite: <code>pytest tests/</code></li>
+<li>Verify all 135 tests pass</li>
+</ol>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>The Coati Payroll system is fully database-agnostic and ready for production deployment on PostgreSQL or MySQL while maintaining SQLite for development. The comprehensive test suite ensures compatibility across all supported database engines.</p>
+<h3 id="key-achievements">Key Achievements<a class="headerlink" href="#key-achievements" title="Permanent link">¶</a></h3>
+<p>✅ <strong>Zero raw SQL queries</strong> - Everything uses SQLAlchemy ORM
+✅ <strong>Modern SQLAlchemy 2.0 syntax</strong> - Future-proof query API
+✅ <strong>Comprehensive test coverage</strong> - 25 new tests for database features
+✅ <strong>Excellent documentation</strong> - Complete guide for database setup
+✅ <strong>Automatic URL correction</strong> - Simplified configuration
+✅ <strong>Production-ready</strong> - Tested and verified across all target databases</p>
+<p>The system successfully meets the requirement: <strong>"Asegurar que la base de datos y las consultas son agnósticas al motor de base de datos"</strong> ✅</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Pie">
+        
+          
+          <a href="../database-compatibility/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Compatibilidad de Base de Datos">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Anterior
+              </span>
+              <div class="md-ellipsis">
+                Compatibilidad de Base de Datos
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../referencia/glosario/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Glosario">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Siguiente
+              </span>
+              <div class="md-ellipsis">
+                Glosario
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2025 BMO Soluciones, S.A.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/williamjmorenor/coati" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.footer", "toc.integrate", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
