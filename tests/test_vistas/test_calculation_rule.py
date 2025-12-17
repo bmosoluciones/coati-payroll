@@ -117,12 +117,12 @@ def test_calculation_rule_edit_updates_rule(app, client, admin_user, db_session)
         )
         db_session.add(rule)
         db_session.commit()
-        db_session.refresh(rule)
+        rule_id = rule.id
 
         login_user(client, admin_user.usuario, "admin-password")
 
         response = client.post(
-            f"/calculation-rule/edit/{rule.id}",
+            f"/calculation-rule/edit/{rule_id}",
             data={
                 "codigo": "VACATION_2025",
                 "nombre": "Vacation Calculation (Updated)",
@@ -140,9 +140,9 @@ def test_calculation_rule_edit_updates_rule(app, client, admin_user, db_session)
         assert response.status_code in [200, 302]
 
         if response.status_code == 302:
-            db_session.refresh(rule)
-            assert rule.nombre == "Vacation Calculation (Updated)"
-            assert rule.version == "2"  # Version is stored as string in form
+            updated_rule = db_session.query(ReglaCalculo).filter_by(id=rule_id).first()
+            assert updated_rule.nombre == "Vacation Calculation (Updated)"
+            assert updated_rule.version == "2"  # Version is stored as string in form
 
 
 def test_calculation_rule_delete_removes_rule(app, client, admin_user, db_session):

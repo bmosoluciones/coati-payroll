@@ -283,12 +283,12 @@ def test_currency_edit_post_updates_currency(app, client, admin_user, db_session
         currency = Moneda(codigo="CAD", nombre="Canadian Dollar", simbolo="$", activo=True, creado_por="admin-test")
         db_session.add(currency)
         db_session.commit()
-        db_session.refresh(currency)
+        currency_id = currency.id
 
         login_user(client, admin_user.usuario, "admin-password")
 
         response = client.post(
-            f"/currency/edit/{currency.id}",
+            f"/currency/edit/{currency_id}",
             data={
                 "codigo": "CAD",
                 "nombre": "Canadian Dollar (Updated)",
@@ -301,11 +301,11 @@ def test_currency_edit_post_updates_currency(app, client, admin_user, db_session
         # Should redirect to index
         assert response.status_code == 302
 
-        # Verify currency was updated
-        db_session.refresh(currency)
-        assert currency.nombre == "Canadian Dollar (Updated)"
-        assert currency.simbolo == "C$"
-        assert currency.modificado_por == "admin-test"
+        # Verify currency was updated - use fresh query
+        updated_currency = db_session.query(Moneda).filter_by(id=currency_id).first()
+        assert updated_currency.nombre == "Canadian Dollar (Updated)"
+        assert updated_currency.simbolo == "C$"
+        assert updated_currency.modificado_por == "admin-test"
 
 
 def test_currency_edit_nonexistent_shows_error(app, client, admin_user, db_session):
