@@ -9,13 +9,13 @@
         <meta name="author" content="BMO Soluciones, S.A.">
       
       
-        <link rel="canonical" href="https://williamjmorenor.github.io/coati/guia/nomina/">
+        <link rel="canonical" href="https://williamjmorenor.github.io/coati/guia/vacaciones/">
       
       
-        <link rel="prev" href="../planillas/">
+        <link rel="prev" href="../nomina/">
       
       
-        <link rel="next" href="../vacaciones/">
+        <link rel="next" href="../configuracion-contable/">
       
       
         
@@ -26,7 +26,7 @@
     
     
       
-        <title>Ejecución de Nómina - Coati Payroll - Documentación</title>
+        <title>Gestión de Vacaciones - Coati Payroll - Documentación</title>
       
     
     
@@ -87,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ejecucion-de-nomina" class="md-skip">
+        <a href="#guia-de-usuario-modulo-de-vacaciones" class="md-skip">
           Saltar a contenido
         </a>
       
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Ejecución de Nómina
+              Gestión de Vacaciones
             
           </span>
         </div>
@@ -1037,6 +1037,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../nomina/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejecución de Nómina
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1056,7 +1084,7 @@
   <span class="md-ellipsis">
     
   
-    Ejecución de Nómina
+    Gestión de Vacaciones
   
 
     
@@ -1074,7 +1102,7 @@
   <span class="md-ellipsis">
     
   
-    Ejecución de Nómina
+    Gestión de Vacaciones
   
 
     
@@ -1100,10 +1128,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requisitos-previos" class="md-nav__link">
+  <a href="#introduccion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Requisitos Previos
+        Introducción
       
     </span>
   </a>
@@ -1111,33 +1139,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#acceder-a-la-ejecucion" class="md-nav__link">
+  <a href="#conceptos-clave" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Acceder a la Ejecución
+        Conceptos Clave
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configurar-el-periodo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configurar el Período
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configurar el Período">
+    <nav class="md-nav" aria-label="Conceptos Clave">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#campos-del-periodo" class="md-nav__link">
+  <a href="#politica-de-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Campos del Período
+        Política de Vacaciones
       
     </span>
   </a>
@@ -1145,10 +1162,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sugerencia-automatica" class="md-nav__link">
+  <a href="#cuenta-de-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sugerencia Automática
+        Cuenta de Vacaciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#libro-mayor-ledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Libro Mayor (Ledger)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#novedades-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Novedades de Vacaciones
       
     </span>
   </a>
@@ -1161,22 +1200,89 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ejecutar-la-nomina" class="md-nav__link">
+  <a href="#configuracion-inicial" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ejecutar la Nómina
+        Configuración Inicial
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Ejecutar la Nómina">
+    <nav class="md-nav" aria-label="Configuración Inicial">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#proceso-de-ejecucion" class="md-nav__link">
+  <a href="#paso-0-cargar-saldos-iniciales-solo-durante-implementacion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Proceso de Ejecución
+        Paso 0: Cargar Saldos Iniciales (Solo Durante Implementación)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 0: Cargar Saldos Iniciales (Solo Durante Implementación)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#opcion-a-carga-individual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opción A: Carga Individual
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opcion-b-carga-masiva-desde-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opción B: Carga Masiva desde Excel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#paso-1-crear-una-politica-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 1: Crear una Política de Vacaciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Paso 1: Crear una Política de Vacaciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ejemplos-de-configuracion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejemplos de Configuración
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#paso-2-crear-cuentas-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paso 2: Crear Cuentas de Vacaciones
       
     </span>
   </a>
@@ -1189,22 +1295,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#resultado-de-la-ejecucion" class="md-nav__link">
+  <a href="#uso-diario" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Resultado de la Ejecución
+        Uso Diario
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Resultado de la Ejecución">
+    <nav class="md-nav" aria-label="Uso Diario">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#mensajes-de-exito" class="md-nav__link">
+  <a href="#importante-dias-calendario-vs-dias-de-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Mensajes de Éxito
+        ⚠️ IMPORTANTE: Días Calendario vs. Días de Vacaciones
       
     </span>
   </a>
@@ -1212,10 +1318,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#errores" class="md-nav__link">
+  <a href="#registrar-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Errores
+        Registrar Vacaciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Registrar Vacaciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#opcion-1-registro-directo-de-vacaciones-descansadas-recomendado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opción 1: Registro Directo de Vacaciones Descansadas (Recomendado)
       
     </span>
   </a>
@@ -1223,10 +1341,48 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#advertencias" class="md-nav__link">
+  <a href="#opcion-2-solicitud-con-aprobacion-para-planificacion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Advertencias
+        Opción 2: Solicitud con Aprobación (Para Planificación)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opcion-3-a-traves-de-novedades-de-nomina" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opción 3: A través de Novedades de Nómina
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aprobarrechazar-solicitudes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aprobar/Rechazar Solicitudes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consultar-balance-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consultar Balance de Vacaciones
       
     </span>
   </a>
@@ -1239,22 +1395,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ver-detalle-de-la-nomina" class="md-nav__link">
+  <a href="#integracion-con-nomina" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ver Detalle de la Nómina
+        Integración con Nómina
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Ver Detalle de la Nómina">
+    <nav class="md-nav" aria-label="Integración con Nómina">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#resumen-general" class="md-nav__link">
+  <a href="#acumulacion-automatica" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Resumen General
+        Acumulación Automática
       
     </span>
   </a>
@@ -1262,10 +1418,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#lista-de-empleados" class="md-nav__link">
+  <a href="#procesamiento-de-vacaciones-tomadas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Lista de Empleados
+        Procesamiento de Vacaciones Tomadas
       
     </span>
   </a>
@@ -1273,121 +1429,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#detalle-por-empleado" class="md-nav__link">
+  <a href="#crear-novedades-de-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Detalle por Empleado
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Detalle por Empleado">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#percepciones" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Percepciones
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#deducciones" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Deducciones
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#prestaciones-costos-patronales" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prestaciones (Costos Patronales)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#resumen" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resumen
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#estados-de-la-nomina" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Estados de la Nómina
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Estados de la Nómina">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#flujo-de-estados" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flujo de Estados
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#descripcion-de-estados" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Descripción de Estados
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#aprobar-nomina" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Aprobar Nómina
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#aplicar-nomina" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Aplicar Nómina
+        Crear Novedades de Vacaciones
       
     </span>
   </a>
@@ -1400,33 +1445,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#historial-de-nominas" class="md-nav__link">
+  <a href="#casos-de-uso-especiales" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Historial de Nóminas
+        Casos de Uso Especiales
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#novedades-de-nomina" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Novedades de Nómina
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Novedades de Nómina">
+    <nav class="md-nav" aria-label="Casos de Uso Especiales">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#acceder-al-modulo-de-novedades" class="md-nav__link">
+  <a href="#ajuste-manual-de-balance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Acceder al Módulo de Novedades
+        Ajuste Manual de Balance
       
     </span>
   </a>
@@ -1434,10 +1468,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tipos-de-novedades" class="md-nav__link">
+  <a href="#vacaciones-adelantadas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tipos de Novedades
+        Vacaciones Adelantadas
       
     </span>
   </a>
@@ -1445,10 +1479,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#asociacion-con-conceptos" class="md-nav__link">
+  <a href="#pago-de-vacaciones-al-terminar" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Asociación con Conceptos
+        Pago de Vacaciones al Terminar
       
     </span>
   </a>
@@ -1456,54 +1490,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#registrar-nueva-novedad" class="md-nav__link">
+  <a href="#vencimiento-de-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Registrar Nueva Novedad
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#editar-novedad" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Editar Novedad
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#eliminar-novedad" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Eliminar Novedad
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejemplo-de-uso" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ejemplo de Uso
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#aplicacion-de-novedades" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Aplicación de Novedades
+        Vencimiento de Vacaciones
       
     </span>
   </a>
@@ -1516,22 +1506,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#calculos-importantes" class="md-nav__link">
+  <a href="#reportes-y-consultas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cálculos Importantes
+        Reportes y Consultas
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Cálculos Importantes">
+    <nav class="md-nav" aria-label="Reportes y Consultas">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#salario-bruto" class="md-nav__link">
+  <a href="#consultar-historial-de-movimientos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Salario Bruto
+        Consultar Historial de Movimientos
       
     </span>
   </a>
@@ -1539,10 +1529,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#salario-neto" class="md-nav__link">
+  <a href="#dashboard-de-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Salario Neto
+        Dashboard de Vacaciones
       
     </span>
   </a>
@@ -1550,21 +1540,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#base-gravable-para-ir" class="md-nav__link">
+  <a href="#filtrar-solicitudes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Base Gravable (para IR)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#costo-total-empleado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Costo Total Empleado
+        Filtrar Solicitudes
       
     </span>
   </a>
@@ -1577,80 +1556,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ejemplo-completo" class="md-nav__link">
+  <a href="#mejores-practicas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ejemplo Completo
+        Mejores Prácticas
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Ejemplo Completo">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#empleado-maria-lopez" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Empleado: María López
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#buenas-practicas" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Buenas Prácticas
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Buenas Prácticas">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#antes-de-ejecutar" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Antes de Ejecutar
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#durante-la-revision" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Durante la Revisión
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#despues-de-aplicar" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Después de Aplicar
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1667,10 +1579,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#la-nomina-no-procesa-ningun-empleado" class="md-nav__link">
+  <a href="#el-empleado-no-tiene-cuenta-de-vacaciones" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "La nómina no procesa ningún empleado"
+        El empleado no tiene cuenta de vacaciones
       
     </span>
   </a>
@@ -1678,10 +1590,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#calculo-de-ir-incorrecto" class="md-nav__link">
+  <a href="#no-se-acumulan-vacaciones-en-la-nomina" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "Cálculo de IR incorrecto"
+        No se acumulan vacaciones en la nómina
       
     </span>
   </a>
@@ -1689,10 +1601,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#prestamo-no-se-dedujo" class="md-nav__link">
+  <a href="#balance-insuficiente-para-solicitud" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "Préstamo no se dedujo"
+        Balance insuficiente para solicitud
       
     </span>
   </a>
@@ -1704,38 +1616,43 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#auditoria-y-cumplimiento-legal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auditoría y Cumplimiento Legal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preguntas-frecuentes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preguntas Frecuentes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soporte" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Soporte
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../vacaciones/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Gestión de Vacaciones
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -2393,617 +2310,435 @@
   
 
 
-<h1 id="ejecucion-de-nomina">Ejecución de Nómina<a class="headerlink" href="#ejecucion-de-nomina" title="Permanent link">¶</a></h1>
-<p>Esta guía explica cómo ejecutar una nómina completa en Coati Payroll.</p>
-<h2 id="requisitos-previos">Requisitos Previos<a class="headerlink" href="#requisitos-previos" title="Permanent link">¶</a></h2>
-<p>Antes de ejecutar una nómina, asegúrese de tener:</p>
-<ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Planilla configurada y activa</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Empleados asignados a la planilla</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Percepciones asignadas (si aplica)</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Deducciones asignadas con prioridades</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Prestaciones asignadas</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked><span class="task-list-indicator"></span></label> Tipos de cambio actualizados (si hay multi-moneda)</li>
-</ul>
-<h2 id="acceder-a-la-ejecucion">Acceder a la Ejecución<a class="headerlink" href="#acceder-a-la-ejecucion" title="Permanent link">¶</a></h2>
+<h1 id="guia-de-usuario-modulo-de-vacaciones">Guía de Usuario - Módulo de Vacaciones<a class="headerlink" href="#guia-de-usuario-modulo-de-vacaciones" title="Permanent link">¶</a></h1>
+<h2 id="introduccion">Introducción<a class="headerlink" href="#introduccion" title="Permanent link">¶</a></h2>
+<p>El módulo de vacaciones de Coati Payroll permite gestionar de forma robusta y auditable las vacaciones de los empleados. Este módulo es completamente flexible y se adapta a las regulaciones de cualquier país de América.</p>
+<h2 id="conceptos-clave">Conceptos Clave<a class="headerlink" href="#conceptos-clave" title="Permanent link">¶</a></h2>
+<h3 id="politica-de-vacaciones">Política de Vacaciones<a class="headerlink" href="#politica-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Define las reglas de cómo se acumulan, usan y vencen las vacaciones. Una política puede aplicarse a:
+- Una planilla específica (recomendado para multi-país)
+- Una empresa completa
+- Todo el sistema (política global)</p>
+<h3 id="cuenta-de-vacaciones">Cuenta de Vacaciones<a class="headerlink" href="#cuenta-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Cada empleado tiene una cuenta de vacaciones que:
+- Está asociada a una política específica
+- Mantiene el balance actual de días/horas disponibles
+- Registra la última fecha de acumulación</p>
+<h3 id="libro-mayor-ledger">Libro Mayor (Ledger)<a class="headerlink" href="#libro-mayor-ledger" title="Permanent link">¶</a></h3>
+<p>Es el registro inmutable de todos los movimientos de vacaciones. Incluye:
+- <strong>Acumulación (ACCRUAL)</strong>: Vacaciones ganadas
+- <strong>Uso (USAGE)</strong>: Vacaciones tomadas
+- <strong>Ajuste (ADJUSTMENT)</strong>: Correcciones manuales
+- <strong>Vencimiento (EXPIRATION)</strong>: Vacaciones expiradas
+- <strong>Pago (PAYOUT)</strong>: Vacaciones pagadas al terminar relación laboral</p>
+<h3 id="novedades-de-vacaciones">Novedades de Vacaciones<a class="headerlink" href="#novedades-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Son solicitudes de tiempo libre que:
+- Deben ser aprobadas por un administrador
+- Se procesan automáticamente durante la ejecución de la nómina
+- Reducen el balance de vacaciones del empleado</p>
+<h2 id="configuracion-inicial">Configuración Inicial<a class="headerlink" href="#configuracion-inicial" title="Permanent link">¶</a></h2>
+<h3 id="paso-0-cargar-saldos-iniciales-solo-durante-implementacion">Paso 0: Cargar Saldos Iniciales (Solo Durante Implementación)<a class="headerlink" href="#paso-0-cargar-saldos-iniciales-solo-durante-implementacion" title="Permanent link">¶</a></h3>
+<p><strong>IMPORTANTE</strong>: Si está implementando el sistema en una empresa que ya tiene empleados con vacaciones acumuladas, debe cargar los saldos iniciales ANTES de comenzar a procesar nóminas.</p>
+<h4 id="opcion-a-carga-individual">Opción A: Carga Individual<a class="headerlink" href="#opcion-a-carga-individual" title="Permanent link">¶</a></h4>
+<p>Para empresas pequeñas o para cargar empleados específicos:</p>
 <ol>
-<li>Navegue a <strong>Planillas</strong></li>
-<li>Haga clic en la planilla deseada</li>
-<li>Haga clic en <strong>Ejecutar Nómina</strong></li>
+<li>Navegue a <strong>Vacaciones → Dashboard</strong></li>
+<li>En la sección <strong>Carga de Saldos Iniciales</strong>, haga clic en <strong>Carga Individual</strong></li>
+<li>Seleccione el empleado</li>
+<li>Ingrese el <strong>Saldo Inicial</strong> (días u horas acumuladas)</li>
+<li>Seleccione la <strong>Fecha de Corte</strong> (típicamente la fecha de implementación del sistema)</li>
+<li>Agregue observaciones si es necesario</li>
+<li>Haga clic en <strong>Cargar Saldo Inicial</strong></li>
 </ol>
-<h2 id="configurar-el-periodo">Configurar el Período<a class="headerlink" href="#configurar-el-periodo" title="Permanent link">¶</a></h2>
-<h3 id="campos-del-periodo">Campos del Período<a class="headerlink" href="#campos-del-periodo" title="Permanent link">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th>Campo</th>
-<th>Descripción</th>
-<th>Ejemplo</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Período Inicio</td>
-<td>Primer día del período</td>
-<td>01/01/2025</td>
-</tr>
-<tr>
-<td>Período Fin</td>
-<td>Último día del período</td>
-<td>31/01/2025</td>
-</tr>
-<tr>
-<td>Fecha de Cálculo</td>
-<td>Fecha para cálculos (tipo cambio, vigencia)</td>
-<td>31/01/2025</td>
-</tr>
-</tbody>
-</table>
-<h3 id="sugerencia-automatica">Sugerencia Automática<a class="headerlink" href="#sugerencia-automatica" title="Permanent link">¶</a></h3>
-<p>El sistema sugiere fechas basándose en:</p>
-<ul>
-<li>La última nómina ejecutada (si existe)</li>
-<li>El tipo de periodicidad de la planilla</li>
-</ul>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Si última nómina: 01/12/2024 - 31/12/2024
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Entonces sugiere: 01/01/2025 - 31/01/2025
-</span></code></pre></div>
-<h2 id="ejecutar-la-nomina">Ejecutar la Nómina<a class="headerlink" href="#ejecutar-la-nomina" title="Permanent link">¶</a></h2>
+<p><strong>Requisitos</strong>:
+- El empleado debe tener una cuenta de vacaciones activa
+- La cuenta no debe tener movimientos previos</p>
+<h4 id="opcion-b-carga-masiva-desde-excel">Opción B: Carga Masiva desde Excel<a class="headerlink" href="#opcion-b-carga-masiva-desde-excel" title="Permanent link">¶</a></h4>
+<p>Para empresas con muchos empleados:</p>
 <ol>
-<li>Verifique las fechas del período</li>
-<li>Haga clic en <strong>Ejecutar Nómina</strong></li>
-<li>Espere a que el sistema procese</li>
+<li>Prepare un archivo Excel con las siguientes columnas (sin encabezados):</li>
+<li><strong>Columna A</strong>: Código de Empleado (ej: <code>EMP001</code>)</li>
+<li><strong>Columna B</strong>: Saldo Inicial (ej: <code>15.5</code>)</li>
+<li><strong>Columna C</strong>: Fecha de Corte en formato <code>DD/MM/YYYY</code> (ej: <code>31/12/2024</code>)</li>
+<li>
+<p><strong>Columna D</strong>: Observaciones (opcional)</p>
+</li>
+<li>
+<p>Ejemplo de archivo Excel:
+   </p><div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>EMP001    15.5    31/12/2024    Saldo inicial 2024
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>EMP002    20.0    31/12/2024    Vacaciones acumuladas
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>EMP003    8.75    31/12/2024
+</span></code></pre></div><p></p>
+</li>
+<li>
+<p>Navegue a <strong>Vacaciones → Dashboard</strong></p>
+</li>
+<li>En la sección <strong>Carga de Saldos Iniciales</strong>, haga clic en <strong>Carga Masiva (Excel)</strong></li>
+<li>Suba el archivo Excel</li>
+<li>Revise los resultados de la carga</li>
 </ol>
-<h3 id="proceso-de-ejecucion">Proceso de Ejecución<a class="headerlink" href="#proceso-de-ejecucion" title="Permanent link">¶</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
-    participant U as Usuario
-    participant S as Sistema
-    participant BD as Base de Datos
-
-    U-&gt;&gt;S: Ejecutar Nómina
-    S-&gt;&gt;S: Validar Planilla
-    S-&gt;&gt;BD: Cargar Empleados
-
-    loop Por cada Empleado
-        S-&gt;&gt;S: Obtener tipo de cambio
-        S-&gt;&gt;S: Cargar novedades
-        S-&gt;&gt;S: Calcular percepciones
-        S-&gt;&gt;S: Calcular deducciones
-        S-&gt;&gt;S: Calcular prestaciones
-        S-&gt;&gt;BD: Guardar detalle empleado
-    end
-
-    S-&gt;&gt;BD: Guardar totales nómina
-    S--&gt;&gt;U: Mostrar resultados</code></pre>
-<h2 id="resultado-de-la-ejecucion">Resultado de la Ejecución<a class="headerlink" href="#resultado-de-la-ejecucion" title="Permanent link">¶</a></h2>
-<h3 id="mensajes-de-exito">Mensajes de Éxito<a class="headerlink" href="#mensajes-de-exito" title="Permanent link">¶</a></h3>
-<p>Si todo es correcto, verá:</p>
-<ul>
-<li>✅ "Nómina generada exitosamente"</li>
-<li>Redirección al detalle de la nómina</li>
+<p><strong>Validaciones Automáticas</strong>:
+- Verifica que los empleados existan y estén activos
+- Verifica que cada empleado tenga una cuenta de vacaciones activa
+- Verifica que las cuentas no tengan movimientos previos
+- Reporta errores por fila para facilitar correcciones</p>
+<p><strong>Notas Importantes</strong>:
+- Solo puede cargar saldos iniciales en cuentas sin historial
+- El sistema crea una entrada de tipo <code>ADJUSTMENT</code> en el libro mayor
+- Todos los movimientos quedan registrados con auditoría completa</p>
+<h3 id="paso-1-crear-una-politica-de-vacaciones">Paso 1: Crear una Política de Vacaciones<a class="headerlink" href="#paso-1-crear-una-politica-de-vacaciones" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Vacaciones → Políticas de Vacaciones</strong></li>
+<li>Haga clic en <strong>Nueva Política</strong></li>
+<li>Complete la información básica:</li>
+<li><strong>Código</strong>: Identificador único (ej: <code>NIC-STANDARD</code>, <code>USA-HOURLY</code>)</li>
+<li><strong>Nombre</strong>: Nombre descriptivo</li>
+<li><strong>Descripción</strong>: Detalles de la política</li>
+<li><strong>Planilla</strong>: Seleccione la planilla a la que aplica (recomendado)</li>
+<li>
+<p><strong>Empresa</strong>: Opcional, para políticas que aplican a toda la empresa</p>
+</li>
+<li>
+<p>Configure la <strong>Acumulación</strong>:</p>
+</li>
+<li><strong>Método de Acumulación</strong>:<ul>
+<li><code>Periódico</code>: Cantidad fija por período</li>
+<li><code>Proporcional</code>: Basado en días/horas trabajadas</li>
+<li><code>Por Antigüedad</code>: Escalonado por años de servicio</li>
 </ul>
-<h3 id="errores">Errores<a class="headerlink" href="#errores" title="Permanent link">¶</a></h3>
-<p>Si hay errores, verá mensajes como:</p>
-<ul>
-<li>❌ "La planilla no está activa"</li>
-<li>❌ "La planilla no tiene empleados asignados"</li>
-<li>❌ "Error procesando empleado X"</li>
-</ul>
-<h3 id="advertencias">Advertencias<a class="headerlink" href="#advertencias" title="Permanent link">¶</a></h3>
-<p>Las advertencias no detienen la ejecución pero indican situaciones especiales:</p>
-<ul>
-<li>⚠️ "Empleado X no está activo y será omitido"</li>
-<li>⚠️ "No se encontró tipo de cambio para empleado X. Usando 1.00"</li>
-<li>⚠️ "Deducción X omitida por saldo insuficiente"</li>
-<li>⚠️ "Salario neto negativo. Ajustando a 0.00"</li>
-</ul>
-<h2 id="ver-detalle-de-la-nomina">Ver Detalle de la Nómina<a class="headerlink" href="#ver-detalle-de-la-nomina" title="Permanent link">¶</a></h2>
-<p>Después de ejecutar, puede ver:</p>
-<h3 id="resumen-general">Resumen General<a class="headerlink" href="#resumen-general" title="Permanent link">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th>Campo</th>
-<th>Descripción</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Planilla</td>
-<td>Nombre de la planilla</td>
-</tr>
-<tr>
-<td>Período</td>
-<td>Fechas de inicio y fin</td>
-</tr>
-<tr>
-<td>Estado</td>
-<td>Generado, Aprobado, Aplicado</td>
-</tr>
-<tr>
-<td>Total Bruto</td>
-<td>Suma de salarios brutos</td>
-</tr>
-<tr>
-<td>Total Deducciones</td>
-<td>Suma de deducciones</td>
-</tr>
-<tr>
-<td>Total Neto</td>
-<td>Suma de salarios netos</td>
-</tr>
-</tbody>
-</table>
-<h3 id="lista-de-empleados">Lista de Empleados<a class="headerlink" href="#lista-de-empleados" title="Permanent link">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th>Empleado</th>
-<th>Bruto</th>
-<th>Deducciones</th>
-<th>Neto</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Juan Pérez</td>
-<td>C$ 20,000</td>
-<td>C$ 3,200</td>
-<td>C$ 16,800</td>
-</tr>
-<tr>
-<td>María López</td>
-<td>C$ 25,000</td>
-<td>C$ 4,500</td>
-<td>C$ 20,500</td>
-</tr>
-<tr>
-<td><strong>Total</strong></td>
-<td><strong>C$ 45,000</strong></td>
-<td><strong>C$ 7,700</strong></td>
-<td><strong>C$ 37,300</strong></td>
-</tr>
-</tbody>
-</table>
-<h3 id="detalle-por-empleado">Detalle por Empleado<a class="headerlink" href="#detalle-por-empleado" title="Permanent link">¶</a></h3>
-<p>Al hacer clic en un empleado, verá:</p>
-<h4 id="percepciones">Percepciones<a class="headerlink" href="#percepciones" title="Permanent link">¶</a></h4>
-<table>
-<thead>
-<tr>
-<th>Código</th>
-<th>Descripción</th>
-<th>Monto</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>SALARIO_BASE</td>
-<td>Salario Base</td>
-<td>C$ 20,000.00</td>
-</tr>
-<tr>
-<td>HRS_EXTRA</td>
-<td>Horas Extras</td>
-<td>C$ 1,500.00</td>
-</tr>
-<tr>
-<td><strong>Total Ingresos</strong></td>
-<td></td>
-<td><strong>C$ 21,500.00</strong></td>
-</tr>
-</tbody>
-</table>
-<h4 id="deducciones">Deducciones<a class="headerlink" href="#deducciones" title="Permanent link">¶</a></h4>
-<table>
-<thead>
-<tr>
-<th>Código</th>
-<th>Descripción</th>
-<th>Monto</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>INSS_LABORAL</td>
-<td>INSS Laboral 7%</td>
-<td>C$ 1,505.00</td>
-</tr>
-<tr>
-<td>IR</td>
-<td>Impuesto sobre la Renta</td>
-<td>C$ 850.00</td>
-</tr>
-<tr>
-<td>PRESTAMO_001</td>
-<td>Cuota préstamo</td>
-<td>C$ 2,000.00</td>
-</tr>
-<tr>
-<td><strong>Total Deducciones</strong></td>
-<td></td>
-<td><strong>C$ 4,355.00</strong></td>
-</tr>
-</tbody>
-</table>
-<h4 id="prestaciones-costos-patronales">Prestaciones (Costos Patronales)<a class="headerlink" href="#prestaciones-costos-patronales" title="Permanent link">¶</a></h4>
-<table>
-<thead>
-<tr>
-<th>Código</th>
-<th>Descripción</th>
-<th>Monto</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>INSS_PATRONAL</td>
-<td>INSS Patronal 22.5%</td>
-<td>C$ 4,837.50</td>
-</tr>
-<tr>
-<td>INATEC</td>
-<td>INATEC 2%</td>
-<td>C$ 430.00</td>
-</tr>
-<tr>
-<td>VACACIONES</td>
-<td>Provisión Vacaciones</td>
-<td>C$ 1,791.05</td>
-</tr>
-<tr>
-<td>AGUINALDO</td>
-<td>Provisión Aguinaldo</td>
-<td>C$ 1,791.05</td>
-</tr>
-<tr>
-<td>INDEMNIZACION</td>
-<td>Provisión Indemnización</td>
-<td>C$ 1,791.05</td>
-</tr>
-<tr>
-<td><strong>Total Prestaciones</strong></td>
-<td></td>
-<td><strong>C$ 10,640.65</strong></td>
-</tr>
-</tbody>
-</table>
-<h4 id="resumen">Resumen<a class="headerlink" href="#resumen" title="Permanent link">¶</a></h4>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Salario Bruto:           C$ 21,500.00
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>(-) Total Deducciones:   C$  4,355.00
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>(=) Salario Neto:        C$ 17,145.00
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>Costo Total Empleado:
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  Salario Bruto:         C$ 21,500.00
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  (+) Prestaciones:      C$ 10,640.65
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  (=) Costo Total:       C$ 32,140.65
-</span></code></pre></div>
-<h2 id="estados-de-la-nomina">Estados de la Nómina<a class="headerlink" href="#estados-de-la-nomina" title="Permanent link">¶</a></h2>
-<h3 id="flujo-de-estados">Flujo de Estados<a class="headerlink" href="#flujo-de-estados" title="Permanent link">¶</a></h3>
-<pre class="mermaid"><code>stateDiagram-v2
-    [*] --&gt; Generado: Ejecutar Nómina
-    Generado --&gt; Aprobado: Aprobar
-    Aprobado --&gt; Aplicado: Aplicar
-    Aplicado --&gt; [*]</code></pre>
-<h3 id="descripcion-de-estados">Descripción de Estados<a class="headerlink" href="#descripcion-de-estados" title="Permanent link">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th>Estado</th>
-<th>Descripción</th>
-<th>Acciones Posibles</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Generado</strong></td>
-<td>Nómina calculada, pendiente de revisión</td>
-<td>Revisar, Aprobar</td>
-</tr>
-<tr>
-<td><strong>Aprobado</strong></td>
-<td>Nómina revisada, autorizada para pago</td>
-<td>Aplicar</td>
-</tr>
-<tr>
-<td><strong>Aplicado</strong></td>
-<td>Nómina pagada</td>
-<td>Solo consulta</td>
-</tr>
-</tbody>
-</table>
-<h3 id="aprobar-nomina">Aprobar Nómina<a class="headerlink" href="#aprobar-nomina" title="Permanent link">¶</a></h3>
-<ol>
-<li>Revise el detalle de la nómina</li>
-<li>Verifique los cálculos</li>
-<li>Haga clic en <strong>Aprobar</strong></li>
+</li>
+<li><strong>Tasa de Acumulación</strong>: Cantidad que se acumula por período</li>
+<li><strong>Frecuencia</strong>: Mensual, Quincenal o Anual</li>
+<li>
+<p><strong>Días Mínimos de Servicio</strong>: Días antes de comenzar a acumular</p>
+</li>
+<li>
+<p>Configure los <strong>Límites</strong>:</p>
+</li>
+<li><strong>Balance Máximo</strong>: Límite total de vacaciones acumulables</li>
+<li><strong>Límite de Traspaso</strong>: Máximo que puede pasar al siguiente período</li>
+<li>
+<p><strong>Permitir Balance Negativo</strong>: Si se permiten vacaciones adelantadas</p>
+</li>
+<li>
+<p>Configure el <strong>Vencimiento</strong>:</p>
+</li>
+<li><strong>Regla de Vencimiento</strong>: Cuándo expiran las vacaciones no usadas</li>
+<li>
+<p><strong>Meses para Vencimiento</strong>: Tiempo antes de expirar</p>
+</li>
+<li>
+<p>Configure el <strong>Uso</strong>:</p>
+</li>
+<li><strong>Tipo de Unidad</strong>: Días u Horas</li>
+<li><strong>Contar Fines de Semana</strong>: Si se incluyen en el cálculo</li>
+<li><strong>Contar Feriados</strong>: Si se incluyen en el cálculo</li>
+<li>
+<p><strong>Pagar al Terminar</strong>: Si se pagan vacaciones al terminar relación laboral</p>
+</li>
+<li>
+<p>Haga clic en <strong>Guardar</strong></p>
+</li>
 </ol>
-<div class="admonition warning">
-<p class="admonition-title">Revisar Antes de Aprobar</p>
-<p>Una vez aprobada, no es posible modificar la nómina. Revise cuidadosamente todos los detalles.</p>
-</div>
-<h3 id="aplicar-nomina">Aplicar Nómina<a class="headerlink" href="#aplicar-nomina" title="Permanent link">¶</a></h3>
+<h4 id="ejemplos-de-configuracion">Ejemplos de Configuración<a class="headerlink" href="#ejemplos-de-configuracion" title="Permanent link">¶</a></h4>
+<p><strong>Nicaragua (Estándar):</strong>
+- Método: Periódico
+- Tasa: 1.25 días/mes (15 días al año)
+- Frecuencia: Mensual
+- Unidad: Días
+- Contar fines de semana y feriados: Sí
+- Vencimiento: 12 meses después del aniversario</p>
+<p><strong>USA (Por Horas):</strong>
+- Método: Proporcional
+- Base: Horas trabajadas
+- Tasa: 0.025 (1 hora por cada 40 trabajadas)
+- Frecuencia: Mensual
+- Unidad: Horas
+- Permitir fracciones: Sí</p>
+<p><strong>Por Antigüedad:</strong>
+- Método: Por Antigüedad
+- Niveles:
+  - 0-1 años: 10 días
+  - 2-5 años: 15 días
+  - 6+ años: 20 días
+- Frecuencia: Anual</p>
+<h3 id="paso-2-crear-cuentas-de-vacaciones">Paso 2: Crear Cuentas de Vacaciones<a class="headerlink" href="#paso-2-crear-cuentas-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Una vez creada la política, debe asignar cuentas de vacaciones a los empleados:</p>
 <ol>
-<li>La nómina debe estar aprobada</li>
-<li>Haga clic en <strong>Aplicar</strong></li>
-<li>La nómina queda marcada como pagada</li>
+<li>Navegue a <strong>Vacaciones → Cuentas de Vacaciones</strong></li>
+<li>Haga clic en <strong>Nueva Cuenta</strong></li>
+<li>Seleccione:</li>
+<li><strong>Empleado</strong>: El empleado al que pertenece la cuenta</li>
+<li><strong>Política</strong>: La política que rige esta cuenta</li>
+<li><strong>Balance Inicial</strong>: Si el empleado ya tiene vacaciones acumuladas</li>
+<li>Haga clic en <strong>Guardar</strong></li>
 </ol>
-<h2 id="historial-de-nominas">Historial de Nóminas<a class="headerlink" href="#historial-de-nominas" title="Permanent link">¶</a></h2>
-<p>Para ver nóminas anteriores:</p>
+<p><strong>Nota</strong>: El balance inicial se registrará como una entrada de tipo ADJUSTMENT en el libro mayor.</p>
+<h2 id="uso-diario">Uso Diario<a class="headerlink" href="#uso-diario" title="Permanent link">¶</a></h2>
+<h3 id="importante-dias-calendario-vs-dias-de-vacaciones">⚠️ IMPORTANTE: Días Calendario vs. Días de Vacaciones<a class="headerlink" href="#importante-dias-calendario-vs-dias-de-vacaciones" title="Permanent link">¶</a></h3>
+<p><strong>Distinción Crítica</strong>: El sistema distingue entre:</p>
 <ol>
-<li>Navegue a la planilla</li>
-<li>Haga clic en <strong>Ver Nóminas</strong></li>
-<li>Verá el listado de todas las nóminas ejecutadas</li>
+<li><strong>Período de Descanso (Días Calendario)</strong>: Las fechas reales de ausencia del empleado</li>
+<li><strong>Días/Horas a Descontar</strong>: La cantidad real que se descuenta del saldo de vacaciones</li>
 </ol>
-<table>
-<thead>
-<tr>
-<th>Período</th>
-<th>Fecha Generación</th>
-<th>Estado</th>
-<th>Total Neto</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Enero 2025</td>
-<td>31/01/2025</td>
-<td>Aplicado</td>
-<td>C$ 37,300</td>
-</tr>
-<tr>
-<td>Diciembre 2024</td>
-<td>31/12/2024</td>
-<td>Aplicado</td>
-<td>C$ 35,800</td>
-</tr>
-</tbody>
-</table>
-<h2 id="novedades-de-nomina">Novedades de Nómina<a class="headerlink" href="#novedades-de-nomina" title="Permanent link">¶</a></h2>
-<p>Las novedades son eventos o ajustes que afectan la nómina de un empleado en un período específico. Permiten registrar horas extras, bonos puntuales, ausencias, comisiones y otros conceptos variables que no son recurrentes.</p>
-<h3 id="acceder-al-modulo-de-novedades">Acceder al Módulo de Novedades<a class="headerlink" href="#acceder-al-modulo-de-novedades" title="Permanent link">¶</a></h3>
+<p><strong>Ejemplo Real</strong>:
+- Un empleado toma <strong>viernes y lunes</strong> de descanso
+- Período calendario: <strong>4 días</strong> (viernes, sábado, domingo, lunes)
+- Según política de la empresa, solo se descuentan <strong>2 días</strong> de vacaciones
+- El sistema permite especificar ambos valores por separado</p>
+<p>Esta flexibilidad es esencial para adaptarse a diferentes políticas empresariales y legislaciones.</p>
+<h3 id="registrar-vacaciones">Registrar Vacaciones<a class="headerlink" href="#registrar-vacaciones" title="Permanent link">¶</a></h3>
+<p>Hay tres formas de registrar vacaciones:</p>
+<h4 id="opcion-1-registro-directo-de-vacaciones-descansadas-recomendado">Opción 1: Registro Directo de Vacaciones Descansadas (Recomendado)<a class="headerlink" href="#opcion-1-registro-directo-de-vacaciones-descansadas-recomendado" title="Permanent link">¶</a></h4>
+<p>Esta es la forma más directa y común para registrar vacaciones que ya fueron tomadas. <strong>IMPORTANTE</strong>: Las vacaciones siempre se registran como una novedad (NominaNovedad) usando la infraestructura existente del sistema.</p>
 <ol>
-<li>Navegue a <strong>Planillas</strong></li>
-<li>Seleccione la planilla y haga clic en <strong>Ver Nóminas</strong></li>
-<li>Seleccione la nómina deseada</li>
-<li>Haga clic en el botón <strong>Novedades</strong> en la barra de acciones</li>
-</ol>
-<h3 id="tipos-de-novedades">Tipos de Novedades<a class="headerlink" href="#tipos-de-novedades" title="Permanent link">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th>Tipo</th>
-<th>Ejemplo</th>
-<th>Efecto</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Monto</strong></td>
-<td>Comisión específica</td>
-<td>Suma o resta el monto indicado</td>
-</tr>
-<tr>
-<td><strong>Horas</strong></td>
-<td>Horas extras trabajadas</td>
-<td>Multiplica por valor hora</td>
-</tr>
-<tr>
-<td><strong>Días</strong></td>
-<td>Días de ausencia</td>
-<td>Reduce proporcionalmente</td>
-</tr>
-<tr>
-<td><strong>Cantidad</strong></td>
-<td>Unidades producidas</td>
-<td>Para bonos por producción</td>
-</tr>
-<tr>
-<td><strong>Porcentaje</strong></td>
-<td>Bonus del 5%</td>
-<td>Aplica porcentaje sobre base</td>
-</tr>
-</tbody>
-</table>
-<h3 id="asociacion-con-conceptos">Asociación con Conceptos<a class="headerlink" href="#asociacion-con-conceptos" title="Permanent link">¶</a></h3>
-<p>Las novedades se pueden asociar a:</p>
-<ul>
-<li><strong>Percepciones (Ingresos)</strong>: Horas extras, bonos, comisiones</li>
-<li><strong>Deducciones (Egresos)</strong>: Ausencias, multas, descuentos especiales</li>
-</ul>
-<p>Al asociar una novedad a un concepto específico, el sistema puede aplicar las reglas de cálculo correspondientes.</p>
-<h3 id="registrar-nueva-novedad">Registrar Nueva Novedad<a class="headerlink" href="#registrar-nueva-novedad" title="Permanent link">¶</a></h3>
-<ol>
-<li>Desde la vista de la nómina, haga clic en <strong>Novedades</strong></li>
-<li>Haga clic en <strong>Nueva Novedad</strong></li>
+<li>En el Dashboard de Vacaciones, haga clic en <strong>Registrar Vacaciones Descansadas</strong></li>
 <li>Complete el formulario:</li>
+<li><strong>Empleado</strong>: Seleccione el empleado que tomó las vacaciones</li>
+<li><strong>Fecha Inicio del Descanso</strong>: Primer día calendario de ausencia</li>
+<li><strong>Fecha Fin del Descanso</strong>: Último día calendario de ausencia</li>
+<li><strong>Días/Horas a Descontar</strong>: <strong>CRÍTICO</strong> - Cantidad real a descontar del saldo según política</li>
+<li><strong>Tipo de Concepto</strong>: Seleccione Percepción o Deducción</li>
+<li><strong>Percepción/Deducción</strong>: <strong>REQUERIDO</strong> - Seleccione el concepto de nómina asociado</li>
+<li><strong>Observaciones</strong>: Notas adicionales</li>
+<li>Haga clic en <strong>Registrar Vacaciones</strong></li>
 </ol>
-<table>
-<thead>
-<tr>
-<th>Campo</th>
-<th>Descripción</th>
-<th>Requerido</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Empleado</td>
-<td>Empleado al que se aplica</td>
-<td>Sí</td>
-</tr>
-<tr>
-<td>Tipo de Concepto</td>
-<td>Percepción o Deducción</td>
-<td>Sí</td>
-</tr>
-<tr>
-<td>Percepción/Deducción</td>
-<td>Concepto asociado</td>
-<td>No</td>
-</tr>
-<tr>
-<td>Código del Concepto</td>
-<td>Código identificador</td>
-<td>Sí</td>
-</tr>
-<tr>
-<td>Tipo de Valor</td>
-<td>Monto, Horas, Días, etc.</td>
-<td>Sí</td>
-</tr>
-<tr>
-<td>Valor/Cantidad</td>
-<td>Valor numérico</td>
-<td>Sí</td>
-</tr>
-<tr>
-<td>Fecha de Novedad</td>
-<td>Fecha del evento</td>
-<td>No</td>
-</tr>
-</tbody>
-</table>
+<p><strong>Asociación con Percepción o Deducción</strong>:
+- <strong>Deducción</strong>: Si las vacaciones se descuentan del salario (ausencias no pagadas)
+- <strong>Percepción</strong>: Si las vacaciones se pagan como ingreso adicional (pago de vacaciones)</p>
+<p>La novedad debe estar asociada a un concepto existente para que el sistema pueda realizar los cálculos correctamente al procesar la nómina.</p>
+<p><strong>¿Qué sucede?</strong>
+- Se descuenta automáticamente el saldo de la cuenta del empleado
+- Se crea una entrada en el libro mayor de vacaciones
+- Se crea una <strong>novedad de nómina</strong> (NominaNovedad) asociada al concepto seleccionado
+- Al calcular la nómina del empleado, la novedad se procesa normalmente
+- El registro de vacaciones queda aprobado y vinculado a la novedad</p>
+<p><strong>Ejemplo de Uso</strong>:
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Empleado: Juan Pérez
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Fecha Inicio: 15/01/2025 (viernes)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Fecha Fin: 18/01/2025 (lunes)
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Días a Descontar: 2.00
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>Tipo Concepto: Deducción
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>Deducción: AUSENCIA - Ausencia por vacaciones
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>Resultado: 
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>- Se descuentan 2 días del saldo (no 4 días calendario)
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>- Se crea una novedad de tipo deducción asociada a AUSENCIA
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>- Al calcular la próxima nómina, se procesará la deducción
+</span></code></pre></div><p></p>
+<h4 id="opcion-2-solicitud-con-aprobacion-para-planificacion">Opción 2: Solicitud con Aprobación (Para Planificación)<a class="headerlink" href="#opcion-2-solicitud-con-aprobacion-para-planificacion" title="Permanent link">¶</a></h4>
+<p>Para solicitudes que requieren aprobación previa:</p>
 <ol>
-<li>Haga clic en <strong>Guardar</strong></li>
+<li>Navegue a <strong>Vacaciones → Solicitudes de Vacaciones</strong></li>
+<li>Haga clic en <strong>Nueva Solicitud</strong></li>
+<li>Complete el formulario:</li>
+<li><strong>Empleado</strong>: Seleccione el empleado</li>
+<li><strong>Fecha de Inicio</strong>: Primer día de vacaciones</li>
+<li><strong>Fecha de Fin</strong>: Último día de vacaciones</li>
+<li><strong>Días/Horas a Descontar</strong>: Cantidad real a descontar (puede diferir de días calendario)</li>
+<li><strong>Observaciones</strong>: Notas adicionales</li>
+<li>Haga clic en <strong>Solicitar</strong></li>
 </ol>
-<h3 id="editar-novedad">Editar Novedad<a class="headerlink" href="#editar-novedad" title="Permanent link">¶</a></h3>
+<p>La solicitud quedará en estado <strong>Pendiente</strong> hasta que un administrador la apruebe.</p>
+<h4 id="opcion-3-a-traves-de-novedades-de-nomina">Opción 3: A través de Novedades de Nómina<a class="headerlink" href="#opcion-3-a-traves-de-novedades-de-nomina" title="Permanent link">¶</a></h4>
 <ol>
-<li>En la lista de novedades, haga clic en el ícono de <strong>Editar</strong></li>
-<li>Modifique los campos necesarios</li>
-<li>Haga clic en <strong>Guardar</strong></li>
-</ol>
-<h3 id="eliminar-novedad">Eliminar Novedad<a class="headerlink" href="#eliminar-novedad" title="Permanent link">¶</a></h3>
-<ol>
-<li>En la lista de novedades, haga clic en el ícono de <strong>Eliminar</strong></li>
-<li>Confirme la eliminación</li>
-</ol>
-<div class="admonition warning">
-<p class="admonition-title">Restricciones</p>
-<p>No es posible agregar, editar o eliminar novedades en nóminas con estado <strong>Aplicado</strong> (ya pagadas).</p>
-</div>
-<h3 id="ejemplo-de-uso">Ejemplo de Uso<a class="headerlink" href="#ejemplo-de-uso" title="Permanent link">¶</a></h3>
-<p><strong>Escenario</strong>: Juan Pérez trabajó 10 horas extras en enero.</p>
-<ol>
-<li>Acceda a las novedades de la nómina de enero</li>
-<li>Haga clic en <strong>Nueva Novedad</strong></li>
+<li>Al crear una novedad en la nómina, marque la casilla <strong>Es Descanso de Vacaciones</strong></li>
 <li>Complete:</li>
-<li><strong>Empleado</strong>: Juan Pérez</li>
-<li><strong>Tipo de Concepto</strong>: Percepción</li>
-<li><strong>Percepción</strong>: Horas Extras</li>
-<li><strong>Código</strong>: HRS_EXTRA</li>
-<li><strong>Tipo de Valor</strong>: Horas</li>
-<li><strong>Valor</strong>: 10</li>
-<li>
-<p><strong>Fecha</strong>: 15/01/2025</p>
-</li>
-<li>
-<p>Guarde la novedad</p>
-</li>
-<li><strong>Recalcule</strong> la nómina para aplicar los cambios</li>
+<li><strong>Valor/Cantidad</strong>: Días u horas a descontar del saldo</li>
+<li><strong>Fechas de Descanso</strong>: Período calendario del descanso</li>
+<li>La novedad se vinculará automáticamente con el módulo de vacaciones</li>
 </ol>
-<h3 id="aplicacion-de-novedades">Aplicación de Novedades<a class="headerlink" href="#aplicacion-de-novedades" title="Permanent link">¶</a></h3>
-<p>Las novedades se aplican cuando se <strong>recalcula</strong> la nómina. Después de agregar novedades:</p>
+<p><strong>Nota</strong>: La Opción 1 (Registro Directo) es más conveniente ya que crea automáticamente tanto el registro de vacaciones como la novedad de nómina.</p>
+<h3 id="aprobarrechazar-solicitudes">Aprobar/Rechazar Solicitudes<a class="headerlink" href="#aprobarrechazar-solicitudes" title="Permanent link">¶</a></h3>
 <ol>
-<li>Desde la vista de la nómina, haga clic en <strong>Recalcular</strong></li>
-<li>Confirme la operación</li>
-<li>El sistema recalculará todos los valores considerando las novedades</li>
+<li>Navegue a <strong>Vacaciones → Solicitudes de Vacaciones</strong></li>
+<li>Filtre por <strong>Pendientes</strong></li>
+<li>Haga clic en el icono de "Ver" de la solicitud</li>
+<li>Revise los detalles, incluyendo el balance actual del empleado</li>
+<li>Haga clic en:</li>
+<li><strong>Aprobar</strong>: Para aprobar la solicitud</li>
+<li><strong>Rechazar</strong>: Para rechazarla (debe indicar el motivo)</li>
 </ol>
-<div class="admonition info">
-<p class="admonition-title">Novedades y Estado de Nómina</p>
-<ul>
-<li><strong>Generado</strong>: Se pueden agregar/editar novedades y recalcular</li>
-<li><strong>Aprobado</strong>: Se pueden agregar/editar novedades y recalcular</li>
-<li><strong>Aplicado</strong>: No se pueden modificar novedades (nómina cerrada)</li>
-</ul>
-</div>
-<h2 id="calculos-importantes">Cálculos Importantes<a class="headerlink" href="#calculos-importantes" title="Permanent link">¶</a></h2>
-<h3 id="salario-bruto">Salario Bruto<a class="headerlink" href="#salario-bruto" title="Permanent link">¶</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Salario Bruto = Salario Base + ∑ Percepciones
-</span></code></pre></div>
-<h3 id="salario-neto">Salario Neto<a class="headerlink" href="#salario-neto" title="Permanent link">¶</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Salario Neto = Salario Bruto - ∑ Deducciones
-</span></code></pre></div>
-<h3 id="base-gravable-para-ir">Base Gravable (para IR)<a class="headerlink" href="#base-gravable-para-ir" title="Permanent link">¶</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Base Gravable = Salario Bruto - Deducciones Antes de Impuesto
-</span></code></pre></div>
-<h3 id="costo-total-empleado">Costo Total Empleado<a class="headerlink" href="#costo-total-empleado" title="Permanent link">¶</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Costo Total = Salario Bruto + ∑ Prestaciones
-</span></code></pre></div>
-<h2 id="ejemplo-completo">Ejemplo Completo<a class="headerlink" href="#ejemplo-completo" title="Permanent link">¶</a></h2>
-<h3 id="empleado-maria-lopez">Empleado: María López<a class="headerlink" href="#empleado-maria-lopez" title="Permanent link">¶</a></h3>
-<p><strong>Datos:</strong>
-- Salario Base: C$ 25,000.00
-- Horas Extras: 10 horas
-- Valor Hora Extra: C$ 156.25 (salario/30/8 × 1.5)</p>
-<p><strong>Cálculo:</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>PERCEPCIONES:
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  Salario Base:                   C$ 25,000.00
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  Horas Extras (10 × 156.25):     C$  1,562.50
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  -------------------------------------------
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  SALARIO BRUTO:                  C$ 26,562.50
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>DEDUCCIONES (en orden de prioridad):
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  INSS Laboral (7% de 26,562.50): C$  1,859.38
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  Base para IR: 26,562.50 - 1,859.38 = 24,703.12
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  IR (según tabla):               C$    950.00
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>  Cuota Préstamo:                 C$  2,000.00
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>  Ahorro Voluntario:              C$    500.00
-</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>  -------------------------------------------
-</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>  TOTAL DEDUCCIONES:              C$  5,309.38
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
-</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>SALARIO NETO: 26,562.50 - 5,309.38 = C$ 21,253.12
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>
-</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>PRESTACIONES PATRONALES:
-</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>  INSS Patronal (22.5%):          C$  5,976.56
-</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>  INATEC (2%):                    C$    531.25
-</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>  Vacaciones (8.33%):             C$  2,212.56
-</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>  Aguinaldo (8.33%):              C$  2,212.56
-</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>  Indemnización (8.33%):          C$  2,212.56
-</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>  -------------------------------------------
-</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>  TOTAL PRESTACIONES:             C$ 13,145.49
-</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>
-</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>COSTO TOTAL EMPLEADO: 26,562.50 + 13,145.49 = C$ 39,707.99
-</span></code></pre></div>
-<h2 id="buenas-practicas">Buenas Prácticas<a class="headerlink" href="#buenas-practicas" title="Permanent link">¶</a></h2>
-<h3 id="antes-de-ejecutar">Antes de Ejecutar<a class="headerlink" href="#antes-de-ejecutar" title="Permanent link">¶</a></h3>
-<ul>
-<li>Verifique tipos de cambio actualizados</li>
-<li>Registre todas las novedades</li>
-<li>Revise préstamos y adelantos pendientes</li>
-<li>Verifique empleados activos</li>
-</ul>
-<h3 id="durante-la-revision">Durante la Revisión<a class="headerlink" href="#durante-la-revision" title="Permanent link">¶</a></h3>
-<ul>
-<li>Revise las advertencias generadas</li>
-<li>Verifique empleados con salario neto muy bajo</li>
-<li>Compare con nóminas anteriores</li>
-<li>Valide cálculos de empleados clave</li>
-</ul>
-<h3 id="despues-de-aplicar">Después de Aplicar<a class="headerlink" href="#despues-de-aplicar" title="Permanent link">¶</a></h3>
-<ul>
-<li>Genere reportes de pago</li>
-<li>Actualice la contabilidad</li>
-<li>Archive la documentación</li>
-</ul>
+<p><strong>Importante</strong>: Al aprobar una solicitud:
+- Se crea automáticamente una entrada en el libro mayor
+- Se reduce el balance de vacaciones del empleado
+- La solicitud cambia a estado <strong>Aprobado</strong></p>
+<h3 id="consultar-balance-de-vacaciones">Consultar Balance de Vacaciones<a class="headerlink" href="#consultar-balance-de-vacaciones" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Vacaciones → Cuentas de Vacaciones</strong></li>
+<li>Busque el empleado en la lista</li>
+<li>Haga clic en el icono de "Ver" para ver detalles</li>
+<li>Verá:</li>
+<li>Balance actual en un card destacado</li>
+<li>Información de la cuenta y política</li>
+<li>Solicitudes pendientes</li>
+<li>Historial completo de movimientos</li>
+</ol>
+<h2 id="integracion-con-nomina">Integración con Nómina<a class="headerlink" href="#integracion-con-nomina" title="Permanent link">¶</a></h2>
+<h3 id="acumulacion-automatica">Acumulación Automática<a class="headerlink" href="#acumulacion-automatica" title="Permanent link">¶</a></h3>
+<p>Cuando ejecute una nómina, el sistema automáticamente:</p>
+<ol>
+<li><strong>Identifica empleados con cuentas de vacaciones</strong> asociadas a la planilla</li>
+<li><strong>Calcula la acumulación</strong> según la política:</li>
+<li>Periódica: Cantidad fija por período</li>
+<li>Proporcional: Basado en días/horas trabajadas</li>
+<li>Por Antigüedad: Según años de servicio</li>
+<li><strong>Verifica límites</strong> (balance máximo, días mínimos de servicio)</li>
+<li><strong>Crea entrada en el libro mayor</strong> de tipo ACCRUAL</li>
+<li><strong>Actualiza el balance</strong> de la cuenta</li>
+</ol>
+<p><strong>Ejemplo de Log en Nómina:</strong>
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Acumuladas 1.25 unidades de vacaciones para empleado EMP-ABC123
+</span></code></pre></div><p></p>
+<h3 id="procesamiento-de-vacaciones-tomadas">Procesamiento de Vacaciones Tomadas<a class="headerlink" href="#procesamiento-de-vacaciones-tomadas" title="Permanent link">¶</a></h3>
+<p>Si hay novedades de tipo "descanso de vacaciones" en el período:</p>
+<ol>
+<li>El sistema <strong>verifica que estén aprobadas</strong></li>
+<li><strong>Crea entrada en el libro mayor</strong> de tipo USAGE</li>
+<li><strong>Reduce el balance</strong> de la cuenta</li>
+<li><strong>Cambia el estado</strong> de la solicitud a "Disfrutado"</li>
+</ol>
+<p><strong>Ejemplo de Log en Nómina:</strong>
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Procesadas 5.00 unidades de vacaciones usadas para empleado EMP-ABC123
+</span></code></pre></div><p></p>
+<h3 id="crear-novedades-de-vacaciones">Crear Novedades de Vacaciones<a class="headerlink" href="#crear-novedades-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Al crear o editar una nómina, puede agregar novedades de vacaciones:</p>
+<ol>
+<li>En la gestión de novedades, marque <strong>Es Descanso de Vacaciones</strong></li>
+<li>Complete las fechas de inicio y fin</li>
+<li>Especifique la cantidad de unidades</li>
+<li>Al ejecutar la nómina, el sistema procesará automáticamente las vacaciones</li>
+</ol>
+<h2 id="casos-de-uso-especiales">Casos de Uso Especiales<a class="headerlink" href="#casos-de-uso-especiales" title="Permanent link">¶</a></h2>
+<h3 id="ajuste-manual-de-balance">Ajuste Manual de Balance<a class="headerlink" href="#ajuste-manual-de-balance" title="Permanent link">¶</a></h3>
+<p>Si necesita ajustar manualmente el balance de un empleado (error, corrección, etc.):</p>
+<ol>
+<li>Navegue a <strong>Vacaciones → Cuentas de Vacaciones</strong></li>
+<li>Vea los detalles de la cuenta del empleado</li>
+<li>Como administrador, puede crear un ajuste manual</li>
+<li>El ajuste quedará registrado en el libro mayor como tipo ADJUSTMENT</li>
+</ol>
+<h3 id="vacaciones-adelantadas">Vacaciones Adelantadas<a class="headerlink" href="#vacaciones-adelantadas" title="Permanent link">¶</a></h3>
+<p>Si la política permite balance negativo (<code>allow_negative = true</code>):</p>
+<ol>
+<li>El empleado puede solicitar más vacaciones de las que tiene acumuladas</li>
+<li>El balance quedará negativo</li>
+<li>Se compensará con futuras acumulaciones</li>
+</ol>
+<h3 id="pago-de-vacaciones-al-terminar">Pago de Vacaciones al Terminar<a class="headerlink" href="#pago-de-vacaciones-al-terminar" title="Permanent link">¶</a></h3>
+<p>Cuando un empleado termina su relación laboral:</p>
+<ol>
+<li>Si la política tiene <code>payout_on_termination = true</code></li>
+<li>El sistema generará automáticamente:</li>
+<li>Entrada en el libro mayor de tipo PAYOUT</li>
+<li>Balance queda en 0</li>
+<li>Se integra con la nómina de liquidación</li>
+</ol>
+<h3 id="vencimiento-de-vacaciones">Vencimiento de Vacaciones<a class="headerlink" href="#vencimiento-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Según la regla de vencimiento configurada:</p>
+<ol>
+<li>El sistema identificará vacaciones vencidas</li>
+<li>Creará entradas de tipo EXPIRATION</li>
+<li>Reducirá el balance automáticamente</li>
+</ol>
+<h2 id="reportes-y-consultas">Reportes y Consultas<a class="headerlink" href="#reportes-y-consultas" title="Permanent link">¶</a></h2>
+<h3 id="consultar-historial-de-movimientos">Consultar Historial de Movimientos<a class="headerlink" href="#consultar-historial-de-movimientos" title="Permanent link">¶</a></h3>
+<ol>
+<li>Abra los detalles de una cuenta de vacaciones</li>
+<li>En la sección "Historial de Movimientos" verá:</li>
+<li>Fecha de cada movimiento</li>
+<li>Tipo (Acumulación, Uso, Ajuste, etc.)</li>
+<li>Cantidad (+ o -)</li>
+<li>Balance después del movimiento</li>
+<li>Origen y observaciones</li>
+</ol>
+<h3 id="dashboard-de-vacaciones">Dashboard de Vacaciones<a class="headerlink" href="#dashboard-de-vacaciones" title="Permanent link">¶</a></h3>
+<ol>
+<li>Navegue a <strong>Vacaciones</strong></li>
+<li>El dashboard muestra:</li>
+<li>Total de políticas activas</li>
+<li>Total de cuentas activas</li>
+<li>Solicitudes pendientes</li>
+<li>Actividad reciente</li>
+</ol>
+<h3 id="filtrar-solicitudes">Filtrar Solicitudes<a class="headerlink" href="#filtrar-solicitudes" title="Permanent link">¶</a></h3>
+<p>En la lista de solicitudes puede filtrar por:
+- <strong>Todas</strong>: Ver todas las solicitudes
+- <strong>Pendientes</strong>: Solo las que esperan aprobación
+- <strong>Aprobadas</strong>: Solicitudes aprobadas
+- <strong>Rechazadas</strong>: Solicitudes rechazadas</p>
+<h2 id="mejores-practicas">Mejores Prácticas<a class="headerlink" href="#mejores-practicas" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong>Asocie políticas a planillas</strong>: Esto permite tener reglas diferentes para distintos países o tipos de empleados</p>
+</li>
+<li>
+<p><strong>Revise las solicitudes regularmente</strong>: Las solicitudes pendientes aparecen en el dashboard</p>
+</li>
+<li>
+<p><strong>Verifique balances antes de aprobar</strong>: El sistema muestra el balance actual al revisar una solicitud</p>
+</li>
+<li>
+<p><strong>Use novedades de vacaciones</strong>: Integre las vacaciones con el flujo normal de la nómina</p>
+</li>
+<li>
+<p><strong>Consulte el libro mayor</strong>: Para auditoría completa de los movimientos de vacaciones</p>
+</li>
+<li>
+<p><strong>Configure correctamente las políticas</strong>: Tome tiempo para configurar las políticas según la legislación local</p>
+</li>
+<li>
+<p><strong>Cargue saldos iniciales al implementar</strong>: Use la carga masiva desde Excel para empresas con muchos empleados, facilita la migración al sistema</p>
+</li>
+<li>
+<p><strong>Revise regularmente el libro mayor</strong>: Para mantener auditoría completa y detectar posibles inconsistencias</p>
+</li>
+<li>
+<p><strong>Documente ajustes manuales</strong>: Siempre agregue observaciones en ajustes manuales</p>
+</li>
+</ol>
 <h2 id="solucion-de-problemas">Solución de Problemas<a class="headerlink" href="#solucion-de-problemas" title="Permanent link">¶</a></h2>
-<h3 id="la-nomina-no-procesa-ningun-empleado">"La nómina no procesa ningún empleado"<a class="headerlink" href="#la-nomina-no-procesa-ningun-empleado" title="Permanent link">¶</a></h3>
-<ul>
-<li>Verifique empleados asignados y activos</li>
-<li>Verifique fechas de asignación a la planilla</li>
-</ul>
-<h3 id="calculo-de-ir-incorrecto">"Cálculo de IR incorrecto"<a class="headerlink" href="#calculo-de-ir-incorrecto" title="Permanent link">¶</a></h3>
-<ul>
-<li>Verifique deducciones antes de impuesto</li>
-<li>Verifique valores acumulados del empleado</li>
-<li>Revise la regla de cálculo de IR</li>
-</ul>
-<h3 id="prestamo-no-se-dedujo">"Préstamo no se dedujo"<a class="headerlink" href="#prestamo-no-se-dedujo" title="Permanent link">¶</a></h3>
-<ul>
-<li>Verifique estado del préstamo (debe ser "Aprobado")</li>
-<li>Verifique saldo pendiente</li>
-<li>Revise la prioridad (puede haberse omitido)</li>
-</ul>
+<h3 id="el-empleado-no-tiene-cuenta-de-vacaciones">El empleado no tiene cuenta de vacaciones<a class="headerlink" href="#el-empleado-no-tiene-cuenta-de-vacaciones" title="Permanent link">¶</a></h3>
+<p><strong>Problema</strong>: Al intentar crear una solicitud, aparece error de cuenta no encontrada.</p>
+<p><strong>Solución</strong>: Cree una cuenta de vacaciones para el empleado en <strong>Vacaciones → Cuentas de Vacaciones</strong>.</p>
+<h3 id="no-se-acumulan-vacaciones-en-la-nomina">No se acumulan vacaciones en la nómina<a class="headerlink" href="#no-se-acumulan-vacaciones-en-la-nomina" title="Permanent link">¶</a></h3>
+<p><strong>Problema</strong>: Después de ejecutar la nómina, no se acumularon vacaciones.</p>
+<p><strong>Verificar</strong>:
+1. ¿El empleado tiene una cuenta de vacaciones activa?
+2. ¿La cuenta está asociada a una política de la planilla?
+3. ¿El empleado cumple con los días mínimos de servicio?
+4. ¿Se alcanzó el balance máximo?</p>
+<h3 id="balance-insuficiente-para-solicitud">Balance insuficiente para solicitud<a class="headerlink" href="#balance-insuficiente-para-solicitud" title="Permanent link">¶</a></h3>
+<p><strong>Problema</strong>: No se puede aprobar la solicitud porque el balance es insuficiente.</p>
+<p><strong>Soluciones</strong>:
+- Si la política permite, habilite <code>allow_negative</code> para permitir adelantos
+- Rechace la solicitud y comunique al empleado
+- Realice un ajuste manual si corresponde</p>
+<h2 id="auditoria-y-cumplimiento-legal">Auditoría y Cumplimiento Legal<a class="headerlink" href="#auditoria-y-cumplimiento-legal" title="Permanent link">¶</a></h2>
+<p>El módulo de vacaciones está diseñado para cumplir con requisitos legales:</p>
+<ol>
+<li><strong>Trazabilidad Completa</strong>: Cada movimiento queda registrado en el libro mayor</li>
+<li><strong>Inmutabilidad</strong>: Los registros del libro mayor no se pueden modificar</li>
+<li><strong>Auditoría</strong>: Se registra quién y cuándo realizó cada acción</li>
+<li><strong>Determinismo</strong>: Dado el mismo conjunto de eventos, el balance es siempre el mismo</li>
+<li><strong>Documentación</strong>: Todo ajuste manual debe tener observaciones</li>
+</ol>
+<h2 id="preguntas-frecuentes">Preguntas Frecuentes<a class="headerlink" href="#preguntas-frecuentes" title="Permanent link">¶</a></h2>
+<p><strong>¿Puedo tener múltiples políticas para una misma empresa?</strong></p>
+<p>Sí. Puede asociar políticas diferentes a planillas diferentes, incluso dentro de la misma empresa. Esto es útil para manejar distintos países o tipos de empleados.</p>
+<p><strong>¿Qué pasa si cambio una política después de que ya tiene cuentas asociadas?</strong></p>
+<p>Los cambios en la política solo afectan acumulaciones futuras. Los registros históricos en el libro mayor permanecen inmutables.</p>
+<p><strong>¿Puedo eliminar una cuenta de vacaciones?</strong></p>
+<p>No se recomienda eliminar cuentas con historial. En su lugar, márquelas como inactivas.</p>
+<p><strong>¿Se pueden revertir movimientos del libro mayor?</strong></p>
+<p>No, el libro mayor es inmutable. Para corregir errores, debe crear un nuevo ajuste con el valor opuesto.</p>
+<p><strong>¿Cómo manejo empleados part-time?</strong></p>
+<p>Configure una política con acumulación proporcional basada en horas trabajadas.</p>
+<h2 id="soporte">Soporte<a class="headerlink" href="#soporte" title="Permanent link">¶</a></h2>
+<p>Para más información o soporte técnico, consulte:
+- <a href="../../modulo-vacaciones/">Documentación Técnica del Módulo de Vacaciones</a>
+- <a href="https://github.com/williamjmorenor/coati">Repositorio GitHub</a>
+- <a href="https://github.com/williamjmorenor/coati/issues">Reporte de Problemas</a></p>
 
 
 
@@ -3041,7 +2776,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Pie">
         
           
-          <a href="../planillas/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Configuración de Planillas">
+          <a href="../nomina/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Ejecución de Nómina">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -3051,20 +2786,20 @@
                 Anterior
               </span>
               <div class="md-ellipsis">
-                Configuración de Planillas
+                Ejecución de Nómina
               </div>
             </div>
           </a>
         
         
           
-          <a href="../vacaciones/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Gestión de Vacaciones">
+          <a href="../configuracion-contable/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Configuración Contable">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Siguiente
               </span>
               <div class="md-ellipsis">
-                Gestión de Vacaciones
+                Configuración Contable
               </div>
             </div>
             <div class="md-footer__button md-icon">

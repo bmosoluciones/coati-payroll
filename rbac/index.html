@@ -9,13 +9,13 @@
         <meta name="author" content="BMO Soluciones, S.A.">
       
       
-        <link rel="canonical" href="https://williamjmorenor.github.io/coati/background-payroll-processing/">
+        <link rel="canonical" href="https://williamjmorenor.github.io/coati/rbac/">
       
       
-        <link rel="prev" href="../queue_system/">
+        <link rel="prev" href="../database-agnostic-implementation/">
       
       
-        <link rel="next" href="../database-compatibility/">
+        <link rel="next" href="../modulo-vacaciones/">
       
       
         
@@ -26,7 +26,7 @@
     
     
       
-        <title>Procesamiento en Segundo Plano - Coati Payroll - Documentación</title>
+        <title>Control de Acceso (RBAC) - Coati Payroll - Documentación</title>
       
     
     
@@ -87,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#background-payroll-processing" class="md-skip">
+        <a href="#control-de-acceso-basado-en-roles-rbac" class="md-skip">
           Saltar a contenido
         </a>
       
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Procesamiento en Segundo Plano
+              Control de Acceso (RBAC)
             
           </span>
         </div>
@@ -1295,37 +1295,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Procesamiento en Segundo Plano
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../background-payroll-processing/" class="md-nav__link">
         
   
   
@@ -1341,359 +1314,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Tabla de contenidos
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-is-background-processing-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When is Background Processing Used?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#setting-the-threshold" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Setting the Threshold
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configuration-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration File
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#user-experience" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Experience
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="User Experience">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-initiating-payroll-calculation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Initiating Payroll Calculation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-progress-monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Progress Monitoring
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Progress Monitoring">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#progress-indicator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Progress Indicator
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#current-activity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Current Activity
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#activity-log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Activity Log
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-completion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Completion
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Error Handling
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#technical-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Technical Details
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Technical Details">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#database-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Database Schema
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nomina-states" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nomina States
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api-endpoint" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API Endpoint
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#background-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Background Task
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#performance-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Performance Considerations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Performance Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#threshold-selection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Threshold Selection
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Monitoring
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#nomina-stuck-in-calculando-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nomina Stuck in "Calculando" State
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#high-error-rate" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        High Error Rate
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#slow-processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Slow Processing
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Best Practices
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#future-enhancements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Enhancements
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1759,10 +1379,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../rbac/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Control de Acceso (RBAC)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1778,6 +1425,270 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#descripcion-general" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Descripción General
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tipos-de-usuario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tipos de Usuario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tipos de Usuario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#admin-administrador" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin (Administrador)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hhrr-recursos-humanos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HHRR (Recursos Humanos)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#audit-auditoria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Audit (Auditoría)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementacion-tecnica" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementación Técnica
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementación Técnica">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decoradores-rbac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decoradores RBAC
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decoradores RBAC">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#require_roleroles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @require_role(*roles)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#require_read_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @require_read_access()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#require_write_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @require_write_access()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#funciones-de-ayuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Funciones de Ayuda
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#matriz-de-permisos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matriz de Permisos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mensajes-de-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mensajes de Error
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mejores-practicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mejores Prácticas
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mejores Prácticas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#para-desarrolladores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Para Desarrolladores
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#para-administradores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Para Administradores
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seguridad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Seguridad
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migracion-de-usuarios-existentes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migración de Usuarios Existentes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preguntas-frecuentes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preguntas Frecuentes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2121,189 +2032,448 @@
   
 
 
-<h1 id="background-payroll-processing">Background Payroll Processing<a class="headerlink" href="#background-payroll-processing" title="Permanent link">¶</a></h1>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>This feature enables automatic background processing of large payrolls to prevent UI freezing and provide real-time feedback to users during lengthy calculations.</p>
-<h2 id="when-is-background-processing-used">When is Background Processing Used?<a class="headerlink" href="#when-is-background-processing-used" title="Permanent link">¶</a></h2>
-<p>Background processing is automatically triggered when:
-- A planilla has more employees than the configured threshold
-- Default threshold: <strong>100 employees</strong>
-- Threshold is configurable via environment variable</p>
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
-<h3 id="setting-the-threshold">Setting the Threshold<a class="headerlink" href="#setting-the-threshold" title="Permanent link">¶</a></h3>
-<p>You can adjust the threshold based on your system's performance:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># For systems with complex formulas or slower performance</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BACKGROUND_PAYROLL_THRESHOLD</span><span class="o">=</span><span class="m">50</span>
+<h1 id="control-de-acceso-basado-en-roles-rbac">Control de Acceso Basado en Roles (RBAC)<a class="headerlink" href="#control-de-acceso-basado-en-roles-rbac" title="Permanent link">¶</a></h1>
+<h2 id="descripcion-general">Descripción General<a class="headerlink" href="#descripcion-general" title="Permanent link">¶</a></h2>
+<p>El sistema Coati Payroll implementa un sistema completo de Control de Acceso Basado en Roles (RBAC) para garantizar que los usuarios solo puedan acceder a las funcionalidades apropiadas según su rol.</p>
+<h2 id="tipos-de-usuario">Tipos de Usuario<a class="headerlink" href="#tipos-de-usuario" title="Permanent link">¶</a></h2>
+<p>El sistema soporta tres tipos de usuario, cada uno con diferentes niveles de acceso:</p>
+<h3 id="admin-administrador">Admin (Administrador)<a class="headerlink" href="#admin-administrador" title="Permanent link">¶</a></h3>
+<p><strong>Descripción</strong>: Usuario con acceso completo a todas las funcionalidades del sistema.</p>
+<p><strong>Permisos</strong>:
+- ✅ Crear, editar y eliminar empresas
+- ✅ Crear, editar y eliminar usuarios
+- ✅ Acceso completo a empleados
+- ✅ Acceso completo a préstamos y adelantos
+- ✅ Acceso completo a planillas (nóminas)
+- ✅ Acceso completo a deducciones, percepciones y prestaciones
+- ✅ Acceso completo a todas las configuraciones del sistema</p>
+<p><strong>Casos de uso</strong>:
+- Configuración inicial del sistema
+- Gestión de usuarios y permisos
+- Creación de empresas
+- Supervisión general del sistema</p>
+<h3 id="hhrr-recursos-humanos">HHRR (Recursos Humanos)<a class="headerlink" href="#hhrr-recursos-humanos" title="Permanent link">¶</a></h3>
+<p><strong>Descripción</strong>: Usuario con acceso completo a la gestión de personal y nóminas.</p>
+<p><strong>Permisos</strong>:
+- ✅ Ver empresas (solo lectura)
+- ❌ Crear, editar o eliminar empresas
+- ❌ Gestionar usuarios
+- ✅ Acceso completo a empleados (crear, editar, eliminar)
+- ✅ Acceso completo a préstamos y adelantos
+- ✅ Acceso completo a planillas (nóminas)
+- ✅ Acceso completo a deducciones, percepciones y prestaciones
+- ✅ Configurar y ejecutar nóminas
+- ✅ Gestionar novedades de nómina</p>
+<p><strong>Casos de uso</strong>:
+- Gestión diaria de empleados
+- Procesamiento de nóminas
+- Aprobación de préstamos
+- Configuración de deducciones y percepciones</p>
+<h3 id="audit-auditoria">Audit (Auditoría)<a class="headerlink" href="#audit-auditoria" title="Permanent link">¶</a></h3>
+<p><strong>Descripción</strong>: Usuario con acceso de solo lectura para fines de auditoría.</p>
+<p><strong>Permisos</strong>:
+- ✅ Ver todas las empresas
+- ✅ Ver todos los empleados
+- ✅ Ver todas las planillas y nóminas
+- ✅ Ver deducciones, percepciones y prestaciones
+- ✅ Ver préstamos y adelantos
+- ✅ Exportar reportes y datos
+- ❌ Crear, editar o eliminar cualquier registro
+- ❌ Ejecutar nóminas
+- ❌ Aprobar préstamos</p>
+<p><strong>Casos de uso</strong>:
+- Auditorías internas
+- Revisión de procesos de nómina
+- Verificación de datos
+- Generación de reportes de auditoría</p>
+<h2 id="implementacion-tecnica">Implementación Técnica<a class="headerlink" href="#implementacion-tecnica" title="Permanent link">¶</a></h2>
+<h3 id="decoradores-rbac">Decoradores RBAC<a class="headerlink" href="#decoradores-rbac" title="Permanent link">¶</a></h3>
+<p>El sistema implementa tres decoradores principales para controlar el acceso:</p>
+<h4 id="require_roleroles"><code>@require_role(*roles)</code><a class="headerlink" href="#require_roleroles" title="Permanent link">¶</a></h4>
+<p>Restringe el acceso a usuarios con roles específicos.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.rbac</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_role</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">TipoUsuario</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># For high-performance systems</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BACKGROUND_PAYROLL_THRESHOLD</span><span class="o">=</span><span class="m">200</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Default (if not set)</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># BACKGROUND_PAYROLL_THRESHOLD=100</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/empresa/new"</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nd">@require_role</span><span class="p">(</span><span class="n">TipoUsuario</span><span class="o">.</span><span class="n">ADMIN</span><span class="p">)</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">create_company</span><span class="p">():</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="c1"># Solo administradores pueden crear empresas</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="k">pass</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/employee/new"</span><span class="p">)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nd">@require_role</span><span class="p">(</span><span class="n">TipoUsuario</span><span class="o">.</span><span class="n">ADMIN</span><span class="p">,</span> <span class="n">TipoUsuario</span><span class="o">.</span><span class="n">HHRR</span><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">create_employee</span><span class="p">():</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="c1"># Admin y HHRR pueden crear empleados</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="k">pass</span>
 </span></code></pre></div>
-<h3 id="configuration-file">Configuration File<a class="headerlink" href="#configuration-file" title="Permanent link">¶</a></h3>
-<p>You can also set it in your configuration file (<code>coati-payroll.conf</code>):</p>
-<div class="language-ini highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="na">BACKGROUND_PAYROLL_THRESHOLD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">75</span>
+<h4 id="require_read_access"><code>@require_read_access()</code><a class="headerlink" href="#require_read_access" title="Permanent link">¶</a></h4>
+<p>Permite acceso de lectura a todos los usuarios autenticados. Los usuarios audit solo pueden leer, mientras que admin y hhrr también pueden modificar datos.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.rbac</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_read_access</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/employee/"</span><span class="p">)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nd">@require_read_access</span><span class="p">()</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">list_employees</span><span class="p">():</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="c1"># Todos los usuarios autenticados pueden ver la lista</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="k">pass</span>
 </span></code></pre></div>
-<h2 id="user-experience">User Experience<a class="headerlink" href="#user-experience" title="Permanent link">¶</a></h2>
-<h3 id="1-initiating-payroll-calculation">1. Initiating Payroll Calculation<a class="headerlink" href="#1-initiating-payroll-calculation" title="Permanent link">¶</a></h3>
-<p>When a user executes a payroll for a planilla with more than the threshold number of employees:</p>
-<ol>
-<li>The system creates a nomina record with status <strong>"calculando"</strong></li>
-<li>The background task is queued</li>
-<li>User is redirected to the nomina detail page</li>
-<li>A flash message informs the user: <em>"La nómina está siendo calculada en segundo plano. Se procesarán X empleados."</em></li>
-</ol>
-<h3 id="2-progress-monitoring">2. Progress Monitoring<a class="headerlink" href="#2-progress-monitoring" title="Permanent link">¶</a></h3>
-<p>The nomina detail page shows:</p>
-<h4 id="progress-indicator">Progress Indicator<a class="headerlink" href="#progress-indicator" title="Permanent link">¶</a></h4>
-<ul>
-<li><strong>Spinner animation</strong> to show the system is active</li>
-<li><strong>Progress bar</strong> showing percentage complete</li>
-<li><strong>Employee counters</strong>:</li>
-<li>Total employees</li>
-<li>Employees processed</li>
-<li>Employees with errors</li>
-</ul>
-<h4 id="current-activity">Current Activity<a class="headerlink" href="#current-activity" title="Permanent link">¶</a></h4>
-<ul>
-<li>Alert showing which employee is currently being calculated</li>
-<li>Updates every 3 seconds</li>
-</ul>
-<h4 id="activity-log">Activity Log<a class="headerlink" href="#activity-log" title="Permanent link">¶</a></h4>
-<ul>
-<li>Scrollable log showing:</li>
-<li>"Calculando empleado N/Total: Employee Name"</li>
-<li>"✓ Completado: Employee Name - Neto: $X,XXX.XX"</li>
-<li>"✗ Error: Employee Name - Error message"</li>
-<li>Auto-scrolls to show latest activity</li>
-<li>Manual scroll is preserved (user can review earlier entries)</li>
-</ul>
-<h3 id="3-completion">3. Completion<a class="headerlink" href="#3-completion" title="Permanent link">¶</a></h3>
-<p>When calculation completes:
-- Page automatically refreshes
-- Status changes to <strong>"generado"</strong> (or <strong>"error"</strong> if critical failure)
-- User can review results, approve, and apply the nomina</p>
-<h3 id="4-error-handling">4. Error Handling<a class="headerlink" href="#4-error-handling" title="Permanent link">¶</a></h3>
-<p>If some employees fail to process:
-- Nomina status: <strong>"generado"</strong> (if majority succeeded) or <strong>"error"</strong> (if all failed)
-- Warning alert shows number of employees with errors
-- Expandable details list all errors
-- Successfully calculated employees are saved</p>
-<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">¶</a></h2>
-<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">¶</a></h3>
-<p>New fields added to <code>Nomina</code> table:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">total_empleados</span>              <span class="c1"># Total number of employees</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">empleados_procesados</span>         <span class="c1"># Number processed so far</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">empleados_con_error</span>          <span class="c1"># Number that failed</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">errores_calculo</span>             <span class="c1"># Dict of employee_id: error_message</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">procesamiento_en_background</span>  <span class="c1"># Boolean flag</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">log_procesamiento</span>           <span class="c1"># List of activity log entries</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">empleado_actual</span>             <span class="c1"># Name of employee currently being processed</span>
+<h4 id="require_write_access"><code>@require_write_access()</code><a class="headerlink" href="#require_write_access" title="Permanent link">¶</a></h4>
+<p>Restringe las operaciones de escritura (crear, editar, eliminar) solo a usuarios admin y hhrr. Los usuarios audit son denegados.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.rbac</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_write_access</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/employee/new"</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">"POST"</span><span class="p">])</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nd">@require_write_access</span><span class="p">()</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">create_employee</span><span class="p">():</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="c1"># Solo admin y hhrr pueden crear empleados</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="c1"># Audit será denegado con error 403</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="k">pass</span>
 </span></code></pre></div>
-<h3 id="nomina-states">Nomina States<a class="headerlink" href="#nomina-states" title="Permanent link">¶</a></h3>
-<p>New states in <code>NominaEstado</code> enum:
-- <code>CALCULANDO</code>: Currently being calculated in background
-- <code>ERROR</code>: Critical error during calculation
-- <code>GENERADO</code>: Successfully generated (existing)
-- <code>APROBADO</code>: Approved (existing)
-- <code>APLICADO</code>: Applied/paid (existing)</p>
-<h3 id="api-endpoint">API Endpoint<a class="headerlink" href="#api-endpoint" title="Permanent link">¶</a></h3>
-<p><code>GET /planilla/&lt;planilla_id&gt;/nomina/&lt;nomina_id&gt;/progreso</code></p>
-<p>Returns JSON:
-</p><div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"estado"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calculando"</span><span class="p">,</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">"total_empleados"</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">"empleados_procesados"</span><span class="p">:</span><span class="w"> </span><span class="mi">75</span><span class="p">,</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">"empleados_con_error"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">"progreso_porcentaje"</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">"empleado_actual"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Juan Pérez"</span><span class="p">,</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">"log_procesamiento"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">      </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-01-15T10:30:45Z"</span><span class="p">,</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">      </span><span class="nt">"empleado"</span><span class="p">:</span><span class="w"> </span><span class="s2">"María García"</span><span class="p">,</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">      </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"✓ Completado: María García - Neto: C$ 15,234.50"</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="err">...</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="p">],</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="nt">"errores_calculo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="nt">"empleado_id_1"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Error message"</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">  </span><span class="nt">"procesamiento_en_background"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="p">}</span>
-</span></code></pre></div><p></p>
-<h3 id="background-task">Background Task<a class="headerlink" href="#background-task" title="Permanent link">¶</a></h3>
-<p><code>process_large_payroll</code> task:
-- Processes employees sequentially
-- Updates database after each employee
-- Logs progress in real-time
-- Handles individual employee errors gracefully
-- Continues processing remaining employees even if some fail</p>
-<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">¶</a></h2>
-<h3 id="threshold-selection">Threshold Selection<a class="headerlink" href="#threshold-selection" title="Permanent link">¶</a></h3>
-<p>Choose your threshold based on:</p>
+<h3 id="funciones-de-ayuda">Funciones de Ayuda<a class="headerlink" href="#funciones-de-ayuda" title="Permanent link">¶</a></h3>
+<p>El módulo <code>rbac.py</code> también proporciona funciones de ayuda para verificar roles:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.rbac</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_admin</span><span class="p">,</span> <span class="n">is_hhrr</span><span class="p">,</span> <span class="n">is_audit</span><span class="p">,</span> <span class="n">can_write</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Verificar si el usuario actual es admin</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">if</span> <span class="n">is_admin</span><span class="p">():</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="c1"># Lógica para administradores</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">pass</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># Verificar si el usuario puede escribir</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="k">if</span> <span class="n">can_write</span><span class="p">():</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="c1"># Mostrar botones de edición</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="k">pass</span>
+</span></code></pre></div>
+<h2 id="matriz-de-permisos">Matriz de Permisos<a class="headerlink" href="#matriz-de-permisos" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Funcionalidad</th>
+<th>Admin</th>
+<th>HHRR</th>
+<th>Audit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Empresas</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ver lista</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Crear</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Editar</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Eliminar</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Usuarios</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ver lista</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Crear</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Editar</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Eliminar</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Empleados</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ver lista</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Crear</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Editar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Eliminar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Préstamos</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ver lista</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Crear</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Aprobar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Pagar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Planillas/Nóminas</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ver lista</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Crear</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Editar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Ejecutar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Ver detalles</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Deducciones/Percepciones/Prestaciones</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ver lista</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Crear</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Editar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Eliminar</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Configuración</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Monedas</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ (solo lectura)</td>
+</tr>
+<tr>
+<td>Tipos de cambio</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ (solo lectura)</td>
+</tr>
+<tr>
+<td>Campos personalizados</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ (solo lectura)</td>
+</tr>
+<tr>
+<td>Reglas de cálculo</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ (solo lectura)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mensajes-de-error">Mensajes de Error<a class="headerlink" href="#mensajes-de-error" title="Permanent link">¶</a></h2>
+<p>Cuando un usuario intenta acceder a una funcionalidad para la cual no tiene permisos, el sistema muestra mensajes apropiados:</p>
+<ul>
+<li><strong>403 Forbidden</strong>: "No tiene permisos para acceder a esta funcionalidad."</li>
+<li><strong>403 Forbidden (Audit)</strong>: "No tiene permisos para modificar datos. Su rol es de solo lectura."</li>
+<li><strong>Redirect a login</strong>: "Favor iniciar sesión para acceder al sistema." (para usuarios no autenticados)</li>
+</ul>
+<h2 id="mejores-practicas">Mejores Prácticas<a class="headerlink" href="#mejores-practicas" title="Permanent link">¶</a></h2>
+<h3 id="para-desarrolladores">Para Desarrolladores<a class="headerlink" href="#para-desarrolladores" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Formula Complexity</strong>: Complex formulas (tax calculations, multiple deductions) → lower threshold (25-50)</li>
-<li><strong>Server Performance</strong>: </li>
-<li>Shared/low-spec servers → lower threshold (50-75)</li>
-<li>Dedicated/high-spec servers → higher threshold (150-200)</li>
-<li><strong>Database Performance</strong>: Slower databases → lower threshold</li>
-<li><strong>User Patience</strong>: Expected wait time should not exceed 2-3 seconds for synchronous processing</li>
+<li>
+<p><strong>Siempre use decoradores RBAC</strong>: No confíe solo en ocultar elementos de UI. Siempre proteja las rutas con decoradores apropiados.</p>
+</li>
+<li>
+<p><strong>Use <code>@require_read_access()</code> para vistas de lista/detalle</strong>: Permite que usuarios audit vean los datos.</p>
+</li>
+<li>
+<p><strong>Use <code>@require_write_access()</code> para operaciones de escritura</strong>: Protege contra modificaciones no autorizadas.</p>
+</li>
+<li>
+<p><strong>Use <code>@require_role()</code> para funcionalidades específicas</strong>: Por ejemplo, solo admin puede gestionar empresas y usuarios.</p>
+</li>
+<li>
+<p><strong>Valide permisos en templates</strong>: Use las funciones de ayuda para mostrar/ocultar botones de acción.</p>
+</li>
 </ol>
-<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">¶</a></h3>
-<p>Monitor these metrics to optimize threshold:
-- Average time per employee calculation
-- Total time for payroll runs
-- Database connection pool usage
-- Queue worker performance</p>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
-<h3 id="nomina-stuck-in-calculando-state">Nomina Stuck in "Calculando" State<a class="headerlink" href="#nomina-stuck-in-calculando-state" title="Permanent link">¶</a></h3>
-<p><strong>Causes:</strong>
-- Queue worker not running
-- Background task crashed
-- Database connection lost</p>
-<p><strong>Solutions:</strong>
-1. Check queue worker status
-2. Check application logs for errors
-3. Manually check progress via API endpoint
-4. If stuck, recalculate nomina (will restart process)</p>
-<h3 id="high-error-rate">High Error Rate<a class="headerlink" href="#high-error-rate" title="Permanent link">¶</a></h3>
-<p><strong>Causes:</strong>
-- Invalid employee data
-- Missing required configuration (exchange rates, tax tables)
-- Formula errors</p>
-<p><strong>Solutions:</strong>
-1. Review error messages in <code>errores_calculo</code>
-2. Fix data issues
-3. Recalculate nomina</p>
-<h3 id="slow-processing">Slow Processing<a class="headerlink" href="#slow-processing" title="Permanent link">¶</a></h3>
-<p><strong>Causes:</strong>
-- Complex formulas
-- Slow database
-- Insufficient resources</p>
-<p><strong>Solutions:</strong>
-1. Lower threshold to use background processing earlier
-2. Optimize formulas
-3. Add database indexes
-4. Scale up server resources
-5. Consider parallel processing (for very large payrolls)</p>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">¶</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>{% if current_user.tipo in ['admin', 'hhrr'] %}
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    &lt;a href="{{ url_for('employee.edit', id=employee.id) }}" class="btn btn-primary"&gt;
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>        Editar
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    &lt;/a&gt;
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>{% endif %}
+</span></code></pre></div>
+<h3 id="para-administradores">Para Administradores<a class="headerlink" href="#para-administradores" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Test Threshold</strong>: Test with your typical payroll size to find optimal threshold</li>
-<li><strong>Monitor Performance</strong>: Regularly review processing times</li>
-<li><strong>Review Logs</strong>: Check activity logs for patterns in errors</li>
-<li><strong>User Communication</strong>: Train users on what to expect during background processing</li>
-<li><strong>Database Maintenance</strong>: Keep database optimized for best performance</li>
+<li>
+<p><strong>Asigne roles apropiados</strong>: Revise cuidadosamente los permisos antes de asignar roles.</p>
+</li>
+<li>
+<p><strong>Use cuentas audit para revisiones</strong>: Cree cuentas audit específicas para auditores externos o internos.</p>
+</li>
+<li>
+<p><strong>Monitoree el campo <code>ultimo_acceso</code></strong>: Rastree cuándo los usuarios acceden al sistema.</p>
+</li>
+<li>
+<p><strong>Cambie credenciales por defecto</strong>: En producción, siempre cambie las credenciales por defecto del administrador.</p>
+</li>
+<li>
+<p><strong>Revise logs de acceso</strong>: Periódicamente revise los logs para detectar intentos de acceso no autorizado.</p>
+</li>
 </ol>
-<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h2>
-<p>Possible improvements:
-- Parallel processing (multiple employees simultaneously)
-- Email notifications when calculation completes
-- Pause/resume capability
-- Priority queues for urgent payrolls
-- Historical performance metrics
-- Automatic threshold adjustment based on performance</p>
+<h2 id="seguridad">Seguridad<a class="headerlink" href="#seguridad" title="Permanent link">¶</a></h2>
+<p>El sistema RBAC implementa las siguientes medidas de seguridad:</p>
+<ol>
+<li>
+<p><strong>Control a nivel de ruta</strong>: Todas las rutas están protegidas con decoradores RBAC.</p>
+</li>
+<li>
+<p><strong>Validación en backend</strong>: Los permisos se validan en el servidor, no solo en el cliente.</p>
+</li>
+<li>
+<p><strong>Mensajes de error genéricos</strong>: Se evita revelar información sensible en mensajes de error.</p>
+</li>
+<li>
+<p><strong>Registro de accesos</strong>: El campo <code>ultimo_acceso</code> registra el último acceso del usuario.</p>
+</li>
+<li>
+<p><strong>Separación de responsabilidades</strong>: Cada rol tiene permisos claramente definidos.</p>
+</li>
+</ol>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h2>
+<p>El sistema incluye 50 tests automatizados que verifican todos los escenarios RBAC:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Ejecutar tests RBAC</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pytest<span class="w"> </span>tests/test_rbac.py<span class="w"> </span>-v
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Ejecutar todos los tests</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>pytest<span class="w"> </span>tests/<span class="w"> </span>-v
+</span></code></pre></div>
+<p>Los tests verifican:
+- Acceso correcto para cada rol
+- Denegación apropiada de permisos
+- Funcionalidad de decoradores
+- Mensajes de error correctos</p>
+<h2 id="migracion-de-usuarios-existentes">Migración de Usuarios Existentes<a class="headerlink" href="#migracion-de-usuarios-existentes" title="Permanent link">¶</a></h2>
+<p>Si ya tiene usuarios en el sistema sin el campo <code>tipo</code> configurado, ejecute:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Usuario</span><span class="p">,</span> <span class="n">db</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">TipoUsuario</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Asignar tipo admin a usuarios existentes</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">usuarios</span> <span class="o">=</span> <span class="n">Usuario</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">tipo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">for</span> <span class="n">usuario</span> <span class="ow">in</span> <span class="n">usuarios</span><span class="p">:</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">usuario</span><span class="o">.</span><span class="n">tipo</span> <span class="o">=</span> <span class="n">TipoUsuario</span><span class="o">.</span><span class="n">ADMIN</span>  <span class="c1"># o el rol apropiado</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span></code></pre></div>
+<h2 id="preguntas-frecuentes">Preguntas Frecuentes<a class="headerlink" href="#preguntas-frecuentes" title="Permanent link">¶</a></h2>
+<p><strong>P: ¿Puede un usuario tener múltiples roles?</strong><br>
+R: No, cada usuario tiene un único rol (tipo). Si necesita permisos mixtos, use el rol HHRR que tiene la mayoría de permisos de gestión.</p>
+<p><strong>P: ¿Los usuarios audit pueden exportar datos?</strong><br>
+R: Sí, los usuarios audit pueden exportar datos para auditorías, pero no pueden modificarlos.</p>
+<p><strong>P: ¿Puedo crear roles personalizados?</strong><br>
+R: Actualmente el sistema soporta tres roles fijos. Para roles personalizados, necesitaría extender el sistema.</p>
+<p><strong>P: ¿Qué sucede si no hay administradores?</strong><br>
+R: El sistema crea automáticamente un usuario admin por defecto al iniciar.</p>
+<p><strong>P: ¿Cómo cambio el rol de un usuario?</strong><br>
+R: Solo los administradores pueden editar usuarios y cambiar sus roles desde la interfaz de gestión de usuarios.</p>
 
 
 
@@ -2341,7 +2511,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Pie">
         
           
-          <a href="../queue_system/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Sistema de Colas">
+          <a href="../database-agnostic-implementation/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Implementación Agnóstica">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -2351,20 +2521,20 @@
                 Anterior
               </span>
               <div class="md-ellipsis">
-                Sistema de Colas
+                Implementación Agnóstica
               </div>
             </div>
           </a>
         
         
           
-          <a href="../database-compatibility/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Compatibilidad de Base de Datos">
+          <a href="../modulo-vacaciones/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Módulo de Vacaciones (Técnico)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Siguiente
               </span>
               <div class="md-ellipsis">
-                Compatibilidad de Base de Datos
+                Módulo de Vacaciones (Técnico)
               </div>
             </div>
             <div class="md-footer__button md-icon">

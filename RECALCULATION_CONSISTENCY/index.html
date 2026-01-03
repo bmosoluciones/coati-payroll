@@ -9,13 +9,9 @@
         <meta name="author" content="BMO Soluciones, S.A.">
       
       
-        <link rel="canonical" href="https://williamjmorenor.github.io/coati/background-payroll-processing/">
+        <link rel="canonical" href="https://williamjmorenor.github.io/coati/RECALCULATION_CONSISTENCY/">
       
       
-        <link rel="prev" href="../queue_system/">
-      
-      
-        <link rel="next" href="../database-compatibility/">
       
       
         
@@ -26,7 +22,7 @@
     
     
       
-        <title>Procesamiento en Segundo Plano - Coati Payroll - Documentación</title>
+        <title>Sistema de Consistencia en Recálculo de Nóminas - Coati Payroll - Documentación</title>
       
     
     
@@ -87,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#background-payroll-processing" class="md-skip">
+        <a href="#sistema-de-consistencia-en-recalculo-de-nominas" class="md-skip">
           Saltar a contenido
         </a>
       
@@ -121,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Procesamiento en Segundo Plano
+              Sistema de Consistencia en Recálculo de Nóminas
             
           </span>
         </div>
@@ -330,12 +326,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../queue_system/" class="md-tabs__link">
           
   
@@ -1210,31 +1204,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1252,7 +1241,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1295,37 +1284,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Procesamiento en Segundo Plano
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../background-payroll-processing/" class="md-nav__link">
         
   
   
@@ -1341,359 +1303,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Tabla de contenidos
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-is-background-processing-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When is Background Processing Used?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#setting-the-threshold" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Setting the Threshold
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configuration-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration File
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#user-experience" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Experience
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="User Experience">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-initiating-payroll-calculation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Initiating Payroll Calculation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-progress-monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Progress Monitoring
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Progress Monitoring">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#progress-indicator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Progress Indicator
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#current-activity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Current Activity
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#activity-log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Activity Log
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-completion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Completion
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Error Handling
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#technical-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Technical Details
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Technical Details">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#database-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Database Schema
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nomina-states" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nomina States
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api-endpoint" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API Endpoint
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#background-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Background Task
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#performance-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Performance Considerations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Performance Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#threshold-selection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Threshold Selection
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Monitoring
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#nomina-stuck-in-calculando-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nomina Stuck in "Calculando" State
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#high-error-rate" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        High Error Rate
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#slow-processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Slow Processing
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Best Practices
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#future-enhancements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Enhancements
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2121,189 +1730,206 @@
   
 
 
-<h1 id="background-payroll-processing">Background Payroll Processing<a class="headerlink" href="#background-payroll-processing" title="Permanent link">¶</a></h1>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>This feature enables automatic background processing of large payrolls to prevent UI freezing and provide real-time feedback to users during lengthy calculations.</p>
-<h2 id="when-is-background-processing-used">When is Background Processing Used?<a class="headerlink" href="#when-is-background-processing-used" title="Permanent link">¶</a></h2>
-<p>Background processing is automatically triggered when:
-- A planilla has more employees than the configured threshold
-- Default threshold: <strong>100 employees</strong>
-- Threshold is configurable via environment variable</p>
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
-<h3 id="setting-the-threshold">Setting the Threshold<a class="headerlink" href="#setting-the-threshold" title="Permanent link">¶</a></h3>
-<p>You can adjust the threshold based on your system's performance:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># For systems with complex formulas or slower performance</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BACKGROUND_PAYROLL_THRESHOLD</span><span class="o">=</span><span class="m">50</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># For high-performance systems</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BACKGROUND_PAYROLL_THRESHOLD</span><span class="o">=</span><span class="m">200</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Default (if not set)</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># BACKGROUND_PAYROLL_THRESHOLD=100</span>
-</span></code></pre></div>
-<h3 id="configuration-file">Configuration File<a class="headerlink" href="#configuration-file" title="Permanent link">¶</a></h3>
-<p>You can also set it in your configuration file (<code>coati-payroll.conf</code>):</p>
-<div class="language-ini highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="na">BACKGROUND_PAYROLL_THRESHOLD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">75</span>
-</span></code></pre></div>
-<h2 id="user-experience">User Experience<a class="headerlink" href="#user-experience" title="Permanent link">¶</a></h2>
-<h3 id="1-initiating-payroll-calculation">1. Initiating Payroll Calculation<a class="headerlink" href="#1-initiating-payroll-calculation" title="Permanent link">¶</a></h3>
-<p>When a user executes a payroll for a planilla with more than the threshold number of employees:</p>
+<h1 id="sistema-de-consistencia-en-recalculo-de-nominas">Sistema de Consistencia en Recálculo de Nóminas<a class="headerlink" href="#sistema-de-consistencia-en-recalculo-de-nominas" title="Permanent link">¶</a></h1>
+<h2 id="resumen">Resumen<a class="headerlink" href="#resumen" title="Permanent link">¶</a></h2>
+<p>Este documento describe el sistema implementado para garantizar que las nóminas sean recalculables de forma consistente, preservando el contexto de cálculo original.</p>
+<h2 id="problema">Problema<a class="headerlink" href="#problema" title="Permanent link">¶</a></h2>
+<p>Anteriormente, el sistema no garantizaba que una nómina recalculada produjera los mismos resultados que la nómina original debido a:</p>
 <ol>
-<li>The system creates a nomina record with status <strong>"calculando"</strong></li>
-<li>The background task is queued</li>
-<li>User is redirected to the nomina detail page</li>
-<li>A flash message informs the user: <em>"La nómina está siendo calculada en segundo plano. Se procesarán X empleados."</em></li>
+<li><strong>Datos externos mutables</strong>: Configuraciones, fórmulas, tipos de cambio podían cambiar</li>
+<li><strong>Fecha de cálculo variable</strong>: Se usaba <code>date.today()</code> al recalcular, afectando antigüedad y acumulados</li>
+<li><strong>Sin versionado</strong>: No se guardaban snapshots de configuraciones usadas</li>
+<li><strong>Variables dinámicas</strong>: Cálculos temporales dependían de la fecha actual</li>
 </ol>
-<h3 id="2-progress-monitoring">2. Progress Monitoring<a class="headerlink" href="#2-progress-monitoring" title="Permanent link">¶</a></h3>
-<p>The nomina detail page shows:</p>
-<h4 id="progress-indicator">Progress Indicator<a class="headerlink" href="#progress-indicator" title="Permanent link">¶</a></h4>
-<ul>
-<li><strong>Spinner animation</strong> to show the system is active</li>
-<li><strong>Progress bar</strong> showing percentage complete</li>
-<li><strong>Employee counters</strong>:</li>
-<li>Total employees</li>
-<li>Employees processed</li>
-<li>Employees with errors</li>
-</ul>
-<h4 id="current-activity">Current Activity<a class="headerlink" href="#current-activity" title="Permanent link">¶</a></h4>
-<ul>
-<li>Alert showing which employee is currently being calculated</li>
-<li>Updates every 3 seconds</li>
-</ul>
-<h4 id="activity-log">Activity Log<a class="headerlink" href="#activity-log" title="Permanent link">¶</a></h4>
-<ul>
-<li>Scrollable log showing:</li>
-<li>"Calculando empleado N/Total: Employee Name"</li>
-<li>"✓ Completado: Employee Name - Neto: $X,XXX.XX"</li>
-<li>"✗ Error: Employee Name - Error message"</li>
-<li>Auto-scrolls to show latest activity</li>
-<li>Manual scroll is preserved (user can review earlier entries)</li>
-</ul>
-<h3 id="3-completion">3. Completion<a class="headerlink" href="#3-completion" title="Permanent link">¶</a></h3>
-<p>When calculation completes:
-- Page automatically refreshes
-- Status changes to <strong>"generado"</strong> (or <strong>"error"</strong> if critical failure)
-- User can review results, approve, and apply the nomina</p>
-<h3 id="4-error-handling">4. Error Handling<a class="headerlink" href="#4-error-handling" title="Permanent link">¶</a></h3>
-<p>If some employees fail to process:
-- Nomina status: <strong>"generado"</strong> (if majority succeeded) or <strong>"error"</strong> (if all failed)
-- Warning alert shows number of employees with errors
-- Expandable details list all errors
-- Successfully calculated employees are saved</p>
-<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">¶</a></h2>
-<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">¶</a></h3>
-<p>New fields added to <code>Nomina</code> table:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">total_empleados</span>              <span class="c1"># Total number of employees</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">empleados_procesados</span>         <span class="c1"># Number processed so far</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">empleados_con_error</span>          <span class="c1"># Number that failed</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">errores_calculo</span>             <span class="c1"># Dict of employee_id: error_message</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">procesamiento_en_background</span>  <span class="c1"># Boolean flag</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">log_procesamiento</span>           <span class="c1"># List of activity log entries</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">empleado_actual</span>             <span class="c1"># Name of employee currently being processed</span>
+<h2 id="solucion-implementada">Solución Implementada<a class="headerlink" href="#solucion-implementada" title="Permanent link">¶</a></h2>
+<h3 id="1-campos-de-snapshot-en-modelo-nomina">1. Campos de Snapshot en Modelo Nomina<a class="headerlink" href="#1-campos-de-snapshot-en-modelo-nomina" title="Permanent link">¶</a></h3>
+<p>Se agregaron los siguientes campos a la tabla <code>nomina</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">fecha_calculo_original</span><span class="p">:</span> <span class="n">date</span>          <span class="c1"># Fecha de cálculo original</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">configuracion_snapshot</span><span class="p">:</span> <span class="n">JSON</span>          <span class="c1"># Configuración de empresa</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">tipos_cambio_snapshot</span><span class="p">:</span> <span class="n">JSON</span>           <span class="c1"># Tipos de cambio usados</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">catalogos_snapshot</span><span class="p">:</span> <span class="n">JSON</span>              <span class="c1"># Percepciones/Deducciones/Prestaciones</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">es_recalculo</span><span class="p">:</span> <span class="nb">bool</span>                    <span class="c1"># Flag de recálculo</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">nomina_original_id</span><span class="p">:</span> <span class="nb">str</span>               <span class="c1"># Referencia a nómina original</span>
 </span></code></pre></div>
-<h3 id="nomina-states">Nomina States<a class="headerlink" href="#nomina-states" title="Permanent link">¶</a></h3>
-<p>New states in <code>NominaEstado</code> enum:
-- <code>CALCULANDO</code>: Currently being calculated in background
-- <code>ERROR</code>: Critical error during calculation
-- <code>GENERADO</code>: Successfully generated (existing)
-- <code>APROBADO</code>: Approved (existing)
-- <code>APLICADO</code>: Applied/paid (existing)</p>
-<h3 id="api-endpoint">API Endpoint<a class="headerlink" href="#api-endpoint" title="Permanent link">¶</a></h3>
-<p><code>GET /planilla/&lt;planilla_id&gt;/nomina/&lt;nomina_id&gt;/progreso</code></p>
-<p>Returns JSON:
-</p><div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"estado"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calculando"</span><span class="p">,</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">"total_empleados"</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">"empleados_procesados"</span><span class="p">:</span><span class="w"> </span><span class="mi">75</span><span class="p">,</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">"empleados_con_error"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">"progreso_porcentaje"</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">"empleado_actual"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Juan Pérez"</span><span class="p">,</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">"log_procesamiento"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">      </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-01-15T10:30:45Z"</span><span class="p">,</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">      </span><span class="nt">"empleado"</span><span class="p">:</span><span class="w"> </span><span class="s2">"María García"</span><span class="p">,</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">      </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"✓ Completado: María García - Neto: C$ 15,234.50"</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="err">...</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="p">],</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="nt">"errores_calculo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="nt">"empleado_id_1"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Error message"</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">  </span><span class="nt">"procesamiento_en_background"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="p">}</span>
-</span></code></pre></div><p></p>
-<h3 id="background-task">Background Task<a class="headerlink" href="#background-task" title="Permanent link">¶</a></h3>
-<p><code>process_large_payroll</code> task:
-- Processes employees sequentially
-- Updates database after each employee
-- Logs progress in real-time
-- Handles individual employee errors gracefully
-- Continues processing remaining employees even if some fail</p>
-<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">¶</a></h2>
-<h3 id="threshold-selection">Threshold Selection<a class="headerlink" href="#threshold-selection" title="Permanent link">¶</a></h3>
-<p>Choose your threshold based on:</p>
+<h3 id="2-servicio-de-captura-de-snapshots">2. Servicio de Captura de Snapshots<a class="headerlink" href="#2-servicio-de-captura-de-snapshots" title="Permanent link">¶</a></h3>
+<p><strong>Archivo</strong>: <code>coati_payroll/nomina_engine/services/snapshot_service.py</code></p>
+<p>El <code>SnapshotService</code> captura snapshots inmutables de:</p>
+<ul>
+<li><strong>Configuración de empresa</strong>: Días/mes, días/año, tasas de interés, etc.</li>
+<li><strong>Tipos de cambio</strong>: Tasas de conversión para todas las monedas usadas</li>
+<li><strong>Catálogos</strong>: Fórmulas completas de percepciones, deducciones y prestaciones</li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">snapshot</span> <span class="o">=</span> <span class="n">snapshot_service</span><span class="o">.</span><span class="n">capture_complete_snapshot</span><span class="p">(</span><span class="n">planilla</span><span class="p">,</span> <span class="n">fecha_calculo</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="3-integracion-en-ejecucion-de-nomina">3. Integración en Ejecución de Nómina<a class="headerlink" href="#3-integracion-en-ejecucion-de-nomina" title="Permanent link">¶</a></h3>
+<p><strong>Archivo</strong>: <code>coati_payroll/nomina_engine/services/payroll_execution_service.py</code></p>
+<p>Al ejecutar una nómina, se capturan automáticamente todos los snapshots:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Capture configuration snapshots for recalculation consistency</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">snapshot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_service</span><span class="o">.</span><span class="n">capture_complete_snapshot</span><span class="p">(</span><span class="n">planilla</span><span class="p">,</span> <span class="n">fecha_calculo</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">nomina</span> <span class="o">=</span> <span class="n">Nomina</span><span class="p">(</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="c1"># ... otros campos ...</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">fecha_calculo_original</span><span class="o">=</span><span class="n">fecha_calculo</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">configuracion_snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">[</span><span class="s2">"configuracion"</span><span class="p">],</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">tipos_cambio_snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">[</span><span class="s2">"tipos_cambio"</span><span class="p">],</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">catalogos_snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">[</span><span class="s2">"catalogos"</span><span class="p">],</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="4-logica-de-recalculo-consistente">4. Lógica de Recálculo Consistente<a class="headerlink" href="#4-logica-de-recalculo-consistente" title="Permanent link">¶</a></h3>
+<p><strong>Archivo</strong>: <code>coati_payroll/vistas/planilla/services/nomina_service.py</code></p>
+<p>Al recalcular, se preserva la fecha de cálculo original:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Usar fecha_calculo_original en lugar de date.today()</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">fecha_calculo_original</span> <span class="o">=</span> <span class="n">nomina</span><span class="o">.</span><span class="n">fecha_calculo_original</span> <span class="ow">or</span> <span class="n">nomina</span><span class="o">.</span><span class="n">fecha_generacion</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">NominaEngine</span><span class="p">(</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">planilla</span><span class="o">=</span><span class="n">planilla</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">periodo_inicio</span><span class="o">=</span><span class="n">periodo_inicio</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">periodo_fin</span><span class="o">=</span><span class="n">periodo_fin</span><span class="p">,</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="n">fecha_calculo</span><span class="o">=</span><span class="n">fecha_calculo_original</span><span class="p">,</span>  <span class="c1"># ← Fecha original</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">usuario</span><span class="o">=</span><span class="n">usuario</span><span class="p">,</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="5-auditoria-de-recalculos">5. Auditoría de Recálculos<a class="headerlink" href="#5-auditoria-de-recalculos" title="Permanent link">¶</a></h3>
+<p>Cada recálculo genera un registro de auditoría:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">crear_log_auditoria_nomina</span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">nomina</span><span class="o">=</span><span class="n">new_nomina</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">accion</span><span class="o">=</span><span class="s2">"recalculated"</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">usuario</span><span class="o">=</span><span class="n">usuario</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">descripcion</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Nómina recalculada desde nómina original </span><span class="si">{</span><span class="n">nomina_original_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">cambios</span><span class="o">=</span><span class="p">{</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="s2">"nomina_original_id"</span><span class="p">:</span> <span class="n">nomina_original_id</span><span class="p">,</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>        <span class="s2">"fecha_calculo_original"</span><span class="p">:</span> <span class="n">fecha_calculo_original</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>        <span class="s2">"periodo_inicio"</span><span class="p">:</span> <span class="n">periodo_inicio</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="s2">"periodo_fin"</span><span class="p">:</span> <span class="n">periodo_fin</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="p">},</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="garantias-de-consistencia">Garantías de Consistencia<a class="headerlink" href="#garantias-de-consistencia" title="Permanent link">¶</a></h2>
+<p>Con esta implementación, el sistema garantiza:</p>
+<h3 id="fecha-de-calculo-consistente">✅ Fecha de Cálculo Consistente<a class="headerlink" href="#fecha-de-calculo-consistente" title="Permanent link">¶</a></h3>
+<ul>
+<li>Se preserva <code>fecha_calculo_original</code> al recalcular</li>
+<li>Antigüedad del empleado se calcula igual</li>
+<li>Acumulados se obtienen de la misma fecha</li>
+</ul>
+<h3 id="configuracion-inmutable">✅ Configuración Inmutable<a class="headerlink" href="#configuracion-inmutable" title="Permanent link">¶</a></h3>
+<ul>
+<li>Snapshot de configuración de empresa</li>
+<li>Días/mes, días/año, tasas de interés preservadas</li>
+<li>Métodos de cálculo de interés inmutables</li>
+</ul>
+<h3 id="tipos-de-cambio-preservados">✅ Tipos de Cambio Preservados<a class="headerlink" href="#tipos-de-cambio-preservados" title="Permanent link">¶</a></h3>
+<ul>
+<li>Tasas de conversión guardadas por moneda</li>
+<li>Fecha de vigencia del tipo de cambio registrada</li>
+<li>Conversiones consistentes en recálculo</li>
+</ul>
+<h3 id="catalogos-versionados">✅ Catálogos Versionados<a class="headerlink" href="#catalogos-versionados" title="Permanent link">¶</a></h3>
+<ul>
+<li>Fórmulas de percepciones preservadas</li>
+<li>Fórmulas de deducciones preservadas</li>
+<li>Fórmulas de prestaciones preservadas</li>
+<li>Porcentajes y montos fijos inmutables</li>
+</ul>
+<h3 id="trazabilidad-completa">✅ Trazabilidad Completa<a class="headerlink" href="#trazabilidad-completa" title="Permanent link">¶</a></h3>
+<ul>
+<li>Flag <code>es_recalculo</code> identifica recálculos</li>
+<li><code>nomina_original_id</code> vincula con nómina original</li>
+<li>Audit log registra cada recálculo</li>
+<li>Snapshots permiten auditoría histórica</li>
+</ul>
+<h2 id="uso">Uso<a class="headerlink" href="#uso" title="Permanent link">¶</a></h2>
+<h3 id="recalcular-una-nomina">Recalcular una Nómina<a class="headerlink" href="#recalcular-una-nomina" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">coati_payroll.vistas.planilla.services.nomina_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">NominaService</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Recalcular nómina (usa automáticamente fecha_calculo_original)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">new_nomina</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">warnings</span> <span class="o">=</span> <span class="n">NominaService</span><span class="o">.</span><span class="n">recalcular_nomina</span><span class="p">(</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">nomina</span><span class="o">=</span><span class="n">nomina_existente</span><span class="p">,</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">planilla</span><span class="o">=</span><span class="n">planilla</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">usuario</span><span class="o">=</span><span class="s2">"admin"</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># Verificar si es recálculo</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="k">if</span> <span class="n">new_nomina</span><span class="o">.</span><span class="n">es_recalculo</span><span class="p">:</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Recalculada desde: </span><span class="si">{</span><span class="n">new_nomina</span><span class="o">.</span><span class="n">nomina_original_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fecha cálculo original: </span><span class="si">{</span><span class="n">new_nomina</span><span class="o">.</span><span class="n">fecha_calculo_original</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="consultar-snapshots">Consultar Snapshots<a class="headerlink" href="#consultar-snapshots" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Ver configuración usada en el cálculo</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">config_snapshot</span> <span class="o">=</span> <span class="n">nomina</span><span class="o">.</span><span class="n">configuracion_snapshot</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Días/mes: </span><span class="si">{</span><span class="n">config_snapshot</span><span class="p">[</span><span class="s1">'dias_mes'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Salario mínimo: </span><span class="si">{</span><span class="n">config_snapshot</span><span class="p">[</span><span class="s1">'salario_minimo'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># Ver tipos de cambio usados</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">tipos_cambio</span> <span class="o">=</span> <span class="n">nomina</span><span class="o">.</span><span class="n">tipos_cambio_snapshot</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">for</span> <span class="n">moneda_id</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">tipos_cambio</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Moneda </span><span class="si">{</span><span class="n">moneda_id</span><span class="si">}</span><span class="s2">: Tasa </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">'tasa'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># Ver catálogos usados</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">catalogos</span> <span class="o">=</span> <span class="n">nomina</span><span class="o">.</span><span class="n">catalogos_snapshot</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="k">for</span> <span class="n">percepcion</span> <span class="ow">in</span> <span class="n">catalogos</span><span class="p">[</span><span class="s1">'percepciones'</span><span class="p">]:</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">percepcion</span><span class="p">[</span><span class="s1">'codigo'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">percepcion</span><span class="p">[</span><span class="s1">'formula'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="auditar-recalculos">Auditar Recálculos<a class="headerlink" href="#auditar-recalculos" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Obtener historial de recálculos</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">audit_logs</span> <span class="o">=</span> <span class="n">nomina</span><span class="o">.</span><span class="n">audit_logs</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">accion</span><span class="o">=</span><span class="s2">"recalculated"</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">audit_logs</span><span class="p">:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">log</span><span class="o">.</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">log</span><span class="o">.</span><span class="n">descripcion</span><span class="si">}</span><span class="s2"> por </span><span class="si">{</span><span class="n">log</span><span class="o">.</span><span class="n">usuario</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="restricciones">Restricciones<a class="headerlink" href="#restricciones" title="Permanent link">¶</a></h2>
+<h3 id="nominas-no-recalculables">Nóminas No Recalculables<a class="headerlink" href="#nominas-no-recalculables" title="Permanent link">¶</a></h3>
+<p>Las siguientes nóminas <strong>NO</strong> pueden ser recalculadas:</p>
+<ul>
+<li>❌ Nóminas en estado <code>aplicado</code> (pagadas)</li>
+<li>❌ Nóminas en estado <code>pagado</code></li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">if</span> <span class="n">nomina</span><span class="o">.</span><span class="n">estado</span> <span class="o">==</span> <span class="s2">"aplicado"</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No se puede recalcular una nómina aplicada"</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="datos-que-si-cambian-en-recalculo">Datos que Sí Cambian en Recálculo<a class="headerlink" href="#datos-que-si-cambian-en-recalculo" title="Permanent link">¶</a></h3>
+<p>Algunos datos <strong>sí</strong> se actualizan al recalcular:</p>
+<ul>
+<li>✅ <strong>Novedades del período</strong>: Se cargan las novedades actuales</li>
+<li>✅ <strong>Datos del empleado</strong>: Salario actual, cargo, área (se guarda snapshot en NominaEmpleado)</li>
+<li>✅ <strong>Préstamos/Adelantos</strong>: Saldos actuales al momento del recálculo</li>
+<li>✅ <strong>Acumulados anuales</strong>: Valores actuales de acumulados</li>
+</ul>
+<p>Esto es intencional para permitir correcciones de novedades y ajustes de datos del empleado.</p>
+<h2 id="beneficios">Beneficios<a class="headerlink" href="#beneficios" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Formula Complexity</strong>: Complex formulas (tax calculations, multiple deductions) → lower threshold (25-50)</li>
-<li><strong>Server Performance</strong>: </li>
-<li>Shared/low-spec servers → lower threshold (50-75)</li>
-<li>Dedicated/high-spec servers → higher threshold (150-200)</li>
-<li><strong>Database Performance</strong>: Slower databases → lower threshold</li>
-<li><strong>User Patience</strong>: Expected wait time should not exceed 2-3 seconds for synchronous processing</li>
+<li><strong>Reproducibilidad</strong>: Resultados consistentes en recálculos</li>
+<li><strong>Auditoría</strong>: Trazabilidad completa de cambios</li>
+<li><strong>Transparencia</strong>: Snapshots visibles para auditoría</li>
+<li><strong>Confiabilidad</strong>: Elimina sorpresas en recálculos</li>
+<li><strong>Cumplimiento</strong>: Facilita auditorías legales y fiscales</li>
 </ol>
-<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">¶</a></h3>
-<p>Monitor these metrics to optimize threshold:
-- Average time per employee calculation
-- Total time for payroll runs
-- Database connection pool usage
-- Queue worker performance</p>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
-<h3 id="nomina-stuck-in-calculando-state">Nomina Stuck in "Calculando" State<a class="headerlink" href="#nomina-stuck-in-calculando-state" title="Permanent link">¶</a></h3>
-<p><strong>Causes:</strong>
-- Queue worker not running
-- Background task crashed
-- Database connection lost</p>
-<p><strong>Solutions:</strong>
-1. Check queue worker status
-2. Check application logs for errors
-3. Manually check progress via API endpoint
-4. If stuck, recalculate nomina (will restart process)</p>
-<h3 id="high-error-rate">High Error Rate<a class="headerlink" href="#high-error-rate" title="Permanent link">¶</a></h3>
-<p><strong>Causes:</strong>
-- Invalid employee data
-- Missing required configuration (exchange rates, tax tables)
-- Formula errors</p>
-<p><strong>Solutions:</strong>
-1. Review error messages in <code>errores_calculo</code>
-2. Fix data issues
-3. Recalculate nomina</p>
-<h3 id="slow-processing">Slow Processing<a class="headerlink" href="#slow-processing" title="Permanent link">¶</a></h3>
-<p><strong>Causes:</strong>
-- Complex formulas
-- Slow database
-- Insufficient resources</p>
-<p><strong>Solutions:</strong>
-1. Lower threshold to use background processing earlier
-2. Optimize formulas
-3. Add database indexes
-4. Scale up server resources
-5. Consider parallel processing (for very large payrolls)</p>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">¶</a></h2>
+<h2 id="consideraciones-de-rendimiento">Consideraciones de Rendimiento<a class="headerlink" href="#consideraciones-de-rendimiento" title="Permanent link">¶</a></h2>
+<ul>
+<li>Los snapshots JSON agregan ~10-50 KB por nómina</li>
+<li>Captura de snapshots agrega ~100-200ms al tiempo de ejecución</li>
+<li>Índices en <code>es_recalculo</code> y <code>nomina_original_id</code> optimizan consultas</li>
+</ul>
+<h2 id="futuras-mejoras">Futuras Mejoras<a class="headerlink" href="#futuras-mejoras" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Test Threshold</strong>: Test with your typical payroll size to find optimal threshold</li>
-<li><strong>Monitor Performance</strong>: Regularly review processing times</li>
-<li><strong>Review Logs</strong>: Check activity logs for patterns in errors</li>
-<li><strong>User Communication</strong>: Train users on what to expect during background processing</li>
-<li><strong>Database Maintenance</strong>: Keep database optimized for best performance</li>
+<li><strong>Modo de recálculo con datos actuales</strong>: Flag para recalcular con configuración actual</li>
+<li><strong>Comparación de resultados</strong>: Herramienta para comparar nómina original vs recalculada</li>
+<li><strong>Validación de consistencia</strong>: Alertas si recálculo difiere significativamente</li>
+<li><strong>Compresión de snapshots</strong>: Reducir tamaño de JSON almacenado</li>
+<li><strong>Snapshot de novedades</strong>: Opción para preservar novedades originales</li>
 </ol>
-<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h2>
-<p>Possible improvements:
-- Parallel processing (multiple employees simultaneously)
-- Email notifications when calculation completes
-- Pause/resume capability
-- Priority queues for urgent payrolls
-- Historical performance metrics
-- Automatic threshold adjustment based on performance</p>
+<h2 id="referencias">Referencias<a class="headerlink" href="#referencias" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Modelo</strong>: <code>coati_payroll/model.py</code> - Clase <code>Nomina</code></li>
+<li><strong>Servicio de Snapshots</strong>: <code>coati_payroll/nomina_engine/services/snapshot_service.py</code></li>
+<li><strong>Ejecución de Nómina</strong>: <code>coati_payroll/nomina_engine/services/payroll_execution_service.py</code></li>
+<li><strong>Recálculo</strong>: <code>coati_payroll/vistas/planilla/services/nomina_service.py</code></li>
+<li><strong>Auditoría</strong>: <code>coati_payroll/audit_helpers.py</code></li>
+<li><strong>Migración</strong>: <code>migrations/add_nomina_recalculation_snapshots.sql</code></li>
+</ul>
+<h2 id="soporte">Soporte<a class="headerlink" href="#soporte" title="Permanent link">¶</a></h2>
+<p>Para preguntas o problemas relacionados con el sistema de recálculo consistente, consultar:
+- Documentación de auditoría: <code>docs/AUDIT_GOVERNANCE_SYSTEM.md</code>
+- Sistema de nóminas: <code>docs/guia/nominas.md</code></p>
 
 
 
@@ -2336,44 +1962,6 @@
       
         <footer class="md-footer">
   
-    
-      
-      <nav class="md-footer__inner md-grid" aria-label="Pie">
-        
-          
-          <a href="../queue_system/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Sistema de Colas">
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
-            </div>
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Anterior
-              </span>
-              <div class="md-ellipsis">
-                Sistema de Colas
-              </div>
-            </div>
-          </a>
-        
-        
-          
-          <a href="../database-compatibility/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Compatibilidad de Base de Datos">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Siguiente
-              </span>
-              <div class="md-ellipsis">
-                Compatibilidad de Base de Datos
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
-            </div>
-          </a>
-        
-      </nav>
     
   
   <div class="md-footer-meta md-typeset">

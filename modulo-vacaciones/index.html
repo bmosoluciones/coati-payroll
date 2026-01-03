@@ -1,0 +1,2687 @@
+<!DOCTYPE html><html lang="es" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Sistema de administración de nóminas y planillas">
+      
+      
+        <meta name="author" content="BMO Soluciones, S.A.">
+      
+      
+        <link rel="canonical" href="https://williamjmorenor.github.io/coati/modulo-vacaciones/">
+      
+      
+        <link rel="prev" href="../rbac/">
+      
+      
+        <link rel="next" href="../CARGA_SALDOS_INICIALES/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Módulo de Vacaciones (Técnico) - Coati Payroll - Documentación</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#modulo-de-vacaciones-documentacion-tecnica" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href=".." title="Coati Payroll - Documentación" class="md-header__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Coati Payroll - Documentación
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Módulo de Vacaciones (Técnico)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo oscuro" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo claro" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../guia/inicio-rapido/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guía de Inicio Rápido
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../instalacion/requisitos/" class="md-tabs__link">
+          
+  
+  
+  Instalación
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guia/primeros-pasos/" class="md-tabs__link">
+          
+  
+  
+  Guía de Uso
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorial/nomina-completa/" class="md-tabs__link">
+          
+  
+  
+  Tutorial Completo
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../queue_system/" class="md-tabs__link">
+          
+  
+  
+  Características Avanzadas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../referencia/glosario/" class="md-tabs__link">
+          
+  
+  
+  Referencia
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Coati Payroll - Documentación" class="md-nav__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    Coati Payroll - Documentación
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/inicio-rapido/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de Inicio Rápido
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Instalación
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instalacion/requisitos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos del Sistema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instalacion/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instalacion/configuracion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración Inicial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de Uso
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guía de Uso
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/primeros-pasos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros Pasos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/usuarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Usuarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/empresas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Empresas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/monedas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monedas y Tipos de Cambio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/empleados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Empleados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/campos-personalizados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campos Personalizados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sistema de Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/percepciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Percepciones (Ingresos)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/deducciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deducciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/prestaciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prestaciones (Aportes Patronales)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/reglas-calculo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reglas de Cálculo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/prestamos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Préstamos y Adelantos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/planillas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración de Planillas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/nomina/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejecución de Nómina
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/vacaciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Vacaciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia/configuracion-contable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración Contable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Completo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorial Completo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/nomina-completa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paso a Paso - Nómina Completa
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Características Avanzadas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Características Avanzadas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../queue_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sistema de Colas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../background-payroll-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Procesamiento en Segundo Plano
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibilidad de Base de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-agnostic-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementación Agnóstica
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rbac/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Control de Acceso (RBAC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Módulo de Vacaciones (Técnico)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Módulo de Vacaciones (Técnico)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#descripcion-general" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Descripción General
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#principios-de-diseno" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Principios de Diseño
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arquitectura-del-sistema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arquitectura del Sistema
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entidades-del-modelo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entidades del Modelo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Entidades del Modelo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-vacationpolicy-politica-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. VacationPolicy (Política de Vacaciones)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. VacationPolicy (Política de Vacaciones)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#identificacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identificación
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-de-acumulacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuración de Acumulación
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limites-de-balance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Límites de Balance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reglas-de-vencimiento" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reglas de Vencimiento
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-de-uso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuración de Uso
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-vacationaccount-cuenta-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. VacationAccount (Cuenta de Vacaciones)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-vacationledger-libro-mayor-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. VacationLedger (Libro Mayor de Vacaciones)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-vacationnovelty-novedadsolicitud-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. VacationNovelty (Novedad/Solicitud de Vacaciones)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flujos-de-trabajo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujos de Trabajo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flujos de Trabajo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flujo-1-acumulacion-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujo 1: Acumulación de Vacaciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flujo-2-solicitud-y-aprobacion-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujo 2: Solicitud y Aprobación de Vacaciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flujo-3-ajuste-manual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujo 3: Ajuste Manual
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flujo-4-vencimiento-de-vacaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujo 4: Vencimiento de Vacaciones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flujo-5-pago-al-terminar-relacion-laboral" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujo 5: Pago al Terminar Relación Laboral
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#casos-de-uso-cubiertos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Casos de Uso Cubiertos
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Casos de Uso Cubiertos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#latam-ejemplo-nicaragua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ LATAM (Ejemplo: Nicaragua)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ USA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#canada" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Canadá
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-time-empleados-por-horas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Part-Time / Empleados por Horas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vacaciones-adelantadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Vacaciones Adelantadas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ajustes-manuales-auditables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Ajustes Manuales Auditables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integracion-con-nomina" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integración con Nómina
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reportes-y-consultas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reportes y Consultas
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reportes y Consultas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#balance-por-empleado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Balance por Empleado
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historial-completo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historial Completo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calculo-verificable-del-balance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cálculo Verificable del Balance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vacaciones-por-vencer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vacaciones por Vencer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seguridad-y-permisos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Seguridad y Permisos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ventajas-del-diseno" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ventajas del Diseño
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#riesgos-evitados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Riesgos Evitados
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proximas-mejoras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Próximas Mejoras
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusión
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CARGA_SALDOS_INICIALES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Carga de Saldos Iniciales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../automated-backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Respaldos Automatizados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INTERNATIONALIZATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internacionalización
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TRANSLATIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traducciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plantilla-excel-novedades/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plantilla Excel Novedades
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencia
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../referencia/glosario/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glosario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../referencia/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preguntas Frecuentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../referencia/importacion-tipos-de-cambio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Importación de Tipos de Cambio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="modulo-de-vacaciones-documentacion-tecnica">Módulo de Vacaciones - Documentación Técnica<a class="headerlink" href="#modulo-de-vacaciones-documentacion-tecnica" title="Permanent link">¶</a></h1>
+<h2 id="descripcion-general">Descripción General<a class="headerlink" href="#descripcion-general" title="Permanent link">¶</a></h2>
+<p>El <strong>Módulo de Vacaciones</strong> de Coati Payroll es un subsistema robusto, auditable y agnóstico al país, diseñado para gestionar el control completo de vacaciones de empleados. Este módulo está basado en principios de sistemas enterprise HRIS/Payroll y puede adaptarse a las regulaciones de cualquier país de América (LATAM, USA y Canadá).</p>
+<h2 id="principios-de-diseno">Principios de Diseño<a class="headerlink" href="#principios-de-diseno" title="Permanent link">¶</a></h2>
+<p>El módulo se basa en los siguientes principios fundamentales:</p>
+<ol>
+<li>
+<p><strong>Vacaciones no son días, son un balance</strong>: Las vacaciones se gestionan como un balance contable que aumenta (acumulación) y disminuye (uso).</p>
+</li>
+<li>
+<p><strong>El balance se modifica solo por eventos</strong>: Todas las modificaciones al balance se realizan mediante eventos registrados en el libro mayor (ledger).</p>
+</li>
+<li>
+<p><strong>Las reglas no viven en código, viven en configuración</strong>: Las políticas de vacaciones son configurables y no requieren cambios en el código para adaptarse a diferentes legislaciones.</p>
+</li>
+<li>
+<p><strong>El sistema no decide legalidad, solo ejecuta políticas</strong>: El sistema ejecuta políticas configuradas; la interpretación legal es responsabilidad del usuario.</p>
+</li>
+<li>
+<p><strong>El motor debe ser determinista y reproducible</strong>: Dado el mismo conjunto de eventos, el sistema siempre produce el mismo balance.</p>
+</li>
+<li>
+<p><strong>Toda mutación debe dejar trazabilidad</strong>: Cada cambio en el balance deja un registro inmutable en el ledger.</p>
+</li>
+</ol>
+<h2 id="arquitectura-del-sistema">Arquitectura del Sistema<a class="headerlink" href="#arquitectura-del-sistema" title="Permanent link">¶</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Employee
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  └── VacationAccount (per policy)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>         ├── current_balance
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>         ├── policy_id
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>         └── VacationLedger[] (immutable audit trail)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                ├── ACCRUAL (earned)
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                ├── USAGE (taken)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                ├── ADJUSTMENT (manual)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                ├── EXPIRATION (expired)
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                └── PAYOUT (paid out)
+</span></code></pre></div>
+<h2 id="entidades-del-modelo">Entidades del Modelo<a class="headerlink" href="#entidades-del-modelo" title="Permanent link">¶</a></h2>
+<h3 id="1-vacationpolicy-politica-de-vacaciones">1. VacationPolicy (Política de Vacaciones)<a class="headerlink" href="#1-vacationpolicy-politica-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Define cómo se acumulan, usan y vencen las vacaciones. Es completamente configurable por planilla (nómina) o empresa.</p>
+<p><strong>IMPORTANTE</strong>: Las políticas se asocian principalmente a <strong>Planillas (nóminas)</strong>, no solo a empresas. Esto permite que una instalación tenga múltiples planillas con distintas reglas de vacaciones, incluso para distintos países en consolidados de empresas.</p>
+<p><strong>Campos Principales:</strong></p>
+<h4 id="identificacion">Identificación<a class="headerlink" href="#identificacion" title="Permanent link">¶</a></h4>
+<ul>
+<li><code>codigo</code>: Código único de la política</li>
+<li><code>nombre</code>: Nombre descriptivo</li>
+<li><code>descripcion</code>: Descripción detallada</li>
+<li><code>planilla_id</code>: Planilla asociada (recomendado, permite políticas específicas por nómina/país)</li>
+<li><code>empresa_id</code>: Empresa asociada (opcional, para políticas globales que aplican a toda la empresa)</li>
+</ul>
+<h4 id="configuracion-de-acumulacion">Configuración de Acumulación<a class="headerlink" href="#configuracion-de-acumulacion" title="Permanent link">¶</a></h4>
+<ul>
+<li><code>accrual_method</code>: Método de acumulación</li>
+<li><code>periodic</code>: Cantidad fija por período</li>
+<li><code>proportional</code>: Basado en días/horas trabajadas</li>
+<li><code>seniority</code>: Escalonado por antigüedad</li>
+<li><code>accrual_rate</code>: Tasa de acumulación (cantidad por período)</li>
+<li><code>accrual_frequency</code>: Frecuencia de acumulación</li>
+<li><code>monthly</code>: Mensual</li>
+<li><code>biweekly</code>: Quincenal</li>
+<li><code>annual</code>: Anual</li>
+<li><code>accrual_basis</code>: Base para cálculo proporcional</li>
+<li><code>days_worked</code>: Días trabajados</li>
+<li><code>hours_worked</code>: Horas trabajadas</li>
+<li><code>min_service_days</code>: Días mínimos de servicio antes de acumular</li>
+<li><code>seniority_tiers</code>: Niveles por antigüedad (JSON)</li>
+</ul>
+<h4 id="limites-de-balance">Límites de Balance<a class="headerlink" href="#limites-de-balance" title="Permanent link">¶</a></h4>
+<ul>
+<li><code>max_balance</code>: Balance máximo permitido</li>
+<li><code>carryover_limit</code>: Máximo que puede traspasar al siguiente período</li>
+<li><code>allow_negative</code>: Permitir balance negativo (vacaciones adelantadas)</li>
+</ul>
+<h4 id="reglas-de-vencimiento">Reglas de Vencimiento<a class="headerlink" href="#reglas-de-vencimiento" title="Permanent link">¶</a></h4>
+<ul>
+<li><code>expiration_rule</code>: Cuándo vencen las vacaciones</li>
+<li><code>never</code>: Nunca vencen</li>
+<li><code>fiscal_year_end</code>: Al fin del año fiscal</li>
+<li><code>anniversary</code>: En el aniversario del empleado</li>
+<li><code>custom_date</code>: Fecha personalizada</li>
+<li><code>expiration_months</code>: Meses después de acumulación antes de vencer</li>
+<li><code>expiration_date</code>: Fecha personalizada de vencimiento</li>
+</ul>
+<h4 id="configuracion-de-uso">Configuración de Uso<a class="headerlink" href="#configuracion-de-uso" title="Permanent link">¶</a></h4>
+<ul>
+<li><code>unit_type</code>: Tipo de unidad</li>
+<li><code>days</code>: Días</li>
+<li><code>hours</code>: Horas</li>
+<li><code>count_weekends</code>: Incluir fines de semana en el cálculo</li>
+<li><code>count_holidays</code>: Incluir feriados en el cálculo</li>
+<li><code>partial_units_allowed</code>: Permitir fracciones de días/horas</li>
+<li><code>rounding_rule</code>: Regla de redondeo (<code>nearest</code>, <code>up</code>, <code>down</code>)</li>
+<li><code>accrue_during_leave</code>: Continuar acumulando durante vacaciones</li>
+<li><code>payout_on_termination</code>: Pagar vacaciones al terminar relación laboral</li>
+</ul>
+<p><strong>Ejemplo de Configuración - Nicaragua:</strong>
+</p><div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">policy_nicaragua</span> <span class="o">=</span> <span class="n">VacationPolicy</span><span class="p">(</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">codigo</span><span class="o">=</span><span class="s2">"NIC-STANDARD"</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">nombre</span><span class="o">=</span><span class="s2">"Política Nicaragua Estándar"</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">accrual_method</span><span class="o">=</span><span class="s2">"periodic"</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">accrual_rate</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span>  <span class="c1"># 15 días al año / 12 meses</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">accrual_frequency</span><span class="o">=</span><span class="s2">"monthly"</span><span class="p">,</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">unit_type</span><span class="o">=</span><span class="s2">"days"</span><span class="p">,</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">count_weekends</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">count_holidays</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">payout_on_termination</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">expiration_rule</span><span class="o">=</span><span class="s2">"anniversary"</span><span class="p">,</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">expiration_months</span><span class="o">=</span><span class="mi">12</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="p">)</span>
+</span></code></pre></div><p></p>
+<p><strong>Ejemplo de Configuración - USA:</strong>
+</p><div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">policy_usa</span> <span class="o">=</span> <span class="n">VacationPolicy</span><span class="p">(</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">codigo</span><span class="o">=</span><span class="s2">"USA-HOURLY"</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">nombre</span><span class="o">=</span><span class="s2">"USA Hourly Accrual"</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">accrual_method</span><span class="o">=</span><span class="s2">"proportional"</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">accrual_basis</span><span class="o">=</span><span class="s2">"hours_worked"</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">accrual_rate</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span>  <span class="c1"># 1 hora por cada 40 horas trabajadas</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">accrual_frequency</span><span class="o">=</span><span class="s2">"monthly"</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">unit_type</span><span class="o">=</span><span class="s2">"hours"</span><span class="p">,</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">count_weekends</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">count_holidays</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">partial_units_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">allow_negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">payout_on_termination</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">)</span>
+</span></code></pre></div><p></p>
+<p><strong>Ejemplo de Configuración - Antigüedad:</strong>
+</p><div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">policy_seniority</span> <span class="o">=</span> <span class="n">VacationPolicy</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">codigo</span><span class="o">=</span><span class="s2">"LAT-SENIORITY"</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">nombre</span><span class="o">=</span><span class="s2">"Política por Antigüedad LATAM"</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">accrual_method</span><span class="o">=</span><span class="s2">"seniority"</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">accrual_frequency</span><span class="o">=</span><span class="s2">"annual"</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">unit_type</span><span class="o">=</span><span class="s2">"days"</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">seniority_tiers</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        <span class="p">{</span><span class="s2">"years"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"rate"</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>   <span class="c1"># 0-1 años: 10 días</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>        <span class="p">{</span><span class="s2">"years"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"rate"</span><span class="p">:</span> <span class="mi">15</span><span class="p">},</span>   <span class="c1"># 2-5 años: 15 días</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        <span class="p">{</span><span class="s2">"years"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">"rate"</span><span class="p">:</span> <span class="mi">20</span><span class="p">}</span>    <span class="c1"># 6+ años: 20 días</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="p">],</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">payout_on_termination</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="p">)</span>
+</span></code></pre></div><p></p>
+<h3 id="2-vacationaccount-cuenta-de-vacaciones">2. VacationAccount (Cuenta de Vacaciones)<a class="headerlink" href="#2-vacationaccount-cuenta-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Representa el balance de vacaciones de un empleado bajo una política específica.</p>
+<p><strong>Campos Principales:</strong>
+- <code>empleado_id</code>: ID del empleado
+- <code>policy_id</code>: ID de la política aplicable
+- <code>current_balance</code>: Balance actual (calculado desde el ledger)
+- <code>last_accrual_date</code>: Fecha de la última acumulación
+- <code>activo</code>: Estado de la cuenta</p>
+<p><strong>Regla de Oro:</strong> Nunca actualizar <code>current_balance</code> directamente sin registrar una entrada en <code>VacationLedger</code>.</p>
+<h3 id="3-vacationledger-libro-mayor-de-vacaciones">3. VacationLedger (Libro Mayor de Vacaciones)<a class="headerlink" href="#3-vacationledger-libro-mayor-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Registro inmutable de todos los movimientos de vacaciones. Es la fuente de verdad del sistema.</p>
+<p><strong>Campos Principales:</strong>
+- <code>account_id</code>: ID de la cuenta
+- <code>empleado_id</code>: ID del empleado (para consultas rápidas)
+- <code>fecha</code>: Fecha del movimiento
+- <code>entry_type</code>: Tipo de entrada
+  - <code>accrual</code>: Vacaciones ganadas
+  - <code>usage</code>: Vacaciones tomadas
+  - <code>adjustment</code>: Ajuste manual
+  - <code>expiration</code>: Vacaciones vencidas
+  - <code>payout</code>: Vacaciones pagadas (al terminar)
+- <code>quantity</code>: Cantidad (positiva para adiciones, negativa para deducciones)
+- <code>source</code>: Origen del movimiento (<code>system</code>, <code>novelty</code>, <code>termination</code>, <code>manual</code>)
+- <code>reference_id</code>: ID de referencia (ej: ID de novedad)
+- <code>reference_type</code>: Tipo de referencia
+- <code>observaciones</code>: Notas adicionales
+- <code>balance_after</code>: Balance después de este movimiento</p>
+<p><strong>Características:</strong>
+- <strong>Inmutable</strong>: Una vez creado, nunca se modifica o elimina
+- <strong>Auditable</strong>: Rastrea quién, cuándo y por qué se modificó el balance
+- <strong>Determinista</strong>: <code>balance = SUM(ledger.quantity)</code></p>
+<h3 id="4-vacationnovelty-novedadsolicitud-de-vacaciones">4. VacationNovelty (Novedad/Solicitud de Vacaciones)<a class="headerlink" href="#4-vacationnovelty-novedadsolicitud-de-vacaciones" title="Permanent link">¶</a></h3>
+<p>Representa una solicitud de vacaciones que afecta el balance cuando es aprobada.</p>
+<p><strong>Campos Principales:</strong>
+- <code>empleado_id</code>: ID del empleado
+- <code>account_id</code>: ID de la cuenta de vacaciones
+- <code>start_date</code>: Fecha de inicio
+- <code>end_date</code>: Fecha de fin
+- <code>units</code>: Unidades solicitadas (días/horas)
+- <code>estado</code>: Estado de la solicitud
+  - <code>pendiente</code>: Pendiente de aprobación
+  - <code>aprobado</code>: Aprobada
+  - <code>rechazado</code>: Rechazada
+  - <code>disfrutado</code>: Disfrutada/completada
+- <code>fecha_aprobacion</code>: Fecha de aprobación
+- <code>aprobado_por</code>: Usuario que aprobó
+- <code>ledger_entry_id</code>: ID de la entrada en el ledger (cuando es aprobada)
+- <code>observaciones</code>: Notas
+- <code>motivo_rechazo</code>: Motivo del rechazo (si aplica)</p>
+<h2 id="flujos-de-trabajo">Flujos de Trabajo<a class="headerlink" href="#flujos-de-trabajo" title="Permanent link">¶</a></h2>
+<h3 id="flujo-1-acumulacion-de-vacaciones">Flujo 1: Acumulación de Vacaciones<a class="headerlink" href="#flujo-1-acumulacion-de-vacaciones" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>1. Job programado ejecuta motor de acumulación
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>2. Motor evalúa política de cada cuenta activa
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>3. Calcula cantidad a acumular según método
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>4. Genera entrada en VacationLedger (type=ACCRUAL)
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>5. Actualiza current_balance en VacationAccount
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>6. Actualiza last_accrual_date
+</span></code></pre></div>
+<h3 id="flujo-2-solicitud-y-aprobacion-de-vacaciones">Flujo 2: Solicitud y Aprobación de Vacaciones<a class="headerlink" href="#flujo-2-solicitud-y-aprobacion-de-vacaciones" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>1. Usuario crea VacationNovelty (estado=pendiente)
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>2. Sistema valida:
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>   - Empleado tiene cuenta activa
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>   - Balance suficiente (o policy.allow_negative=true)
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>3. Administrador revisa solicitud
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>4. Si aprueba:
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>   a. Cambia estado a 'aprobado'
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>   b. Genera VacationLedger (type=USAGE, quantity=-N)
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>   c. Actualiza current_balance
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>   d. Vincula ledger_entry_id
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>5. Si rechaza:
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>   a. Cambia estado a 'rechazado'
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>   b. Registra motivo_rechazo
+</span></code></pre></div>
+<h3 id="flujo-3-ajuste-manual">Flujo 3: Ajuste Manual<a class="headerlink" href="#flujo-3-ajuste-manual" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>1. Administrador crea ajuste manual
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>2. Sistema genera VacationLedger (type=ADJUSTMENT)
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>3. Actualiza current_balance
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>4. Registra observaciones y usuario
+</span></code></pre></div>
+<h3 id="flujo-4-vencimiento-de-vacaciones">Flujo 4: Vencimiento de Vacaciones<a class="headerlink" href="#flujo-4-vencimiento-de-vacaciones" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>1. Job programado evalúa políticas de vencimiento
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>2. Identifica vacaciones vencidas según expiration_rule
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>3. Genera VacationLedger (type=EXPIRATION, quantity=-N)
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>4. Actualiza current_balance
+</span></code></pre></div>
+<h3 id="flujo-5-pago-al-terminar-relacion-laboral">Flujo 5: Pago al Terminar Relación Laboral<a class="headerlink" href="#flujo-5-pago-al-terminar-relacion-laboral" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>1. Empleado es dado de baja
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>2. Si policy.payout_on_termination=true:
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>   a. Genera VacationLedger (type=PAYOUT, quantity=-balance)
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>   b. Balance queda en 0
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>   c. Se integra con nómina para pago
+</span></code></pre></div>
+<h2 id="casos-de-uso-cubiertos">Casos de Uso Cubiertos<a class="headerlink" href="#casos-de-uso-cubiertos" title="Permanent link">¶</a></h2>
+<h3 id="latam-ejemplo-nicaragua">✅ LATAM (Ejemplo: Nicaragua)<a class="headerlink" href="#latam-ejemplo-nicaragua" title="Permanent link">¶</a></h3>
+<ul>
+<li>Acumulación: 15 días calendario al año</li>
+<li>Frecuencia: Mensual (1.25 días/mes)</li>
+<li>Unidad: Días calendario</li>
+<li>Vencimiento: 12 meses después del aniversario</li>
+<li>Pago al terminar: Sí</li>
+</ul>
+<h3 id="usa">✅ USA<a class="headerlink" href="#usa" title="Permanent link">¶</a></h3>
+<ul>
+<li>Acumulación: Por horas trabajadas</li>
+<li>Frecuencia: Mensual (basado en horas del mes)</li>
+<li>Unidad: Horas</li>
+<li>Vencimiento: Fin de año fiscal</li>
+<li>Fracciones: Permitidas</li>
+</ul>
+<h3 id="canada">✅ Canadá<a class="headerlink" href="#canada" title="Permanent link">¶</a></h3>
+<ul>
+<li>Acumulación: Porcentaje del salario</li>
+<li>Frecuencia: Quincenal o mensual</li>
+<li>Unidad: Días u horas</li>
+<li>Pago al terminar: Sí</li>
+</ul>
+<h3 id="part-time-empleados-por-horas">✅ Part-Time / Empleados por Horas<a class="headerlink" href="#part-time-empleados-por-horas" title="Permanent link">¶</a></h3>
+<ul>
+<li>Acumulación proporcional basada en horas trabajadas</li>
+<li>Configuración específica por tipo de empleado</li>
+</ul>
+<h3 id="vacaciones-adelantadas">✅ Vacaciones Adelantadas<a class="headerlink" href="#vacaciones-adelantadas" title="Permanent link">¶</a></h3>
+<ul>
+<li>Configurar <code>allow_negative=true</code> en la política</li>
+<li>El balance puede ser negativo</li>
+<li>Se descuenta en futuras acumulaciones</li>
+</ul>
+<h3 id="ajustes-manuales-auditables">✅ Ajustes Manuales Auditables<a class="headerlink" href="#ajustes-manuales-auditables" title="Permanent link">¶</a></h3>
+<ul>
+<li>Todos los ajustes quedan registrados en el ledger</li>
+<li>Se registra usuario, fecha y motivo</li>
+</ul>
+<h2 id="integracion-con-nomina">Integración con Nómina<a class="headerlink" href="#integracion-con-nomina" title="Permanent link">¶</a></h2>
+<p>El módulo de vacaciones <strong>NO calcula dinero</strong>, solo gestiona <strong>unidades</strong> (días/horas).</p>
+<p>La integración con nómina se realiza mediante:</p>
+<ol>
+<li><strong>Vacaciones Tomadas</strong>: Se registran como novedades que pueden afectar el cálculo de la nómina</li>
+<li><strong>Pago de Vacaciones al Terminar</strong>: El evento <code>PAYOUT</code> genera una novedad que se procesa en la nómina final</li>
+<li><strong>Provisión de Vacaciones</strong>: Se puede configurar como prestación patronal basada en el balance acumulado</li>
+</ol>
+<h2 id="reportes-y-consultas">Reportes y Consultas<a class="headerlink" href="#reportes-y-consultas" title="Permanent link">¶</a></h2>
+<h3 id="balance-por-empleado">Balance por Empleado<a class="headerlink" href="#balance-por-empleado" title="Permanent link">¶</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">current_balance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">vacation_account</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">empleado_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">?</span>
+</span></code></pre></div>
+<h3 id="historial-completo">Historial Completo<a class="headerlink" href="#historial-completo" title="Permanent link">¶</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">vacation_ledger</span><span class="w"> </span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">empleado_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">?</span><span class="w"> </span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">fecha</span><span class="w"> </span><span class="k">DESC</span>
+</span></code></pre></div>
+<h3 id="calculo-verificable-del-balance">Cálculo Verificable del Balance<a class="headerlink" href="#calculo-verificable-del-balance" title="Permanent link">¶</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">vacation_ledger</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">?</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="c1">-- Debe ser igual a vacation_account.current_balance</span>
+</span></code></pre></div>
+<h3 id="vacaciones-por-vencer">Vacaciones por Vencer<a class="headerlink" href="#vacaciones-por-vencer" title="Permanent link">¶</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">va</span><span class="p">.</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">vp</span><span class="p">.</span><span class="n">expiration_months</span><span class="w"> </span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">FROM</span><span class="w"> </span><span class="n">vacation_account</span><span class="w"> </span><span class="n">va</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="k">JOIN</span><span class="w"> </span><span class="n">vacation_policy</span><span class="w"> </span><span class="n">vp</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">va</span><span class="p">.</span><span class="n">policy_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vp</span><span class="p">.</span><span class="n">id</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">vp</span><span class="p">.</span><span class="n">expiration_rule</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s1">'never'</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">va</span><span class="p">.</span><span class="n">last_accrual_date</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">DATEADD</span><span class="p">(</span><span class="k">MONTH</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="n">vp</span><span class="p">.</span><span class="n">expiration_months</span><span class="p">,</span><span class="w"> </span><span class="n">GETDATE</span><span class="p">())</span>
+</span></code></pre></div>
+<h2 id="seguridad-y-permisos">Seguridad y Permisos<a class="headerlink" href="#seguridad-y-permisos" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Crear/Editar Políticas</strong>: Solo administradores</li>
+<li><strong>Ver Cuentas</strong>: Usuarios con permisos de lectura</li>
+<li><strong>Aprobar Solicitudes</strong>: Administradores y RRHH</li>
+<li><strong>Crear Solicitudes</strong>: Usuarios con permisos de escritura</li>
+<li><strong>Ajustes Manuales</strong>: Solo administradores</li>
+</ul>
+<h2 id="ventajas-del-diseno">Ventajas del Diseño<a class="headerlink" href="#ventajas-del-diseno" title="Permanent link">¶</a></h2>
+<p>✅ <strong>100% agnóstico al país</strong>: Se adapta a cualquier legislación mediante configuración<br>
+✅ <strong>Auditable</strong>: Cada cambio queda registrado<br>
+✅ <strong>Reversible</strong>: Ajustes se registran, no se borran<br>
+✅ <strong>Extensible</strong>: Nuevas reglas se agregan sin cambiar código<br>
+✅ <strong>Compatible con plugins</strong>: Sistema de eventos permite extensiones<br>
+✅ <strong>No rompe nómina</strong>: Integración limpia con el módulo de nómina  </p>
+<h2 id="riesgos-evitados">Riesgos Evitados<a class="headerlink" href="#riesgos-evitados" title="Permanent link">¶</a></h2>
+<p>❌ Hardcodear días legales<br>
+❌ Mezclar vacaciones con nómina<br>
+❌ Actualizar balances directamente<br>
+❌ No tener ledger (libro mayor)<br>
+❌ No modelar eventos  </p>
+<h2 id="proximas-mejoras">Próximas Mejoras<a class="headerlink" href="#proximas-mejoras" title="Permanent link">¶</a></h2>
+<ul>
+<li>Motor de acumulación automático (scheduled job)</li>
+<li>Notificaciones de vacaciones por vencer</li>
+<li>Integración con calendario empresarial</li>
+<li>Reportes avanzados y dashboards</li>
+<li>API REST para integraciones externas</li>
+<li>Importación masiva de balances iniciales</li>
+</ul>
+<h2 id="conclusion">Conclusión<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>El Módulo de Vacaciones de Coati Payroll implementa un sistema robusto basado en <strong>políticas + eventos + ledger + motor de reglas</strong>, apto para cumplir con legislaciones de cualquier país de América sin necesidad de reescribir código.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Pie">
+        
+          
+          <a href="../rbac/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Control de Acceso (RBAC)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Anterior
+              </span>
+              <div class="md-ellipsis">
+                Control de Acceso (RBAC)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../CARGA_SALDOS_INICIALES/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Carga de Saldos Iniciales">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Siguiente
+              </span>
+              <div class="md-ellipsis">
+                Carga de Saldos Iniciales
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2025 BMO Soluciones, S.A.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/williamjmorenor/coati" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.footer", "toc.integrate", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

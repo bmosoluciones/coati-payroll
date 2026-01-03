@@ -1,0 +1,3023 @@
+<!DOCTYPE html><html lang="es" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Sistema de administración de nóminas y planillas">
+      
+      
+        <meta name="author" content="BMO Soluciones, S.A.">
+      
+      
+        <link rel="canonical" href="https://williamjmorenor.github.io/coati/guia/configuracion-contable/">
+      
+      
+        <link rel="prev" href="../vacaciones/">
+      
+      
+        <link rel="next" href="../../tutorial/nomina-completa/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Configuración Contable - Coati Payroll - Documentación</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuracion-contable-para-nominas" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="Coati Payroll - Documentación" class="md-header__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Coati Payroll - Documentación
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuración Contable
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo oscuro" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="amber" aria-label="Cambiar a modo claro" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../inicio-rapido/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guía de Inicio Rápido
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../instalacion/requisitos/" class="md-tabs__link">
+          
+  
+  
+  Instalación
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../primeros-pasos/" class="md-tabs__link">
+          
+  
+  
+  Guía de Uso
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorial/nomina-completa/" class="md-tabs__link">
+          
+  
+  
+  Tutorial Completo
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../queue_system/" class="md-tabs__link">
+          
+  
+  
+  Características Avanzadas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../referencia/glosario/" class="md-tabs__link">
+          
+  
+  
+  Referencia
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Coati Payroll - Documentación" class="md-nav__button md-logo" aria-label="Coati Payroll - Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    Coati Payroll - Documentación
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/williamjmorenor/coati" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    williamjmorenor/coati
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inicio-rapido/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de Inicio Rápido
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Instalación
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instalacion/requisitos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos del Sistema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instalacion/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../instalacion/configuracion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración Inicial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de Uso
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guía de Uso
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../primeros-pasos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros Pasos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usuarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Usuarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../empresas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Empresas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monedas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monedas y Tipos de Cambio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../empleados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Empleados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../campos-personalizados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campos Personalizados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sistema de Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../percepciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Percepciones (Ingresos)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deducciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deducciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prestaciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prestaciones (Aportes Patronales)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reglas-calculo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reglas de Cálculo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prestamos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Préstamos y Adelantos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../planillas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración de Planillas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nomina/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejecución de Nómina
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vacaciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestión de Vacaciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración Contable
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración Contable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introducción
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#principio-fundamental-balance-contable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Principio Fundamental: Balance Contable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#componentes-de-la-configuracion-contable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Componentes de la Configuración Contable
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Componentes de la Configuración Contable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-centro-de-costos-del-empleado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Centro de Costos del Empleado
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Centro de Costos del Empleado">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#por-que-es-importante" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ¿Por qué es importante?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuracion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuración
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#impacto-en-el-comprobante" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impacto en el Comprobante
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-configuracion-contable-de-la-planilla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Configuración Contable de la Planilla
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Configuración Contable de la Planilla">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#campos-requeridos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Campos Requeridos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logica-contable-del-salario-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lógica Contable del Salario Base
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-configuracion-contable-de-percepciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuración Contable de Percepciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configuración Contable de Percepciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#campos-de-configuracion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Campos de Configuración
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejemplo-configuracion-de-bono" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejemplo: Configuración de Bono
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logica-contable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lógica Contable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-configuracion-contable-de-deducciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Configuración Contable de Deducciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configuración Contable de Deducciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#campos-de-configuracion_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Campos de Configuración
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejemplo-inss-laboral" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejemplo: INSS Laboral
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logica-contable_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lógica Contable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-configuracion-contable-de-prestaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Configuración Contable de Prestaciones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Configuración Contable de Prestaciones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#campos-de-configuracion_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Campos de Configuración
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejemplo-inss-patronal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejemplo: INSS Patronal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logica-contable_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lógica Contable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ejemplo-completo-de-comprobante-balanceado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejemplo Completo de Comprobante Balanceado
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ejemplo Completo de Comprobante Balanceado">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-del-escenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuración del Escenario
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calculo-de-nomina" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cálculo de Nómina
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comprobante-contable-generado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comprobante Contable Generado
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agrupacion-por-cuenta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agrupación por Cuenta
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validacion-del-comprobante" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validación del Comprobante
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validación del Comprobante">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#verificacion-en-la-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verificación en la Base de Datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exportacion-a-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exportación a Excel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guia-de-depuracion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guía de Depuración
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Guía de Depuración">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problema-comprobante-desbalanceado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problema: "Comprobante Desbalanceado"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problema-advertencias-en-el-comprobante" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problema: "Advertencias en el Comprobante"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problema-comprobante-no-se-genera" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problema: "Comprobante No Se Genera"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#herramientas-de-depuracion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Herramientas de Depuración
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Herramientas de Depuración">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-revision-de-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Revisión de Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-consulta-sql-de-verificacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Consulta SQL de Verificación
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-test-de-validacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Test de Validación
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lista-de-verificacion-pre-ejecucion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lista de Verificación Pre-Ejecución
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plan-de-cuentas-recomendado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plan de Cuentas Recomendado
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plan de Cuentas Recomendado">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cuentas-de-gasto-6xxx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cuentas de Gasto (6xxx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cuentas-de-pasivo-2xxx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cuentas de Pasivo (2xxx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mejores-practicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mejores Prácticas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soporte-y-ayuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Soporte y Ayuda
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#referencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Referencias
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Completo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorial Completo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/nomina-completa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paso a Paso - Nómina Completa
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Características Avanzadas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Características Avanzadas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../queue_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sistema de Colas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../background-payroll-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Procesamiento en Segundo Plano
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../database-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibilidad de Base de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../database-agnostic-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementación Agnóstica
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rbac/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Control de Acceso (RBAC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modulo-vacaciones/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Módulo de Vacaciones (Técnico)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CARGA_SALDOS_INICIALES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Carga de Saldos Iniciales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automated-backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Respaldos Automatizados
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INTERNATIONALIZATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internacionalización
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TRANSLATIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traducciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plantilla-excel-novedades/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plantilla Excel Novedades
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencia
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/glosario/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glosario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preguntas Frecuentes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/importacion-tipos-de-cambio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Importación de Tipos de Cambio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="configuracion-contable-para-nominas">Configuración Contable para Nóminas<a class="headerlink" href="#configuracion-contable-para-nominas" title="Permanent link">¶</a></h1>
+<h2 id="introduccion">Introducción<a class="headerlink" href="#introduccion" title="Permanent link">¶</a></h2>
+<p>La generación correcta de comprobantes contables es una funcionalidad <strong>CRÍTICA</strong> del sistema de nómina. Un comprobante contable mal configurado puede resultar en:</p>
+<ul>
+<li>Registros contables desbalanceados (débitos ≠ créditos)</li>
+<li>Información contable incorrecta en los estados financieros</li>
+<li>Problemas en auditorías y declaraciones fiscales</li>
+<li>Incumplimiento de normativas contables</li>
+</ul>
+<p>Este documento describe cómo configurar correctamente todos los componentes necesarios para generar comprobantes contables balanceados y precisos.</p>
+<h2 id="principio-fundamental-balance-contable">Principio Fundamental: Balance Contable<a class="headerlink" href="#principio-fundamental-balance-contable" title="Permanent link">¶</a></h2>
+<p><strong>TODO comprobante contable DEBE estar balanceado:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>∑ Débitos = ∑ Créditos
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Balance = 0.00
+</span></code></pre></div>
+<p>El sistema valida automáticamente este principio y generará advertencias si detecta configuraciones incompletas.</p>
+<h2 id="componentes-de-la-configuracion-contable">Componentes de la Configuración Contable<a class="headerlink" href="#componentes-de-la-configuracion-contable" title="Permanent link">¶</a></h2>
+<h3 id="1-centro-de-costos-del-empleado">1. Centro de Costos del Empleado<a class="headerlink" href="#1-centro-de-costos-del-empleado" title="Permanent link">¶</a></h3>
+<p><strong>REQUERIMIENTO</strong>: Cada empleado DEBE tener definido su centro de costos.</p>
+<h4 id="por-que-es-importante">¿Por qué es importante?<a class="headerlink" href="#por-que-es-importante" title="Permanent link">¶</a></h4>
+<p>El centro de costos permite:
+- Distribución correcta de gastos por departamento/área
+- Análisis de rentabilidad por centro de costos
+- Trazabilidad de costos laborales</p>
+<h4 id="configuracion">Configuración<a class="headerlink" href="#configuracion" title="Permanent link">¶</a></h4>
+<p>Al crear o editar un empleado, complete el campo:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Centro de Costos: CC-VENTAS
+</span></code></pre></div>
+<p><strong>Ejemplo de valores comunes:</strong>
+- <code>CC-ADMIN</code>: Administración
+- <code>CC-VENTAS</code>: Departamento de Ventas
+- <code>CC-PROD</code>: Producción
+- <code>CC-LOGIST</code>: Logística</p>
+<h4 id="impacto-en-el-comprobante">Impacto en el Comprobante<a class="headerlink" href="#impacto-en-el-comprobante" title="Permanent link">¶</a></h4>
+<p>Cada asiento contable incluirá el centro de costos del empleado:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">"codigo_cuenta"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6101-001"</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">"descripcion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Gastos de Salario"</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">"centro_costos"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CC-VENTAS"</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">"debito"</span><span class="p">:</span><span class="w"> </span><span class="mf">15000.00</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">"credito"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.00</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="2-configuracion-contable-de-la-planilla">2. Configuración Contable de la Planilla<a class="headerlink" href="#2-configuracion-contable-de-la-planilla" title="Permanent link">¶</a></h3>
+<p><strong>REQUERIMIENTO</strong>: La planilla DEBE tener configuradas las cuentas para el salario base.</p>
+<h4 id="campos-requeridos">Campos Requeridos<a class="headerlink" href="#campos-requeridos" title="Permanent link">¶</a></h4>
+<ol>
+<li><strong>Cuenta Débito (Gasto) del Salario Base</strong></li>
+<li><code>código_cuenta_debe_salario</code>: Ej. <code>6101-001</code></li>
+<li>
+<p><code>descripcion_cuenta_debe_salario</code>: Ej. "Gastos de Salario Base"</p>
+</li>
+<li>
+<p><strong>Cuenta Crédito (Pasivo) del Salario Base</strong></p>
+</li>
+<li><code>codigo_cuenta_haber_salario</code>: Ej. <code>2101-001</code></li>
+<li><code>descripcion_cuenta_haber_salario</code>: Ej. "Salarios por Pagar"</li>
+</ol>
+<h4 id="logica-contable-del-salario-base">Lógica Contable del Salario Base<a class="headerlink" href="#logica-contable-del-salario-base" title="Permanent link">¶</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>DÉBITO:  6101-001 - Gastos de Salario Base     $15,000.00
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>CRÉDITO: 2101-001 - Salarios por Pagar         $15,000.00
+</span></code></pre></div>
+<p>Esta configuración registra:
+- El <strong>gasto</strong> laboral de la empresa (debe ir a cuentas 6xxx)
+- El <strong>pasivo</strong> (obligación de pago) con el empleado (debe ir a cuentas 2xxx)</p>
+<h3 id="3-configuracion-contable-de-percepciones">3. Configuración Contable de Percepciones<a class="headerlink" href="#3-configuracion-contable-de-percepciones" title="Permanent link">¶</a></h3>
+<p><strong>REQUERIMIENTO</strong>: Cada percepción que debe contabilizarse DEBE tener sus cuentas configuradas.</p>
+<h4 id="campos-de-configuracion">Campos de Configuración<a class="headerlink" href="#campos-de-configuracion" title="Permanent link">¶</a></h4>
+<p>Para cada percepción (bonos, comisiones, horas extras, etc.):</p>
+<ol>
+<li><strong>Contabilizable</strong>: Marcar como <code>SÍ</code> si debe aparecer en el comprobante</li>
+<li><strong>Cuenta Débito</strong>: Cuenta de gasto (ej. <code>6102-001</code> para Bonos)</li>
+<li><strong>Descripción Débito</strong>: Descripción del gasto</li>
+<li><strong>Cuenta Crédito</strong>: Cuenta de pasivo (ej. <code>2101-001</code> para Salarios por Pagar)</li>
+<li><strong>Descripción Crédito</strong>: Descripción del pasivo</li>
+</ol>
+<h4 id="ejemplo-configuracion-de-bono">Ejemplo: Configuración de Bono<a class="headerlink" href="#ejemplo-configuracion-de-bono" title="Permanent link">¶</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Código: BONO-DESEMPEÑO
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Nombre: Bono por Desempeño
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Contabilizable: SÍ
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>Cuenta Débito: 6102-001 (Gastos de Bonos)
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>Cuenta Crédito: 2101-001 (Salarios por Pagar)
+</span></code></pre></div>
+<h4 id="logica-contable">Lógica Contable<a class="headerlink" href="#logica-contable" title="Permanent link">¶</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>DÉBITO:  6102-001 - Gastos de Bonos            $2,000.00
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>CRÉDITO: 2101-001 - Salarios por Pagar         $2,000.00
+</span></code></pre></div>
+<h3 id="4-configuracion-contable-de-deducciones">4. Configuración Contable de Deducciones<a class="headerlink" href="#4-configuracion-contable-de-deducciones" title="Permanent link">¶</a></h3>
+<p><strong>REQUERIMIENTO</strong>: Cada deducción contabilizable DEBE tener configuradas sus cuentas.</p>
+<h4 id="campos-de-configuracion_1">Campos de Configuración<a class="headerlink" href="#campos-de-configuracion_1" title="Permanent link">¶</a></h4>
+<p>Para cada deducción (INSS, IR, préstamos, etc.):</p>
+<ol>
+<li><strong>Contabilizable</strong>: Marcar como <code>SÍ</code></li>
+<li><strong>Cuenta Débito</strong>: Cuenta de pasivo donde se registra lo retenido (ej. <code>2102-001</code> para INSS por Pagar)</li>
+<li><strong>Descripción Débito</strong>: Descripción</li>
+<li><strong>Cuenta Crédito</strong>: Cuenta de salarios por pagar (ej. <code>2101-001</code>)</li>
+<li><strong>Descripción Crédito</strong>: Descripción</li>
+</ol>
+<h4 id="ejemplo-inss-laboral">Ejemplo: INSS Laboral<a class="headerlink" href="#ejemplo-inss-laboral" title="Permanent link">¶</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Código: INSS-LABORAL
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Nombre: INSS Laboral (6.25%)
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Contabilizable: SÍ
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>Cuenta Débito: 2102-001 (INSS por Pagar)
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>Cuenta Crédito: 2101-001 (Salarios por Pagar)
+</span></code></pre></div>
+<h4 id="logica-contable_1">Lógica Contable<a class="headerlink" href="#logica-contable_1" title="Permanent link">¶</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>DÉBITO:  2102-001 - INSS por Pagar             $1,062.50
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>CRÉDITO: 2101-001 - Salarios por Pagar         $1,062.50
+</span></code></pre></div>
+<p><strong>Nota</strong>: La deducción REDUCE el salario por pagar al empleado, por eso se debita la cuenta de salarios por pagar y se acredita una cuenta de pasivo con el instituto (INSS).</p>
+<h3 id="5-configuracion-contable-de-prestaciones">5. Configuración Contable de Prestaciones<a class="headerlink" href="#5-configuracion-contable-de-prestaciones" title="Permanent link">¶</a></h3>
+<p><strong>REQUERIMIENTO</strong>: Cada prestación patronal contabilizable DEBE tener configuradas sus cuentas.</p>
+<h4 id="campos-de-configuracion_2">Campos de Configuración<a class="headerlink" href="#campos-de-configuracion_2" title="Permanent link">¶</a></h4>
+<p>Para cada prestación (INSS patronal, INATEC, aguinaldo, etc.):</p>
+<ol>
+<li><strong>Contabilizable</strong>: Marcar como <code>SÍ</code></li>
+<li><strong>Cuenta Débito</strong>: Cuenta de gasto patronal (ej. <code>6103-001</code> para INSS Patronal)</li>
+<li><strong>Descripción Débito</strong>: Descripción del gasto</li>
+<li><strong>Cuenta Crédito</strong>: Cuenta de pasivo patronal (ej. <code>2102-002</code> para INSS Patronal por Pagar)</li>
+<li><strong>Descripción Crédito</strong>: Descripción del pasivo</li>
+</ol>
+<h4 id="ejemplo-inss-patronal">Ejemplo: INSS Patronal<a class="headerlink" href="#ejemplo-inss-patronal" title="Permanent link">¶</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Código: INSS-PATRONAL
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Nombre: INSS Patronal (19%)
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Contabilizable: SÍ
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>Cuenta Débito: 6103-001 (Gastos de INSS Patronal)
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>Cuenta Crédito: 2102-002 (INSS Patronal por Pagar)
+</span></code></pre></div>
+<h4 id="logica-contable_2">Lógica Contable<a class="headerlink" href="#logica-contable_2" title="Permanent link">¶</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>DÉBITO:  6103-001 - Gastos de INSS Patronal    $3,230.00
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>CRÉDITO: 2102-002 - INSS Patronal por Pagar    $3,230.00
+</span></code></pre></div>
+<p><strong>Nota</strong>: Las prestaciones son costos del empleador que NO afectan el salario neto del empleado.</p>
+<h2 id="ejemplo-completo-de-comprobante-balanceado">Ejemplo Completo de Comprobante Balanceado<a class="headerlink" href="#ejemplo-completo-de-comprobante-balanceado" title="Permanent link">¶</a></h2>
+<h3 id="configuracion-del-escenario">Configuración del Escenario<a class="headerlink" href="#configuracion-del-escenario" title="Permanent link">¶</a></h3>
+<p><strong>Empleado:</strong>
+- Salario base: $15,000.00
+- Centro de costos: CC-VENTAS</p>
+<p><strong>Percepciones:</strong>
+- Bono por desempeño: $2,000.00</p>
+<p><strong>Deducciones:</strong>
+- INSS Laboral (6.25% del bruto): $1,062.50</p>
+<p><strong>Prestaciones:</strong>
+- INSS Patronal (19% del bruto): $3,230.00</p>
+<h3 id="calculo-de-nomina">Cálculo de Nómina<a class="headerlink" href="#calculo-de-nomina" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Salario Base:       $15,000.00
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>+ Bono:              $2,000.00
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>= Salario Bruto:    $17,000.00
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>- INSS Laboral:      $1,062.50
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>= Salario Neto:     $15,937.50
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>Prestaciones (INSS Patronal): $3,230.00
+</span></code></pre></div>
+<h3 id="comprobante-contable-generado">Comprobante Contable Generado<a class="headerlink" href="#comprobante-contable-generado" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Cuenta</th>
+<th>Descripción</th>
+<th>Centro Costos</th>
+<th>Débito</th>
+<th>Crédito</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6101-001</td>
+<td>Gastos de Salario Base</td>
+<td>CC-VENTAS</td>
+<td>$15,000.00</td>
+<td></td>
+</tr>
+<tr>
+<td>2101-001</td>
+<td>Salarios por Pagar</td>
+<td>CC-VENTAS</td>
+<td></td>
+<td>$15,000.00</td>
+</tr>
+<tr>
+<td>6102-001</td>
+<td>Gastos de Bonos</td>
+<td>CC-VENTAS</td>
+<td>$2,000.00</td>
+<td></td>
+</tr>
+<tr>
+<td>2101-001</td>
+<td>Salarios por Pagar</td>
+<td>CC-VENTAS</td>
+<td></td>
+<td>$2,000.00</td>
+</tr>
+<tr>
+<td>2102-001</td>
+<td>INSS por Pagar</td>
+<td>CC-VENTAS</td>
+<td>$1,062.50</td>
+<td></td>
+</tr>
+<tr>
+<td>2101-001</td>
+<td>Salarios por Pagar</td>
+<td>CC-VENTAS</td>
+<td></td>
+<td>$1,062.50</td>
+</tr>
+<tr>
+<td>6103-001</td>
+<td>Gastos INSS Patronal</td>
+<td>CC-VENTAS</td>
+<td>$3,230.00</td>
+<td></td>
+</tr>
+<tr>
+<td>2102-002</td>
+<td>INSS Patronal por Pagar</td>
+<td>CC-VENTAS</td>
+<td></td>
+<td>$3,230.00</td>
+</tr>
+<tr>
+<td><strong>TOTALES</strong></td>
+<td></td>
+<td></td>
+<td><strong>$21,292.50</strong></td>
+<td><strong>$21,292.50</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Balance: $0.00 ✓</strong></p>
+<h3 id="agrupacion-por-cuenta">Agrupación por Cuenta<a class="headerlink" href="#agrupacion-por-cuenta" title="Permanent link">¶</a></h3>
+<p>El sistema agrupa los asientos por (código_cuenta, centro_costos):</p>
+<table>
+<thead>
+<tr>
+<th>Cuenta</th>
+<th>Centro Costos</th>
+<th>Débito</th>
+<th>Crédito</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2101-001</td>
+<td>CC-VENTAS</td>
+<td></td>
+<td>$15,937.50</td>
+</tr>
+<tr>
+<td>2102-001</td>
+<td>CC-VENTAS</td>
+<td>$1,062.50</td>
+<td></td>
+</tr>
+<tr>
+<td>2102-002</td>
+<td>CC-VENTAS</td>
+<td></td>
+<td>$3,230.00</td>
+</tr>
+<tr>
+<td>6101-001</td>
+<td>CC-VENTAS</td>
+<td>$15,000.00</td>
+<td></td>
+</tr>
+<tr>
+<td>6102-001</td>
+<td>CC-VENTAS</td>
+<td>$2,000.00</td>
+<td></td>
+</tr>
+<tr>
+<td>6103-001</td>
+<td>CC-VENTAS</td>
+<td>$3,230.00</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="validacion-del-comprobante">Validación del Comprobante<a class="headerlink" href="#validacion-del-comprobante" title="Permanent link">¶</a></h2>
+<h3 id="verificacion-en-la-base-de-datos">Verificación en la Base de Datos<a class="headerlink" href="#verificacion-en-la-base-de-datos" title="Permanent link">¶</a></h3>
+<p>El sistema almacena cada comprobante en la tabla <code>comprobante_contable</code>:</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">SELECT</span><span class="w"> </span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">nomina_id</span><span class="p">,</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">total_debitos</span><span class="p">,</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">total_creditos</span><span class="p">,</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">balance</span><span class="p">,</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">advertencias</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">FROM</span><span class="w"> </span><span class="n">comprobante_contable</span><span class="w"> </span><span class="k">c</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">WHERE</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">nomina_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'NOMINA_ID'</span><span class="p">;</span>
+</span></code></pre></div>
+<p><strong>Verificación Crítica:</strong>
+- <code>total_debitos</code> = <code>total_creditos</code>
+- <code>balance</code> = 0.00
+- <code>advertencias</code> = [] (lista vacía)</p>
+<h3 id="exportacion-a-excel">Exportación a Excel<a class="headerlink" href="#exportacion-a-excel" title="Permanent link">¶</a></h3>
+<p>El comprobante se puede exportar a Excel para revisión y análisis:</p>
+<ol>
+<li>Navegar a la nómina generada</li>
+<li>Hacer clic en <strong>"Exportar Comprobante Contable a Excel"</strong></li>
+<li>El archivo descargado incluirá:</li>
+<li>Información de la planilla y período</li>
+<li>Detalle de todos los asientos contables</li>
+<li>Totales de débitos y créditos</li>
+<li>Indicador visual de balance</li>
+</ol>
+<h2 id="guia-de-depuracion">Guía de Depuración<a class="headerlink" href="#guia-de-depuracion" title="Permanent link">¶</a></h2>
+<h3 id="problema-comprobante-desbalanceado">Problema: "Comprobante Desbalanceado"<a class="headerlink" href="#problema-comprobante-desbalanceado" title="Permanent link">¶</a></h3>
+<p><strong>Síntoma</strong>: Los débitos no igualan los créditos.</p>
+<p><strong>Causas Comunes:</strong></p>
+<ol>
+<li><strong>Configuración Incompleta de Cuentas</strong></li>
+<li>
+<p><strong>Solución</strong>: Verificar que TODOS los conceptos contabilizables tengan configuradas AMBAS cuentas (débito Y crédito)</p>
+</li>
+<li>
+<p><strong>Centro de Costos No Definido</strong></p>
+</li>
+<li>
+<p><strong>Solución</strong>: Asignar centro de costos a todos los empleados</p>
+</li>
+<li>
+<p><strong>Concepto Marcado como Contabilizable sin Cuentas</strong></p>
+</li>
+<li><strong>Solución</strong>: Configurar las cuentas o desmarcar "Contabilizable"</li>
+</ol>
+<h3 id="problema-advertencias-en-el-comprobante">Problema: "Advertencias en el Comprobante"<a class="headerlink" href="#problema-advertencias-en-el-comprobante" title="Permanent link">¶</a></h3>
+<p><strong>Síntoma</strong>: El campo <code>advertencias</code> contiene mensajes.</p>
+<p><strong>Ejemplos de Advertencias:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>"Planilla: Falta configurar cuenta débito para salario base"
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>"Percepción 'BONO-001': Falta configurar cuenta crédito"
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>"Deducción 'INSS': Falta configurar cuenta débito"
+</span></code></pre></div>
+<p><strong>Solución</strong>: Revisar cada advertencia y completar la configuración faltante.</p>
+<h3 id="problema-comprobante-no-se-genera">Problema: "Comprobante No Se Genera"<a class="headerlink" href="#problema-comprobante-no-se-genera" title="Permanent link">¶</a></h3>
+<p><strong>Causas Posibles:</strong></p>
+<ol>
+<li><strong>Planilla sin Configuración Contable</strong></li>
+<li>
+<p>Verificar que la planilla tenga configuradas las cuentas de salario base</p>
+</li>
+<li>
+<p><strong>Ningún Concepto Contabilizable</strong></p>
+</li>
+<li>
+<p>Verificar que al menos algún concepto esté marcado como "Contabilizable"</p>
+</li>
+<li>
+<p><strong>Error en Ejecución de Nómina</strong></p>
+</li>
+<li>Revisar los logs de la nómina para identificar errores previos</li>
+</ol>
+<h3 id="herramientas-de-depuracion">Herramientas de Depuración<a class="headerlink" href="#herramientas-de-depuracion" title="Permanent link">¶</a></h3>
+<h4 id="1-revision-de-logs">1. Revisión de Logs<a class="headerlink" href="#1-revision-de-logs" title="Permanent link">¶</a></h4>
+<p>Los logs del sistema registran:
+- Advertencias de configuración contable
+- Errores en cálculos
+- Información de balances</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Verificar logs de una nómina</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">nomina</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Nomina</span><span class="p">,</span> <span class="n">nomina_id</span><span class="p">)</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">nomina</span><span class="o">.</span><span class="n">log_procesamiento</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="2-consulta-sql-de-verificacion">2. Consulta SQL de Verificación<a class="headerlink" href="#2-consulta-sql-de-verificacion" title="Permanent link">¶</a></h4>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">-- Verificar configuración de planilla</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">SELECT</span><span class="w"> </span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="n">p</span><span class="p">.</span><span class="n">nombre</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="n">p</span><span class="p">.</span><span class="n">codigo_cuenta_debe_salario</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="n">p</span><span class="p">.</span><span class="n">codigo_cuenta_haber_salario</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="k">FROM</span><span class="w"> </span><span class="n">planilla</span><span class="w"> </span><span class="n">p</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'PLANILLA_ID'</span><span class="p">;</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="c1">-- Verificar configuración de percepciones</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="k">SELECT</span><span class="w"> </span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span><span class="n">pe</span><span class="p">.</span><span class="n">codigo</span><span class="p">,</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">    </span><span class="n">pe</span><span class="p">.</span><span class="n">nombre</span><span class="p">,</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">    </span><span class="n">pe</span><span class="p">.</span><span class="n">contabilizable</span><span class="p">,</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">    </span><span class="n">pe</span><span class="p">.</span><span class="n">codigo_cuenta_debe</span><span class="p">,</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">    </span><span class="n">pe</span><span class="p">.</span><span class="n">codigo_cuenta_haber</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="k">FROM</span><span class="w"> </span><span class="n">percepcion</span><span class="w"> </span><span class="n">pe</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">pe</span><span class="p">.</span><span class="n">activo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="c1">-- Verificar empleados sin centro de costos</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="k">SELECT</span><span class="w"> </span>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">    </span><span class="n">e</span><span class="p">.</span><span class="n">codigo_empleado</span><span class="p">,</span>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="w">    </span><span class="n">e</span><span class="p">.</span><span class="n">primer_nombre</span><span class="p">,</span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="w">    </span><span class="n">e</span><span class="p">.</span><span class="n">primer_apellido</span><span class="p">,</span>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="w">    </span><span class="n">e</span><span class="p">.</span><span class="n">centro_costos</span>
+</span><span id="__span-14-25"><a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a><span class="k">FROM</span><span class="w"> </span><span class="n">empleado</span><span class="w"> </span><span class="n">e</span>
+</span><span id="__span-14-26"><a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">activo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="w"> </span>
+</span><span id="__span-14-27"><a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">centro_costos</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">centro_costos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">''</span><span class="p">);</span>
+</span></code></pre></div>
+<h4 id="3-test-de-validacion">3. Test de Validación<a class="headerlink" href="#3-test-de-validacion" title="Permanent link">¶</a></h4>
+<p>El sistema incluye tests automatizados que validan:
+- Balance de débitos y créditos
+- Presencia de centro de costos
+- Configuración completa de cuentas</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>pytest<span class="w"> </span>tests/test_accounting_voucher_e2e.py<span class="w"> </span>-v
+</span></code></pre></div>
+<h2 id="lista-de-verificacion-pre-ejecucion">Lista de Verificación Pre-Ejecución<a class="headerlink" href="#lista-de-verificacion-pre-ejecucion" title="Permanent link">¶</a></h2>
+<p>Antes de ejecutar una nómina, verificar:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Todos los empleados tienen centro de costos definido</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> La planilla tiene configuradas las cuentas de salario base (débito y crédito)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Todas las percepciones contabilizables tienen ambas cuentas configuradas</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Todas las deducciones contabilizables tienen ambas cuentas configuradas</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Todas las prestaciones contabilizables tienen ambas cuentas configuradas</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Las cuentas de gasto usan el rango correcto (6xxx)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Las cuentas de pasivo usan el rango correcto (2xxx)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Se ha probado con una nómina de prueba pequeña primero</li>
+</ul>
+<h2 id="plan-de-cuentas-recomendado">Plan de Cuentas Recomendado<a class="headerlink" href="#plan-de-cuentas-recomendado" title="Permanent link">¶</a></h2>
+<h3 id="cuentas-de-gasto-6xxx">Cuentas de Gasto (6xxx)<a class="headerlink" href="#cuentas-de-gasto-6xxx" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Cuenta</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6101-001</td>
+<td>Gastos de Salario Base</td>
+</tr>
+<tr>
+<td>6102-001</td>
+<td>Gastos de Bonos</td>
+</tr>
+<tr>
+<td>6102-002</td>
+<td>Gastos de Horas Extras</td>
+</tr>
+<tr>
+<td>6102-003</td>
+<td>Gastos de Comisiones</td>
+</tr>
+<tr>
+<td>6103-001</td>
+<td>Gastos de INSS Patronal</td>
+</tr>
+<tr>
+<td>6103-002</td>
+<td>Gastos de INATEC</td>
+</tr>
+<tr>
+<td>6104-001</td>
+<td>Provisión para Aguinaldo</td>
+</tr>
+<tr>
+<td>6104-002</td>
+<td>Provisión para Vacaciones</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cuentas-de-pasivo-2xxx">Cuentas de Pasivo (2xxx)<a class="headerlink" href="#cuentas-de-pasivo-2xxx" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Cuenta</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2101-001</td>
+<td>Salarios por Pagar</td>
+</tr>
+<tr>
+<td>2102-001</td>
+<td>INSS Laboral por Pagar</td>
+</tr>
+<tr>
+<td>2102-002</td>
+<td>INSS Patronal por Pagar</td>
+</tr>
+<tr>
+<td>2102-003</td>
+<td>INATEC por Pagar</td>
+</tr>
+<tr>
+<td>2103-001</td>
+<td>Impuesto sobre la Renta por Pagar</td>
+</tr>
+<tr>
+<td>2104-001</td>
+<td>Préstamos a Empleados (por descontar)</td>
+</tr>
+<tr>
+<td>2105-001</td>
+<td>Aguinaldo por Pagar</td>
+</tr>
+<tr>
+<td>2105-002</td>
+<td>Vacaciones por Pagar</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mejores-practicas">Mejores Prácticas<a class="headerlink" href="#mejores-practicas" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong>Realizar Pruebas Primero</strong>: Siempre ejecutar una nómina de prueba con 1-2 empleados antes de procesar la nómina completa.</p>
+</li>
+<li>
+<p><strong>Revisar el Balance</strong>: Después de generar cada nómina, verificar que el balance sea exactamente 0.00.</p>
+</li>
+<li>
+<p><strong>Documentar el Plan de Cuentas</strong>: Mantener documentado el plan de cuentas específico de la empresa.</p>
+</li>
+<li>
+<p><strong>Capacitar al Personal</strong>: Asegurar que el personal encargado entienda los principios contables básicos.</p>
+</li>
+<li>
+<p><strong>Auditorías Regulares</strong>: Realizar auditorías periódicas de los comprobantes generados.</p>
+</li>
+<li>
+<p><strong>Backup de Configuración</strong>: Documentar toda la configuración contable para referencia futura.</p>
+</li>
+<li>
+<p><strong>Coordinación con Contabilidad</strong>: Trabajar estrechamente con el departamento de contabilidad para definir las cuentas correctas.</p>
+</li>
+</ol>
+<h2 id="soporte-y-ayuda">Soporte y Ayuda<a class="headerlink" href="#soporte-y-ayuda" title="Permanent link">¶</a></h2>
+<p>Si después de seguir esta guía aún tiene problemas:</p>
+<ol>
+<li>Revise los tests automatizados en <code>tests/test_accounting_voucher_e2e.py</code></li>
+<li>Consulte los logs del sistema</li>
+<li>Verifique que está usando la última versión del software</li>
+<li>Contacte al soporte técnico con:</li>
+<li>ID de la nómina problemática</li>
+<li>Captura del comprobante generado</li>
+<li>Lista de advertencias recibidas</li>
+<li>Configuración de cuentas utilizada</li>
+</ol>
+<h2 id="referencias">Referencias<a class="headerlink" href="#referencias" title="Permanent link">¶</a></h2>
+<ul>
+<li>Documentación de Planillas: <code>docs/guia/planillas.md</code></li>
+<li>Documentación de Percepciones: <code>docs/guia/percepciones.md</code></li>
+<li>Documentación de Deducciones: <code>docs/guia/deducciones.md</code></li>
+<li>Documentación de Prestaciones: <code>docs/guia/prestaciones.md</code></li>
+<li>Documentación de Nóminas: <code>docs/guia/nomina.md</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Pie">
+        
+          
+          <a href="../vacaciones/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: Gestión de Vacaciones">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Anterior
+              </span>
+              <div class="md-ellipsis">
+                Gestión de Vacaciones
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../tutorial/nomina-completa/" class="md-footer__link md-footer__link--next" aria-label="Siguiente: Paso a Paso - Nómina Completa">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Siguiente
+              </span>
+              <div class="md-ellipsis">
+                Paso a Paso - Nómina Completa
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2025 BMO Soluciones, S.A.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/williamjmorenor/coati" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.footer", "toc.integrate", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
