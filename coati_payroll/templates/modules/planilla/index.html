@@ -162,6 +162,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form action="{{ url_for('planilla.clone', planilla_id=planilla.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-outline-secondary" title="{{ _('Clonar') }}">
                                             <i class="bi bi-copy"></i>
                                         </button>

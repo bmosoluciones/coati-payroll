@@ -485,6 +485,16 @@ def test_planilla_clone_creates_copy_with_associations(
         assert clon_prestacion.porcentaje == Decimal("3.00")
 
 
+def test_planilla_edit_shows_clone_button(app, client, admin_user, db_session, planilla):
+    """Test that planilla edit page displays clone button."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+        response = client.get(f"/planilla/{planilla.id}/edit")
+        assert response.status_code == 200
+        assert f"/planilla/{planilla.id}/clone".encode() in response.data
+        assert b"Clonar" in response.data
+
+
 # ============================================================================
 # CONFIGURATION PAGE TESTS
 # ============================================================================

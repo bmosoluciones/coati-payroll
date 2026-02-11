@@ -17,6 +17,12 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
             <a href="{{ url_for('planilla.config', planilla_id=planilla.id) }}" class="btn btn-outline-primary me-2">
                 <i class="bi bi-gear me-1"></i>{{ _('Ver Configuración') }}
             </a>
+            <form action="{{ url_for('planilla.clone', planilla_id=planilla.id) }}" method="POST" class="d-inline me-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-secondary" title="{{ _('Clonar') }}">
+                    <i class="bi bi-copy me-1"></i>{{ _('Clonar') }}
+                </button>
+            </form>
             {% endif %}
             <a href="{{ url_for('planilla.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i>{{ _('Volver') }}
