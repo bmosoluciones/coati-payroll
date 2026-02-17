@@ -70,3 +70,161 @@ Dockerfile
 *.log
 *.tmp
 *.temp
+
+# ---- Python: bytecode / caches ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ---- Virtual environments ----
+venv/
+.venv/
+env/
+ENV/
+
+# ---- Test / coverage artifacts ----
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.cover
+
+# ---- Lint / formatter caches ----
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.pyre/
+
+# ---- Build / packaging ----
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ---- Local databases / state ----
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- App/runtime local state (según tu repo) ----
+.coati_queue/
+.benchmarks/
+.cache/
+.pythonlibs/
+.local/
+
+# ---- Node ----
+node_modules/
+
+# ---- MkDocs site output ----
+site/
+
+# ---- Environment files (guardar solo .env.example) ----
+.env
+.env.*
+!.env.example
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# -----------------------------
+# Git
+# -----------------------------
+.git
+.gitignore
+.github
+
+# -----------------------------
+# Python cache / bytecode
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# -----------------------------
+# Virtual environments
+# -----------------------------
+venv/
+.venv/
+env/
+ENV/
+
+# -----------------------------
+# Testing / coverage
+# -----------------------------
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# -----------------------------
+# Lint / tooling cache
+# -----------------------------
+.ruff_cache/
+.mypy_cache/
+.cache/
+
+# -----------------------------
+# Build artifacts
+# -----------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# -----------------------------
+# Local databases / runtime state
+# -----------------------------
+*.db
+*.sqlite
+*.sqlite3
+.coati_payroll.db
+.coati_queue/
+.benchmarks/
+
+# -----------------------------
+# Node
+# -----------------------------
+node_modules/
+
+# -----------------------------
+# MkDocs / documentation
+# -----------------------------
+docs/
+site/
+mkdocs.yml
+docs.txt
+
+# -----------------------------
+# systemd configs (no van en la imagen)
+# -----------------------------
+systemd/
+
+# -----------------------------
+# Local environment / secrets
+# -----------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------
+# OS / editor noise
+# -----------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# -----------------------------
+# Replit / local-only
+# -----------------------------
+.pythonlibs/
+.local/
+.replit

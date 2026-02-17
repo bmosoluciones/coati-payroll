@@ -219,3 +219,90 @@ messages.pot
 *.json
 .pylintrc
 coati_payroll/translations/**.mo
+
+# -----------------------------
+# Git
+# -----------------------------
+.git
+.gitignore
+.github
+
+# -----------------------------
+# Python cache / bytecode
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# -----------------------------
+# Virtual environments
+# -----------------------------
+venv/
+.venv/
+env/
+ENV/
+
+# -----------------------------
+# Testing / coverage
+# -----------------------------
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# -----------------------------
+# Lint / tooling cache
+# -----------------------------
+.ruff_cache/
+.mypy_cache/
+.cache/
+
+# -----------------------------
+# Build artifacts
+# -----------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# -----------------------------
+# Local databases / runtime state
+# -----------------------------
+*.db
+*.sqlite
+*.sqlite3
+.coati_queue/
+.benchmarks/
+
+# -----------------------------
+# Node
+# -----------------------------
+node_modules/
+
+# -----------------------------
+# MkDocs build output
+# -----------------------------
+site/
+
+# -----------------------------
+# Local environment / secrets
+# -----------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------
+# OS / editor noise
+# -----------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# -----------------------------
+# Replit / local-only
+# -----------------------------
+.pythonlibs/
+.local/
