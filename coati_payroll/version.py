@@ -5,4 +5,4 @@ Canonical version of coati_payroll.
 """
 
 # 2026-02-19
-__version__ = "1.9.1"
+__version__ = "1.10.0"
