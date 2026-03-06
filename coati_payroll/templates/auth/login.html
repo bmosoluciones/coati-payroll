@@ -15,7 +15,13 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
             type="image/x-icon"
             href="{{ url_for('static', filename='logo/Icono.svg') }}"
         />
-        
+        <link rel="manifest" href="{{ url_for('app.manifest') }}" />
+        <meta name="theme-color" content="#5D4037" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Coati Payroll" />
+        <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo/icon-192.png') }}" />
+
 
         <!-- Google Fonts - Enterprise Typography -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -250,6 +256,11 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 
                 document.getElementById("email").focus();
             })();
+        </script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}');
+            }
         </script>
     </body>
 </html>

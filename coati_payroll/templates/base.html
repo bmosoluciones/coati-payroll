@@ -11,6 +11,12 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ _('Coaty - Sistema de Planillas') }}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo/Icono.svg') }}" />
+    <link rel="manifest" href="{{ url_for('app.manifest') }}" />
+    <meta name="theme-color" content="#5D4037" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Coati Payroll" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo/icon-192.png') }}" />
 
     <!-- Google Fonts - Enterprise Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -199,6 +205,13 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Service Worker registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}');
+        }
+    </script>
 
     <!-- Sidebar Toggle Script -->
     <script>
