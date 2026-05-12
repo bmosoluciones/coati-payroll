@@ -4,7 +4,7 @@
 
 ![PyPI - License](https://img.shields.io/badge/License-Apache%202.0-brightgreen?logo=apache&logoColor=white)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg?logo=python&logoColor=white)
-[![Unit Testing](https://github.com/williamjmorenor/coati-payroll/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/williamjmorenor/coati-payroll/actions/workflows/python-package.yml)
+[![Unit Testing](https://github.com/bmosoluciones/coati-payroll/actions/workflows/python-package.yml/badge.svg)](https://github.com/bmosoluciones/coati-payroll/actions/workflows/python-package.yml)
 [![codecov](https://codecov.io/github/bmosoluciones/coati-payroll/graph/badge.svg?token=gT6jVct2KT)](https://codecov.io/github/bmosoluciones/coati-payroll)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmosoluciones_coati-payroll&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmosoluciones_coati-payroll)
 [![Code style: black](https://img.shields.io/badge/Python%20code%20style-black-000000.svg)](https://github.com/psf/black)
