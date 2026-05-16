@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.2] - 2026-05-16
+
+### Changed
+
+- Added `salario_gravable` / `salario_gravable_periodo` as calculation variables for formula and `ReglaCalculo` execution, derived from period salary after absence discounts plus perceptions configured as gravable.
+- Updated payroll accumulation and recalculation rollback to use the same configured gravable-income basis, keeping tax accumulators consistent across recalculations.
+
 
 ## [1.10.0] - 2026-05-03
 

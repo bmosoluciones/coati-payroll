@@ -31,6 +31,7 @@ class EmpleadoCalculo:
         self.total_deducciones = Decimal("0.00")
         self.total_prestaciones = Decimal("0.00")
         self.salario_bruto = Decimal("0.00")
+        self.salario_gravable = Decimal("0.00")
         self.salario_neto = Decimal("0.00")
         self.tipo_cambio = Decimal("1.00")
         self.moneda_origen_id = empleado.moneda_id

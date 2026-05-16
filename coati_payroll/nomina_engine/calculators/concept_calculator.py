@@ -186,6 +186,8 @@ class ConceptCalculator:
             # Merge variables with formula inputs
             inputs = {**emp_calculo.variables_calculo}
             inputs["salario_bruto"] = emp_calculo.salario_bruto
+            inputs["salario_gravable"] = emp_calculo.salario_gravable
+            inputs["salario_gravable_periodo"] = emp_calculo.salario_gravable
             inputs["total_percepciones"] = emp_calculo.total_percepciones
             inputs["total_deducciones"] = emp_calculo.total_deducciones
 
@@ -295,6 +297,8 @@ class ConceptCalculator:
             # Prepare inputs for formula engine
             inputs = {**emp_calculo.variables_calculo}
             inputs["salario_bruto"] = emp_calculo.salario_bruto
+            inputs["salario_gravable"] = emp_calculo.salario_gravable
+            inputs["salario_gravable_periodo"] = emp_calculo.salario_gravable
             inputs["total_percepciones"] = emp_calculo.total_percepciones
             inputs["total_deducciones"] = emp_calculo.total_deducciones
             # Map generic schema input sources to input names when present.

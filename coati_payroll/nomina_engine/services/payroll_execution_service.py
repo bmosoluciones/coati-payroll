@@ -467,6 +467,15 @@ class PayrollExecutionService:
 
         # Calculate gross salary
         emp_calculo.salario_bruto = emp_calculo.salario_neto_inasistencia + emp_calculo.total_percepciones
+        emp_calculo.salario_gravable = emp_calculo.salario_neto_inasistencia + sum(
+            p.monto for p in emp_calculo.percepciones if p.gravable
+        )
+        emp_calculo.variables_calculo.update(
+            {
+                "salario_gravable": emp_calculo.salario_gravable,
+                "salario_gravable_periodo": emp_calculo.salario_gravable,
+            }
+        )
 
         # Process deductions
         deducciones = self.deduction_calculator.calculate(emp_calculo, planilla, fecha_calculo)

@@ -76,12 +76,7 @@ class AccumulationProcessor:
         acumulado.periodos_procesados += 1
         acumulado.ultimo_periodo_procesado = periodo_fin
 
-        # Calculate gravable income (perceptions that are gravable)
-        salario_gravable = emp_calculo.salario_base
-        for percepcion in emp_calculo.percepciones:
-            if percepcion.gravable:
-                salario_gravable += percepcion.monto
-        acumulado.salario_gravable_acumulado += salario_gravable
+        acumulado.salario_gravable_acumulado += emp_calculo.salario_gravable
 
         # Sum up before-tax deductions and taxes
         for deduccion in emp_calculo.deducciones:

@@ -84,6 +84,8 @@ class EmployeeProcessingService:
             "salario_mensual": emp_calculo.salario_mensual,
             "tipo_cambio": emp_calculo.tipo_cambio,
             "salario_neto_inasistencia": emp_calculo.salario_neto_inasistencia,
+            "salario_gravable": emp_calculo.salario_gravable,
+            "salario_gravable_periodo": emp_calculo.salario_gravable,
             # Period data
             "fecha_calculo": fecha_calculo,
             "periodo_inicio": periodo_inicio,

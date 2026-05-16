@@ -121,8 +121,10 @@ class NominaService:
                 continue
 
             salario_bruto = Decimal(str(ne.salario_bruto or 0))
-            salario_base = Decimal(str(ne.sueldo_base_historico or 0))
-            salario_gravable = salario_base + gravable_by_ne.get(ne.id, Decimal("0.00"))
+            salario_base_neto_inasistencia = Decimal(str(ne.sueldo_base_historico or 0)) - Decimal(
+                str(ne.inasistencia_descuento or 0)
+            )
+            salario_gravable = salario_base_neto_inasistencia + gravable_by_ne.get(ne.id, Decimal("0.00"))
             deducciones = deducciones_by_ne.get(ne.id, {"impuesto": Decimal("0.00"), "antes": Decimal("0.00")})
 
             acumulado.salario_bruto_acumulado = max(
