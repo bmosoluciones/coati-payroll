@@ -1,7 +1,7 @@
 [project]
 name = "coati-payroll"
 description = "A jurisdiction-agnostic payroll calculation engine."
-requires-python = ">= 3.11"
+requires-python = ">= 3.12"
 readme = "README.md"
 dynamic = ["version", "dependencies"]
 
