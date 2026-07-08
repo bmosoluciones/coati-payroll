@@ -17,4 +17,4 @@ coverage
 pytest-cov
 
 # Verificación de tipos
-mypy
+mypy==2.2.0

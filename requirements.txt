@@ -1,9 +1,9 @@
-alembic==1.18.4
+alembic==1.18.5
 argon2-cffi==25.1.0
 babel==2.18.0
 configobj==5.0.9
-cryptography==48.0.1
-dramatiq[redis]==2.1.0
+cryptography==49.0.0
+dramatiq[redis]==2.2.0
 email_validator==2.3.0
 flask==3.1.3
 flask-alembic==3.2.0
@@ -23,7 +23,7 @@ orjson==3.11.9
 pg8000==1.31.5
 python-dateutil==2.9.0.post0
 python-ulid==3.1.0
-sqlalchemy==2.0.50
+sqlalchemy==2.0.51
 redis<7.5
 waitress==3.0.2
 weasyprint==69.0
