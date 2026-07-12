@@ -227,8 +227,8 @@ services:
     container_name: coati-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${NGINX_PORT:-80}:80"
+      - "${NGINX_SSL_PORT:-443}:443"
     volumes:
       # Nginx configuration
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro

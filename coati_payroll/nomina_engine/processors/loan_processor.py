@@ -81,6 +81,7 @@ class LoanProcessor:
                 monto=monto_aplicar,
                 prioridad=prioridad_prestamos,
                 es_obligatoria=False,
+                deduccion_id=prestamo.deduccion_id,
                 tipo="loan",
             )
             deductions.append(item)
