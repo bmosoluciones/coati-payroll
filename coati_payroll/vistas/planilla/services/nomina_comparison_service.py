@@ -55,6 +55,7 @@ class NominaComparisonService:
             db.select(Nomina)
             .filter(Nomina.planilla_id == nomina_actual.planilla_id, Nomina.periodo_fin < nomina_actual.periodo_fin)
             .order_by(Nomina.periodo_fin.desc())
+            .limit(1)
         ).scalar_one_or_none()
 
     @classmethod
