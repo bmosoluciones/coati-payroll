@@ -23,8 +23,12 @@ class DeductionCalculator:
 
     def calculate(self, emp_calculo: EmpleadoCalculo, planilla: Planilla, fecha_calculo: date) -> list[DeduccionItem]:
         """Calculate all deductions for an employee, applying priority order."""
-        deducciones_pendientes: list[DeduccionItem] = []
-        planilla_deducciones = cast(list[Any], planilla.planilla_deducciones)
+        emp_calculo.deducciones = []
+        saldo_disponible = emp_calculo.salario_bruto
+        
+        # Sort planilla deductions by priority (lower number = higher priority)
+        planilla_deducciones = list(planilla.planilla_deducciones)
+        planilla_deducciones.sort(key=lambda x: getattr(x, "prioridad", 100))
 
         for planilla_deduccion in planilla_deducciones:
             if not planilla_deduccion.activo:
@@ -58,43 +62,25 @@ class DeductionCalculator:
             )
 
             if monto > 0:
+                monto_aplicar = min(monto, saldo_disponible)
+
+                if monto_aplicar <= 0 and not planilla_deduccion.es_obligatoria:
+                    self.warnings.append(
+                        f"Empleado {emp_calculo.empleado.primer_nombre} "
+                        f"{emp_calculo.empleado.primer_apellido}: "
+                        f"Deducción {deduccion.codigo} omitida por saldo insuficiente."
+                    )
+                    continue
+
                 item = DeduccionItem(
                     codigo=deduccion.codigo,
                     nombre=deduccion.nombre,
-                    monto=monto,
+                    monto=monto_aplicar,
                     prioridad=planilla_deduccion.prioridad,
                     es_obligatoria=planilla_deduccion.es_obligatoria,
                     deduccion_id=deduccion.id,
                 )
-                deducciones_pendientes.append(item)
+                emp_calculo.deducciones.append(item)
+                saldo_disponible -= monto_aplicar
 
-        # Sort by priority (lower number = higher priority)
-        deducciones_pendientes.sort(key=lambda x: x.prioridad)
-
-        # Apply deductions in priority order
-        saldo_disponible = emp_calculo.salario_bruto
-        deducciones_aplicadas = []
-
-        for deduccion in deducciones_pendientes:
-            monto_aplicar = min(deduccion.monto, saldo_disponible)
-
-            if monto_aplicar <= 0 and not deduccion.es_obligatoria:
-                self.warnings.append(
-                    f"Empleado {emp_calculo.empleado.primer_nombre} "
-                    f"{emp_calculo.empleado.primer_apellido}: "
-                    f"Deducción {deduccion.codigo} omitida por saldo insuficiente."
-                )
-                continue
-
-            item = DeduccionItem(
-                codigo=deduccion.codigo,
-                nombre=deduccion.nombre,
-                monto=monto_aplicar,
-                prioridad=deduccion.prioridad,
-                es_obligatoria=deduccion.es_obligatoria,
-                deduccion_id=deduccion.deduccion_id,
-            )
-            deducciones_aplicadas.append(item)
-            saldo_disponible -= monto_aplicar
-
-        return deducciones_aplicadas
+        return emp_calculo.deducciones

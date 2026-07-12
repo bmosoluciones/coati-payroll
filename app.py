@@ -41,11 +41,12 @@ if flask_env == "production":
     if not admin_user or not admin_password:
         log.error("ADMIN_USER/ADMIN_PASSWORD not set in production environment")
         raise RuntimeError("ADMIN_USER and ADMIN_PASSWORD must be set when FLASK_ENV=production")
-    log.warning("DATABASE_URL not set, using default SQLite database")
+else:
+    if not db_url:
+        log.warning("DATABASE_URL not set, using default SQLite database")
 
 # Crear aplicación.
 cfg = dict(configuration)
-cfg["SQLALCHEMY_DATABASE_URI"] = db_url or default_db_uri
 app = create_app(cfg)
 log.trace("App initialized")
 
