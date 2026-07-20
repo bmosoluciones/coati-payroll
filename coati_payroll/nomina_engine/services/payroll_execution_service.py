@@ -196,6 +196,7 @@ class PayrollExecutionService:
                     snapshot.get("tipos_cambio"),
                     bootstrap_context,
                     warnings,
+                    nomina_id=nomina.id,
                 )
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
@@ -377,6 +378,7 @@ class PayrollExecutionService:
         tipos_cambio_snapshot: dict[str, Any] | None,
         bootstrap_context: dict[str, Any],
         warnings: WarningCollector,
+        nomina_id: str | None = None,
     ) -> EmpleadoCalculo:
         """Process a single employee's payroll."""
         # Validate employee
@@ -411,7 +413,7 @@ class PayrollExecutionService:
 
         # Load employee novelties (including absence summaries)
         novelties, ausencia_resumen, codigos_descuento = self.novelty_processor.load_novelties_with_absences(
-            empleado, periodo_inicio, periodo_fin
+            empleado, periodo_inicio, periodo_fin, nomina_id=nomina_id
         )
 
         descuento_inasistencia = self._calculate_absence_discount(
