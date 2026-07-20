@@ -1119,8 +1119,8 @@ class LiquidacionDetalle(database.Model, BaseTabla):
 class NominaNovedad(database.Model, BaseTabla):
     __tablename__ = "nomina_novedad"
 
-    # FK a la ejecución de Nómina (el ID que solicitaste)
-    nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=False)
+    # FK a la ejecución de Nómina (el ID que solicitaste). Can be nullable (None) for floating/pre-assigned novelties.
+    nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=True)
     # FK al empleado afectado
     empleado_id = database.Column(database.String(26), database.ForeignKey(FK_EMPLEADO_ID), nullable=False)
 

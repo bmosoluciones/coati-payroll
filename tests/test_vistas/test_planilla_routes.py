@@ -1533,3 +1533,141 @@ def test_reintentar_nomina_requires_authentication(app, client, db_session):
         response = client.post("/planilla/999/nomina/888/reintentar", follow_redirects=False)
         assert response.status_code == 302
         assert "/auth/login" in response.location
+
+
+def test_edit_delete_floating_novelty_inside_range(
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
+):
+    """Test editing and deleting a floating novelty (nomina_id is None) whose date is within the Nomina's range."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        from coati_payroll.model import NominaNovedad
+
+        # Create a floating novelty within range (nomina_id=None)
+        novedad = NominaNovedad(
+            nomina_id=None,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="BONO",
+            tipo_valor="monto",
+            valor_cantidad=Decimal("150.00"),
+            fecha_novedad=nomina.periodo_inicio,  # exactly inside
+            percepcion_id=percepcion.id,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad)
+        db_session.commit()
+        db_session.refresh(novedad)
+
+        novedad_id = novedad.id
+
+        # 1. Test GET edit displays form
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit")
+        assert response.status_code == 200
+
+        # 2. Test POST edit successfully updates
+        data = {
+            "empleado_id": nomina_empleado.empleado_id,
+            "codigo_concepto": "BONO",
+            "tipo_concepto": "income",
+            "percepcion_id": percepcion.id,
+            "tipo_valor": "monto",
+            "valor_cantidad": 200,
+            "fecha_novedad": (nomina.periodo_inicio).isoformat(),
+        }
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit",
+            data=data,
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        db_session.refresh(novedad)
+        assert novedad.valor_cantidad == Decimal("200.00")
+
+        # 3. Test POST delete successfully removes
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/delete",
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        deleted = db_session.get(NominaNovedad, novedad_id)
+        assert deleted is None
+
+
+def test_edit_delete_floating_novelty_outside_range_is_rejected(
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
+):
+    """Test editing and deleting a floating novelty (nomina_id is None) whose date is outside the Nomina's range is blocked."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        from coati_payroll.model import NominaNovedad
+
+        # Create a floating novelty outside range (nomina_id=None)
+        novedad = NominaNovedad(
+            nomina_id=None,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="BONO",
+            tipo_valor="monto",
+            valor_cantidad=Decimal("150.00"),
+            fecha_novedad=nomina.periodo_inicio - timedelta(days=5),  # outside
+            percepcion_id=percepcion.id,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad)
+        db_session.commit()
+        db_session.refresh(novedad)
+
+        novedad_id = novedad.id
+
+        # 1. Test GET edit blocks with redirect
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit")
+        assert response.status_code == 302
+
+        # 2. Test POST edit blocks with redirect
+        data = {
+            "empleado_id": nomina_empleado.empleado_id,
+            "codigo_concepto": "BONO",
+            "tipo_concepto": "income",
+            "percepcion_id": percepcion.id,
+            "tipo_valor": "monto",
+            "valor_cantidad": 200,
+            "fecha_novedad": (nomina.periodo_inicio - timedelta(days=5)).isoformat(),
+        }
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit",
+            data=data,
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+        db_session.refresh(novedad)
+        assert novedad.valor_cantidad == Decimal("150.00")  # unchanged
+
+        # 3. Test POST delete blocks with redirect
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/delete",
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        # Verify not deleted
+        still_exists = db_session.get(NominaNovedad, novedad_id)
+        assert still_exists is not None
