@@ -96,6 +96,16 @@ def nueva_novedad(planilla_id: str, nomina_id: str):
     )
 
 
+def _validar_pertenencia_novedad(novedad: NominaNovedad, nomina_id: str, nomina: Nomina) -> bool:
+    """Verifica si la novedad pertenece a la nómina (por ID o por rango de fechas si es flotante)."""
+    if novedad.nomina_id == nomina_id:
+        return True
+    if novedad.nomina_id is None:
+        if novedad.fecha_novedad and nomina.periodo_inicio <= novedad.fecha_novedad <= nomina.periodo_fin:
+            return True
+    return False
+
+
 @planilla_bp.route(
     "/<planilla_id>/nomina/<nomina_id>/novedades/<novedad_id>/edit",
     methods=["GET", "POST"],
@@ -111,7 +121,7 @@ def editar_novedad(planilla_id: str, nomina_id: str, novedad_id: str):
         flash(_(ERROR_NOMINA_NO_PERTENECE), "error")
         return redirect(url_for(ROUTE_LISTAR_NOMINAS, planilla_id=planilla_id))
 
-    if novedad.nomina_id != nomina_id:
+    if not _validar_pertenencia_novedad(novedad, nomina_id, nomina):
         flash(_("La novedad no pertenece a esta nómina."), "error")
         return redirect(
             url_for(
@@ -190,7 +200,7 @@ def eliminar_novedad(planilla_id: str, nomina_id: str, novedad_id: str):
         flash(_(ERROR_NOMINA_NO_PERTENECE), "error")
         return redirect(url_for(ROUTE_LISTAR_NOMINAS, planilla_id=planilla_id))
 
-    if novedad.nomina_id != nomina_id:
+    if not _validar_pertenencia_novedad(novedad, nomina_id, nomina):
         flash(_("La novedad no pertenece a esta nómina."), "error")
         return redirect(
             url_for(

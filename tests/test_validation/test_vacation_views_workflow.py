@@ -468,3 +468,67 @@ def test_vacation_initial_balance_bulk_post_applies_balance_from_excel(app, clie
         assert len(ledger_entries) == 1
         assert ledger_entries[0].quantity == Decimal("7.5")
         assert ledger_entries[0].balance_after == Decimal("7.5")
+
+
+@pytest.mark.validation
+def test_vacation_register_taken_success(app, client, admin_user, db_session):
+    """Test successful POST to vacation taken registration, creating VacationNovelty and NominaNovedad with null nomina_id."""
+    with app.app_context():
+        empresa, moneda, _, planilla = _create_base_company_struct(db_session)
+        empleado = _create_employee(db_session, empresa.id, moneda.id)
+
+        policy = VacationPolicy(
+            codigo="POL001",
+            nombre="Test Policy",
+            empresa_id=empresa.id,
+            planilla_id=planilla.id,
+            accrual_rate=Decimal("15.0000"),
+            allow_negative=False,
+            activo=True,
+        )
+        db_session.add(policy)
+        db_session.flush()
+
+        account = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=policy.id,
+            current_balance=Decimal("10.0000"),
+            activo=True,
+        )
+        db_session.add(account)
+
+        percepcion = Percepcion(codigo="VAC", nombre="Vacaciones", activo=True)
+        db_session.add(percepcion)
+        db_session.commit()
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        response = client.post(
+            "/vacation/register-taken",
+            data={
+                "empleado_id": empleado.id,
+                "fecha_inicio": date.today().isoformat(),
+                "fecha_fin": (date.today() + timedelta(days=2)).isoformat(),
+                "dias_descontados": "2.00",
+                "tipo_concepto": "income",
+                "percepcion_id": percepcion.id,
+                "deduccion_id": "",
+                "observaciones": "Vacaciones disfrutadas de prueba",
+            },
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+
+        # Verify VacationNovelty was created
+        vacation_novelty = db_session.query(VacationNovelty).filter_by(empleado_id=empleado.id).one_or_none()
+        assert vacation_novelty is not None
+        assert vacation_novelty.units == Decimal("2.00")
+
+        # Verify NominaNovedad was created with floating/null nomina_id
+        from coati_payroll.model import NominaNovedad
+        nomina_novedad = db_session.query(NominaNovedad).filter_by(empleado_id=empleado.id).one_or_none()
+        assert nomina_novedad is not None
+        assert nomina_novedad.nomina_id is None
+        assert nomina_novedad.valor_cantidad == Decimal("2.00")
+        assert nomina_novedad.codigo_concepto == "VAC"
