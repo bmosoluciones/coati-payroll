@@ -447,7 +447,11 @@ class Planilla(database.Model, BaseTabla):
     # Strong relationship: each payroll can bind to one specific vacation accrual policy
     vacation_policy_id = database.Column(
         database.String(26),
-        database.ForeignKey("vacation_policy.id", name="fk_planilla_vacation_policy_id"),
+        database.ForeignKey(
+            "vacation_policy.id",
+            name="fk_planilla_vacation_policy_id",
+            use_alter=True,
+        ),
         nullable=True,
         index=True,
     )
