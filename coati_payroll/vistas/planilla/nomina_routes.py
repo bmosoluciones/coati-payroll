@@ -874,15 +874,23 @@ def aplicar_nomina(planilla_id: str, nomina_id: str):
         planilla_empleados = cast(list[Any], planilla.planilla_empleados)
         empleado_ids = [pe.empleado_id for pe in planilla_empleados if pe.activo]
 
-        # Actualizar novedades que corresponden a este período
+        # Actualizar novedades que corresponden a este período o nómina
         if empleado_ids:
+            from sqlalchemy import or_, and_
+            condition = or_(
+                NominaNovedad.nomina_id == nomina.id,
+                and_(
+                    NominaNovedad.nomina_id.is_(None),
+                    NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
+                    NominaNovedad.fecha_novedad <= nomina.periodo_fin,
+                )
+            )
             novedades = cast(
                 list[NominaNovedad],
                 db.session.execute(
                     db.select(NominaNovedad).filter(
                         NominaNovedad.empleado_id.in_(empleado_ids),
-                        NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
-                        NominaNovedad.fecha_novedad <= nomina.periodo_fin,
+                        condition,
                         NominaNovedad.estado == NovedadEstado.PENDIENTE,
                     )
                 )

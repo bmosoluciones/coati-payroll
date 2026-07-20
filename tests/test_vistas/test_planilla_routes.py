@@ -1671,3 +1671,107 @@ def test_edit_delete_floating_novelty_outside_range_is_rejected(
         # Verify not deleted
         still_exists = db_session.get(NominaNovedad, novedad_id)
         assert still_exists is not None
+
+
+def test_concurrent_overlapping_nomina_novelties_isolation(
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
+):
+    """Test isolation of novelties between concurrent/overlapping nominas of the same period.
+    - A novelty explicitly assigned to Nomina A must NOT show in Nomina B's novelty list.
+    - A novelty explicitly assigned to Nomina A must NOT get marked as EJECUTADA when Nomina B is applied.
+    - A novelty explicitly assigned to Nomina A must NOT be loaded/processed during Nomina B's calculation.
+    """
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        from coati_payroll.model import Nomina, NominaNovedad, Empleado, PlanillaEmpleado
+        from coati_payroll.enums import NominaEstado, NovedadEstado
+        from coati_payroll.vistas.planilla.services import NovedadService
+        from coati_payroll.nomina_engine.processors.novelty_processor import NoveltyProcessor
+        from coati_payroll.nomina_engine.repositories.novelty_repository import NoveltyRepository
+
+        # Associate the employee with the planilla
+        association = PlanillaEmpleado(
+            planilla_id=planilla.id,
+            empleado_id=nomina_empleado.empleado_id,
+            fecha_inicio=nomina.periodo_inicio,
+            activo=True,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(association)
+        db_session.commit()
+
+        # Create a second, overlapping/concurrent Nomina B for the same planilla
+        nomina_b = Nomina(
+            planilla_id=planilla.id,
+            periodo_inicio=nomina.periodo_inicio,
+            periodo_fin=nomina.periodo_fin,
+            generado_por=admin_user.usuario,
+            estado=NominaEstado.APROBADO,  # Set as approved so we can call apply
+        )
+        db_session.add(nomina_b)
+        db_session.commit()
+        db_session.refresh(nomina_b)
+
+        # Create a novelty explicitly assigned to Nomina A
+        novedad_a = NominaNovedad(
+            nomina_id=nomina.id,  # Assigned to Nomina A
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="BONO",
+            tipo_valor="monto",
+            valor_cantidad=Decimal("123.45"),
+            fecha_novedad=nomina.periodo_inicio,  # Within the date range of BOTH nominas
+            percepcion_id=percepcion.id,
+            estado=NovedadEstado.PENDIENTE,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad_a)
+        db_session.commit()
+        db_session.refresh(novedad_a)
+
+        # 1. Verify NovedadService.listar_novedades for Nomina B does NOT include novedad_a
+        novedades_b = NovedadService.listar_novedades(planilla, nomina_b)
+        assert novedad_a not in novedades_b
+
+        # 2. Verify NovedadService.listar_novedades for Nomina A DOES include novedad_a
+        novedades_a = NovedadService.listar_novedades(planilla, nomina)
+        assert novedad_a in novedades_a
+
+        # 3. Verify NoveltyProcessor does NOT load novelty_a when calculating Nomina B
+        repo = NoveltyRepository(db_session)
+        processor = NoveltyProcessor(repo)
+
+        empleado_obj = db_session.get(Empleado, nomina_empleado.empleado_id)
+
+        # Load novelties for Nomina B (should be empty/excluding novedad_a)
+        novedades_load_b = processor.load_novelties(
+            empleado_obj, nomina_b.periodo_inicio, nomina_b.periodo_fin, nomina_id=nomina_b.id
+        )
+        assert "BONO" not in novedades_load_b
+
+        # Load novelties for Nomina A (should include novedad_a)
+        novedades_load_a = processor.load_novelties(
+            empleado_obj, nomina.periodo_inicio, nomina.periodo_fin, nomina_id=nomina.id
+        )
+        assert novedades_load_a.get("BONO") == Decimal("123.45")
+
+        # 4. Verify applying Nomina B (making it executed/applied) does NOT mark novedad_a as EJECUTADA
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina_b.id}/aplicar",
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        db_session.refresh(nomina_b)
+        assert nomina_b.estado == NominaEstado.APLICADO
+
+        db_session.refresh(novedad_a)
+        assert novedad_a.estado == NovedadEstado.PENDIENTE  # Stays pending!

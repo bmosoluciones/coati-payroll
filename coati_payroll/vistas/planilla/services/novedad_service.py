@@ -63,14 +63,25 @@ class NovedadService:
         planilla_empleados = cast(list[Any], planilla.planilla_empleados)
         empleado_ids = [pe.empleado_id for pe in planilla_empleados if pe.activo]
 
-        # Query novedades that fall within the nomina period and are for employees in this planilla
+        # Query novedades that belong to this specific nomina, or floating novelties
+        # (nomina_id is None) whose date falls within the period, and are for employees in this planilla.
+        from sqlalchemy import or_, and_
+
+        condition = or_(
+            NominaNovedad.nomina_id == nomina.id,
+            and_(
+                NominaNovedad.nomina_id.is_(None),
+                NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
+                NominaNovedad.fecha_novedad <= nomina.periodo_fin,
+            )
+        )
+
         novedades = (
             db.session.execute(
                 db.select(NominaNovedad)
                 .filter(
                     NominaNovedad.empleado_id.in_(empleado_ids),
-                    NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
-                    NominaNovedad.fecha_novedad <= nomina.periodo_fin,
+                    condition,
                 )
                 .order_by(NominaNovedad.fecha_novedad.desc(), NominaNovedad.timestamp.desc())
             )
