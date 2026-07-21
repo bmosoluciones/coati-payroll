@@ -72,6 +72,16 @@ class ExportService:
     @staticmethod
     def _write_info_block(ws, row: int, planilla, nomina=None, comprobante=None) -> int:
         """Write common metadata info block. Returns next available row."""
+        row = ExportService._write_company_info(ws, row, planilla)
+        if nomina:
+            row = ExportService._write_nomina_info(ws, row, planilla, nomina)
+        if comprobante:
+            row = ExportService._write_comprobante_info(ws, row, planilla, comprobante)
+        return row
+
+    @staticmethod
+    def _write_company_info(ws, row: int, planilla) -> int:
+        """Write company metadata."""
         if planilla.empresa_id and planilla.empresa:
             ws[f"A{row}"] = "ID Empresa:"
             ws[f"B{row}"] = planilla.empresa_id
@@ -83,70 +93,78 @@ class ExportService:
                 ws[f"A{row}"] = "RUC:"
                 ws[f"B{row}"] = planilla.empresa.ruc
                 row += 1
+        return row
 
-        if nomina:
-            ws[f"A{row}"] = "Período:"
-            ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
+    @staticmethod
+    def _write_nomina_info(ws, row: int, planilla, nomina) -> int:
+        """Write payroll metadata."""
+        rows = (
+            ("Período:", f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"),
+            (LABEL_PLANILLA_ID, planilla.id),
+            (LABEL_PLANILLA_STATUS, planilla.estado_aprobacion or ""),
+            ("Estado Nomina:", nomina.estado),
+            ("Creado por:", nomina.generado_por or ""),
+        )
+        for label, value in rows:
+            ws[f"A{row}"] = label
+            ws[f"B{row}"] = value
             row += 1
-            ws[f"A{row}"] = LABEL_PLANILLA_ID
-            ws[f"B{row}"] = planilla.id
-            row += 1
-            ws[f"A{row}"] = LABEL_PLANILLA_STATUS
-            ws[f"B{row}"] = planilla.estado_aprobacion or ""
-            row += 1
-            ws[f"A{row}"] = "Estado Nomina:"
-            ws[f"B{row}"] = nomina.estado
-            row += 1
-            ws[f"A{row}"] = "Creado por:"
-            ws[f"B{row}"] = nomina.generado_por or ""
-            row += 1
-            if getattr(nomina, "aprobado_por", None):
-                ws[f"A{row}"] = "Aprobado por:"
-                ws[f"B{row}"] = nomina.aprobado_por
+        for label, attribute in (("Aprobado por:", "aprobado_por"), (LABEL_APPLIED_BY, "aplicado_por")):
+            value = getattr(nomina, attribute, None)
+            if value:
+                ws[f"A{row}"] = label
+                ws[f"B{row}"] = value
                 row += 1
-            if getattr(nomina, "aplicado_por", None):
-                ws[f"A{row}"] = LABEL_APPLIED_BY
-                ws[f"B{row}"] = nomina.aplicado_por
-                row += 1
+        return row
 
-        if comprobante:
-            ws[f"A{row}"] = LABEL_CONCEPT
-            ws[f"B{row}"] = comprobante.concepto or ""
+    @staticmethod
+    def _write_comprobante_info(ws, row: int, planilla, comprobante) -> int:
+        """Write accounting voucher metadata."""
+        rows = (
+            (LABEL_CONCEPT, comprobante.concepto or ""),
+            (LABEL_CALCULATION_DATE, comprobante.fecha_calculo.strftime(DATE_FORMAT)),
+            (LABEL_PLANILLA_ID, planilla.id),
+            (LABEL_PLANILLA_STATUS, planilla.estado_aprobacion or ""),
+        )
+        for label, value in rows:
+            ws[f"A{row}"] = label
+            ws[f"B{row}"] = value
             row += 1
-            ws[f"A{row}"] = LABEL_CALCULATION_DATE
-            ws[f"B{row}"] = comprobante.fecha_calculo.strftime(DATE_FORMAT)
+        if comprobante.moneda:
+            ws[f"A{row}"] = "Moneda:"
+            ws[f"B{row}"] = f"{comprobante.moneda.codigo} - {comprobante.moneda.nombre}"
             row += 1
-            ws[f"A{row}"] = LABEL_PLANILLA_ID
-            ws[f"B{row}"] = planilla.id
+        optional_rows = (
+            (LABEL_APPLIED_BY, comprobante.aplicado_por),
+            (
+                "Fecha aplicación:",
+                comprobante.fecha_aplicacion.strftime(DATETIME_FORMAT) if comprobante.fecha_aplicacion else None,
+            ),
+        )
+        for label, value in optional_rows:
+            if value:
+                ws[f"A{row}"] = label
+                ws[f"B{row}"] = value
+                row += 1
+        if comprobante.veces_modificado > 0:
+            ws[f"A{row}"] = "Modificado:"
+            ws[f"B{row}"] = f"{comprobante.veces_modificado} vez/veces"
             row += 1
-            ws[f"A{row}"] = LABEL_PLANILLA_STATUS
-            ws[f"B{row}"] = planilla.estado_aprobacion or ""
-            row += 1
-            if comprobante.moneda:
-                ws[f"A{row}"] = "Moneda:"
-                ws[f"B{row}"] = f"{comprobante.moneda.codigo} - {comprobante.moneda.nombre}"
-                row += 1
-            if comprobante.aplicado_por:
-                ws[f"A{row}"] = LABEL_APPLIED_BY
-                ws[f"B{row}"] = comprobante.aplicado_por
-                row += 1
-            if comprobante.fecha_aplicacion:
-                ws[f"A{row}"] = "Fecha aplicación:"
-                ws[f"B{row}"] = comprobante.fecha_aplicacion.strftime(DATETIME_FORMAT)
-                row += 1
-            if comprobante.veces_modificado > 0:
-                ws[f"A{row}"] = "Modificado:"
-                ws[f"B{row}"] = f"{comprobante.veces_modificado} vez/veces"
-                row += 1
-                if comprobante.modificado_por:
-                    ws[f"A{row}"] = "Última modificación por:"
-                    ws[f"B{row}"] = comprobante.modificado_por
+            for label, value in (
+                ("Última modificación por:", comprobante.modificado_por),
+                (
+                    "Fecha última modificación:",
+                    (
+                        comprobante.fecha_modificacion.strftime(DATETIME_FORMAT)
+                        if comprobante.fecha_modificacion
+                        else None
+                    ),
+                ),
+            ):
+                if value:
+                    ws[f"A{row}"] = label
+                    ws[f"B{row}"] = value
                     row += 1
-                if comprobante.fecha_modificacion:
-                    ws[f"A{row}"] = "Fecha última modificación:"
-                    ws[f"B{row}"] = comprobante.fecha_modificacion.strftime(DATETIME_FORMAT)
-                    row += 1
-
         return row
 
     @staticmethod
