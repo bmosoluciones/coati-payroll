@@ -62,7 +62,7 @@ def main():
 
     # Register a task
     print("\n2. Registering example task...")
-    task = queue.register_task(
+    queue.register_task(
         example_calculation_task,
         name="example_calc",
         max_retries=3,
