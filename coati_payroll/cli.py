@@ -62,6 +62,94 @@ def output_result(ctx, message, data=None, success=True):
         click.echo(f"{symbol} {message}")
 
 
+def _run_plugin_hook(module, hook_name, plugin_name, aliases=None):
+    """Run a plugin hook function with standard error handling."""
+    fn = getattr(module, hook_name, None)
+    if fn is None and aliases:
+        for alias in aliases:
+            fn = getattr(module, alias, None)
+            if fn is not None:
+                break
+    if fn is None or not callable(fn):
+        alias_msg = " or ".join(f"'{a}()'" for a in [hook_name] + (aliases or []))
+        raise click.ClickException(f"Plugin does not provide callable {alias_msg}")
+    try:
+        fn()
+        db.create_all()
+        output_result(ctx, f"Plugin '{plugin_name}' {hook_name}")
+    except Exception as exc:
+        log.exception(f"Plugin {hook_name} failed")
+        output_result(ctx, f"Plugin '{plugin_name}' {hook_name} failed: {exc}", None, False)
+        raise click.ClickException(str(exc))
+
+
+def _get_plugin_metadata(plugin_id: str) -> dict[str, Any]:
+    meta: dict[str, Any] = {"plugin_id": plugin_id}
+    try:
+        discovered = {p.plugin_id: p for p in discover_installed_plugins()}
+        if plugin_id in discovered:
+            meta["version"] = discovered[plugin_id].version
+    except Exception:
+        pass
+    try:
+        mod = load_plugin_module(plugin_id)
+        info = getattr(mod, "PLUGIN_INFO", None) or getattr(mod, "INFO", None)
+        if isinstance(info, dict):
+            meta.update({
+                "description": info.get("description"),
+                "maintainer": info.get("maintainer"),
+                "contact": info.get("contact"),
+                "version": info.get("version", meta.get("version")),
+            })
+        else:
+            meta.setdefault("version", getattr(mod, "__version__", meta.get("version")))
+            meta["description"] = meta.get("description") or (
+                mod.__doc__.strip() if getattr(mod, "__doc__", None) else None
+            )
+            meta["maintainer"] = getattr(mod, "MAINTAINER", None)
+            meta["contact"] = getattr(mod, "CONTACT", None)
+    except Exception:
+        pass
+    try:
+        rec = db.session.execute(db.select(PluginRegistry).filter_by(plugin_id=plugin_id)).scalars().first()
+        if rec:
+            meta["installed"] = rec.installed
+            meta["active"] = rec.active
+            meta["distribution_name"] = rec.distribution_name
+    except Exception:
+        pass
+    return meta
+
+
+def _toggle_plugin_active(plugin_name, active, ctx):
+    """Enable or disable a plugin in the registry."""
+    try:
+        sync_plugin_registry()
+        record = (
+            db.session.execute(
+                db.select(PluginRegistry).filter(
+                    (PluginRegistry.plugin_id == plugin_name) | (PluginRegistry.distribution_name == plugin_name)
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if record is None:
+            raise click.ClickException("Plugin no registrado en la base de datos")
+        if active and not record.installed:
+            raise click.ClickException("Plugin no está instalado en el entorno")
+        record.active = active
+        db.session.commit()
+        action = "habilitado" if active else "deshabilitado"
+        output_result(ctx, f"Plugin '{plugin_name}' {action}.")
+    except click.ClickException:
+        raise
+    except Exception as exc:
+        db.session.rollback()
+        output_result(ctx, f"No se pudo {action} el plugin: {exc}", None, False)
+        raise click.ClickException(str(exc))
+
+
 class PluginsCommand(click.Group):
 
     def list_commands(self, cli_ctx):
@@ -87,157 +175,36 @@ class PluginsCommand(click.Group):
         @pass_context
         def plugin_init(ctx):
             module = _load_module_or_fail()
-            init_fn = getattr(module, "init", None)
-            if init_fn is None or not callable(init_fn):
-                raise click.ClickException("Plugin does not provide callable 'init()'")
-
-            try:
-                init_fn()
-                db.create_all()
-                output_result(ctx, f"Plugin '{name}' initialized")
-            except Exception as exc:
-                log.exception("Plugin init failed")
-                output_result(ctx, f"Plugin '{name}' init failed: {exc}", None, False)
-                raise click.ClickException(str(exc))
+            _run_plugin_hook(module, "init", name)
 
         @plugin_group.command("update")
         @with_appcontext
         @pass_context
         def plugin_update(ctx):
             module = _load_module_or_fail()
-            update_fn = getattr(module, "update", None)
-            if update_fn is None or not callable(update_fn):
-                raise click.ClickException("Plugin does not provide callable 'update()'")
-
-            try:
-                update_fn()
-                db.create_all()
-                output_result(ctx, f"Plugin '{name}' updated")
-            except Exception as exc:
-                log.exception("Plugin update failed")
-                output_result(ctx, f"Plugin '{name}' update failed: {exc}", None, False)
-                raise click.ClickException(str(exc))
+            _run_plugin_hook(module, "update", name)
 
         @plugin_group.command("demo_data")
         @with_appcontext
         @pass_context
         def plugin_demo_data(ctx):
             """Carga datos de demostración para pruebas automáticas."""
-            # Permitir alias: demo_data o load_demo_data
             module = _load_module_or_fail()
-            demo_fn = getattr(module, "demo_data", None)
-            if demo_fn is None or not callable(demo_fn):
-                demo_fn = getattr(module, "load_demo_data", None)
-            if demo_fn is None or not callable(demo_fn):
-                raise click.ClickException("Plugin does not provide callable 'demo_data()' or 'load_demo_data()'")
-
-            try:
-                demo_fn()
-                db.create_all()
-                output_result(ctx, f"Plugin '{name}' demo data loaded")
-            except Exception as exc:
-                log.exception("Plugin demo_data failed")
-                output_result(ctx, f"Plugin '{name}' demo data failed: {exc}", None, False)
-                raise click.ClickException(str(exc))
+            _run_plugin_hook(module, "demo_data", name, aliases=["load_demo_data"])
 
         @plugin_group.command("enable")
         @with_appcontext
         @pass_context
         def plugin_enable(ctx):
             """Habilita el plugin en el registro (active=True)."""
-            try:
-                sync_plugin_registry()
-                record = (
-                    db.session.execute(
-                        db.select(PluginRegistry).filter(
-                            (PluginRegistry.plugin_id == name) | (PluginRegistry.distribution_name == name)
-                        )
-                    )
-                    .scalars()
-                    .first()
-                )
-                if record is None:
-                    raise click.ClickException("Plugin no registrado en la base de datos")
-                if not record.installed:
-                    raise click.ClickException("Plugin no está instalado en el entorno")
-                record.active = True
-                db.session.commit()
-                output_result(ctx, f"Plugin '{name}' habilitado. Reinicie la app para cargar blueprints.")
-            except click.ClickException:
-                raise
-            except Exception as exc:
-                db.session.rollback()
-                output_result(ctx, f"No se pudo habilitar el plugin: {exc}", None, False)
-                raise click.ClickException(str(exc))
+            _toggle_plugin_active(name, True, ctx)
 
         @plugin_group.command("disable")
         @with_appcontext
         @pass_context
         def plugin_disable(ctx):
             """Deshabilita el plugin en el registro (active=False)."""
-            try:
-                sync_plugin_registry()
-                record = (
-                    db.session.execute(
-                        db.select(PluginRegistry).filter(
-                            (PluginRegistry.plugin_id == name) | (PluginRegistry.distribution_name == name)
-                        )
-                    )
-                    .scalars()
-                    .first()
-                )
-                if record is None:
-                    raise click.ClickException("Plugin no registrado en la base de datos")
-                record.active = False
-                db.session.commit()
-                output_result(ctx, f"Plugin '{name}' deshabilitado")
-            except click.ClickException:
-                raise
-            except Exception as exc:
-                db.session.rollback()
-                output_result(ctx, f"No se pudo deshabilitar el plugin: {exc}", None, False)
-                raise click.ClickException(str(exc))
-
-        def _get_plugin_metadata(plugin_id: str) -> dict[str, Any]:
-            meta: dict[str, Any] = {"plugin_id": plugin_id}
-            try:
-                # versión detectada por distribución instalada
-                discovered = {p.plugin_id: p for p in discover_installed_plugins()}
-                if plugin_id in discovered:
-                    meta["version"] = discovered[plugin_id].version
-            except Exception:
-                pass
-            try:
-                mod = load_plugin_module(plugin_id)
-                info = getattr(mod, "PLUGIN_INFO", None) or getattr(mod, "INFO", None)
-                if isinstance(info, dict):
-                    meta.update(
-                        {
-                            "description": info.get("description"),
-                            "maintainer": info.get("maintainer"),
-                            "contact": info.get("contact"),
-                            "version": info.get("version", meta.get("version")),
-                        }
-                    )
-                else:
-                    meta.setdefault("version", getattr(mod, "__version__", meta.get("version")))
-                    meta["description"] = meta.get("description") or (
-                        mod.__doc__.strip() if getattr(mod, "__doc__", None) else None
-                    )
-                    meta["maintainer"] = getattr(mod, "MAINTAINER", None)
-                    meta["contact"] = getattr(mod, "CONTACT", None)
-            except Exception:
-                # no importa si el módulo falla, usamos lo disponible
-                pass
-            try:
-                rec = db.session.execute(db.select(PluginRegistry).filter_by(plugin_id=plugin_id)).scalars().first()
-                if rec:
-                    meta["installed"] = rec.installed
-                    meta["active"] = rec.active
-                    meta["distribution_name"] = rec.distribution_name
-            except Exception:
-                pass
-            return meta
+            _toggle_plugin_active(name, False, ctx)
 
         @plugin_group.command("status")
         @with_appcontext
@@ -280,12 +247,9 @@ class PluginsCommand(click.Group):
                 output_result(ctx, f"Información del plugin '{name}'", meta, True)
             else:
                 click.echo(f"Info del plugin '{name}':")
-                if meta.get("description"):
-                    click.echo(f"  Description: {meta['description']}")
-                if meta.get("distribution_name"):
-                    click.echo(f"  Package: {meta['distribution_name']}")
-                if meta.get("version"):
-                    click.echo(f"  Version: {meta['version']}")
+                for key, label in [("description", "Description"), ("distribution_name", "Package"), ("version", "Version")]:
+                    if meta.get(key):
+                        click.echo(f"  {label}: {meta[key]}")
                 click.echo(f"  Installed: {meta.get('installed', False)}")
                 click.echo(f"  Active: {meta.get('active', False)}")
 
@@ -301,7 +265,6 @@ class PluginsCommand(click.Group):
             else:
                 click.echo(maint)
 
-        # Alias por compatibilidad: 'mantainer' (mal escrito)
         plugin_group.add_command(plugin_maintainer, "mantainer")
 
         @plugin_group.command("contact")
