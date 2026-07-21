@@ -197,56 +197,82 @@ class AccountingProcessor:
 
         created_count = 0
         for empleado_id, prestacion_id, monto_total in rows:
-            if not prestacion_id:
-                continue
-
-            existing = db.session.execute(
-                select(PrestacionAcumulada.id)
-                .where(
-                    PrestacionAcumulada.nomina_id == nomina.id,
-                    PrestacionAcumulada.empleado_id == empleado_id,
-                    PrestacionAcumulada.prestacion_id == prestacion_id,
-                    PrestacionAcumulada.tipo_transaccion == "adicion",
-                )
-                .limit(1)
-            ).scalar_one_or_none()
-            if existing:
-                continue
-
-            prestacion = db.session.get(Prestacion, prestacion_id)
-            if not prestacion:
-                continue
-
-            ultima_transaccion = (
-                db.session.execute(
-                    select(PrestacionAcumulada)
-                    .where(
-                        PrestacionAcumulada.empleado_id == empleado_id,
-                        PrestacionAcumulada.prestacion_id == prestacion_id,
-                    )
-                    .order_by(
-                        PrestacionAcumulada.fecha_transaccion.desc(),
-                        PrestacionAcumulada.creado.desc(),
-                    )
-                    .limit(1)
-                )
-                .unique()
-                .scalars()
-                .first()
+            created_count += self._create_nomina_benefit_transaction(
+                nomina=nomina,
+                planilla=planilla,
+                select=select,
+                empleado_id=empleado_id,
+                prestacion_id=prestacion_id,
+                monto_total=monto_total,
+                periodo_anio=periodo_anio,
+                periodo_mes=periodo_mes,
+                fecha_transaccion=fecha_transaccion,
+                moneda_id=moneda_id,
+                procesado_por=procesado_por,
+                creado_por=creado_por,
             )
 
-            saldo_anterior = ultima_transaccion.saldo_nuevo if ultima_transaccion else Decimal("0.00")
+        return created_count
 
-            if prestacion.tipo_acumulacion == TipoAcumulacionPrestacion.MENSUAL:
-                if ultima_transaccion and (
-                    ultima_transaccion.anio != periodo_anio or ultima_transaccion.mes != periodo_mes
-                ):
-                    saldo_anterior = Decimal("0.00")
+    def _create_nomina_benefit_transaction(
+        self,
+        *,
+        nomina,
+        planilla,
+        select,
+        empleado_id,
+        prestacion_id,
+        monto_total,
+        periodo_anio,
+        periodo_mes,
+        fecha_transaccion,
+        moneda_id,
+        procesado_por,
+        creado_por,
+    ) -> int:
+        """Create one idempotent benefit transaction when its source is valid."""
+        if not prestacion_id:
+            return 0
+        existing = db.session.execute(
+            select(PrestacionAcumulada.id)
+            .where(
+                PrestacionAcumulada.nomina_id == nomina.id,
+                PrestacionAcumulada.empleado_id == empleado_id,
+                PrestacionAcumulada.prestacion_id == prestacion_id,
+                PrestacionAcumulada.tipo_transaccion == "adicion",
+            )
+            .limit(1)
+        ).scalar_one_or_none()
+        prestacion = db.session.get(Prestacion, prestacion_id)
+        if existing or not prestacion:
+            return 0
 
-            monto_transaccion = round_money(Decimal(str(monto_total or 0)))
-            saldo_nuevo = round_money(saldo_anterior + monto_transaccion)
+        ultima_transaccion = (
+            db.session.execute(
+                select(PrestacionAcumulada)
+                .where(
+                    PrestacionAcumulada.empleado_id == empleado_id,
+                    PrestacionAcumulada.prestacion_id == prestacion_id,
+                )
+                .order_by(PrestacionAcumulada.fecha_transaccion.desc(), PrestacionAcumulada.creado.desc())
+                .limit(1)
+            )
+            .unique()
+            .scalars()
+            .first()
+        )
+        saldo_anterior = ultima_transaccion.saldo_nuevo if ultima_transaccion else Decimal("0.00")
+        if (
+            prestacion.tipo_acumulacion == TipoAcumulacionPrestacion.MENSUAL
+            and ultima_transaccion
+            and (ultima_transaccion.anio != periodo_anio or ultima_transaccion.mes != periodo_mes)
+        ):
+            saldo_anterior = Decimal("0.00")
 
-            transaccion = PrestacionAcumulada(
+        monto_transaccion = round_money(Decimal(str(monto_total or 0)))
+        saldo_nuevo = round_money(saldo_anterior + monto_transaccion)
+        db.session.add(
+            PrestacionAcumulada(
                 empleado_id=empleado_id,
                 prestacion_id=prestacion_id,
                 fecha_transaccion=fecha_transaccion,
@@ -260,13 +286,11 @@ class AccountingProcessor:
                 nomina_id=nomina.id,
                 empresa_id=planilla.empresa_id,
                 observaciones=(
-                    f"ProvisiÃ³n nÃ³mina {nomina.periodo_inicio.strftime('%Y-%m-%d')} - "
+                    f"Provisión nómina {nomina.periodo_inicio.strftime('%Y-%m-%d')} - "
                     f"{nomina.periodo_fin.strftime('%Y-%m-%d')}"
                 ),
                 procesado_por=procesado_por,
                 creado_por=creado_por,
             )
-            db.session.add(transaccion)
-            created_count += 1
-
-        return created_count
+        )
+        return 1
