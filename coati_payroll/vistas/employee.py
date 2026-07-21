@@ -19,6 +19,8 @@ from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO, PER_PAGE
 
 employee_bp = Blueprint("employee", __name__, url_prefix="/employee")
+EMPLOYEE_INDEX_ENDPOINT = "employee.index"
+SALARY_CHANGES_INDEX_ENDPOINT = "employee.salary_changes_index"
 
 
 def get_currency_choices():
@@ -249,7 +251,7 @@ def new():
         db.session.add(employee)
         db.session.commit()
         flash(_("Empleado creado exitosamente."), "success")
-        return redirect(url_for("employee.index"))
+        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
 
     # Default date to today
     if not form.fecha_alta.data:
@@ -273,7 +275,7 @@ def edit(id_: str):
     employee = db.session.get(Empleado, id_)
     if not employee:
         flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "error")
-        return redirect(url_for("employee.index"))
+        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
 
     form = EmployeeForm(obj=employee)
     form.moneda_id.choices = get_currency_choices()
@@ -295,7 +297,7 @@ def edit(id_: str):
             return redirect(url_for("employee.salary_change_new", employee_id=employee.id))
 
         flash(_("Empleado actualizado exitosamente."), "success")
-        return redirect(url_for("employee.index"))
+        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
 
     # Pre-populate last three salaries from employee data
     if request.method != "POST":
@@ -327,12 +329,12 @@ def delete(id_: str):
     employee = db.session.get(Empleado, id_)
     if not employee:
         flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "error")
-        return redirect(url_for("employee.index"))
+        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
 
     db.session.delete(employee)
     db.session.commit()
     flash(_("Empleado eliminado exitosamente."), "success")
-    return redirect(url_for("employee.index"))
+    return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
 
 
 def _requires_different_approver(employee: Empleado) -> bool:
@@ -388,7 +390,7 @@ def salary_change_new(employee_id: str):
     employee = db.session.get(Empleado, employee_id)
     if not employee:
         flash(_("Empleado no encontrado."), "error")
-        return redirect(url_for("employee.index"))
+        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
 
     form = SalaryChangeForm()
     form.moneda_nueva_id.choices = get_currency_choices()
@@ -407,7 +409,7 @@ def salary_change_new(employee_id: str):
         db.session.add(salary_change)
         db.session.commit()
         flash(_("Cambio salarial guardado como borrador."), "success")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     if not form.fecha_efectiva.data:
         form.fecha_efectiva.data = date.today()
@@ -426,22 +428,22 @@ def salary_change_approve(change_id: str):
     salary_change = db.session.get(HistorialSalario, change_id)
     if not salary_change:
         flash(_("Cambio salarial no encontrado."), "error")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     if salary_change.estado != "draft":
         flash(_("Solo se pueden aprobar cambios en borrador."), "warning")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     if salary_change.empleado is None:
         flash(_("Empleado no encontrado para este cambio salarial."), "error")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     if (
         _requires_different_approver(cast(Empleado, salary_change.empleado))
         and salary_change.creado_por == current_user.usuario
     ):
         flash(_("Para empresas grandes, el aprobador debe ser distinto al creador."), "error")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     salary_change.estado = "approved"
     salary_change.autorizado_por = current_user.usuario
@@ -449,7 +451,7 @@ def salary_change_approve(change_id: str):
     db.session.commit()
 
     flash(_("Cambio salarial aprobado."), "success")
-    return redirect(url_for("employee.salary_changes_index"))
+    return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
 
 @employee_bp.route("/salary-changes/<string:change_id>/apply", methods=["POST"])
@@ -459,15 +461,15 @@ def salary_change_apply(change_id: str):
     salary_change = db.session.get(HistorialSalario, change_id)
     if not salary_change:
         flash(_("Cambio salarial no encontrado."), "error")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     if salary_change.estado != "approved":
         flash(_("Solo se pueden aplicar cambios aprobados."), "warning")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     if salary_change.empleado is None:
         flash(_("Empleado no encontrado para este cambio salarial."), "error")
-        return redirect(url_for("employee.salary_changes_index"))
+        return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
 
     empleado = cast(Empleado, salary_change.empleado)
     empleado.salario_base = salary_change.salario_nuevo
@@ -479,4 +481,4 @@ def salary_change_apply(change_id: str):
     db.session.commit()
 
     flash(_("Cambio salarial aplicado exitosamente."), "success")
-    return redirect(url_for("employee.salary_changes_index"))
+    return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
