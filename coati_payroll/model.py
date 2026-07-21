@@ -387,9 +387,9 @@ class TipoPlanilla(database.Model, BaseTabla):
     )  # ej. mensual, quincenal, semanal
 
     # Fiscal period configuration
-    # mes_inicio_fiscal: Month when the fiscal year starts (1-12)
+    # Fiscal year start month (1 through 12).
     mes_inicio_fiscal = database.Column(database.Integer, nullable=False, default=1)  # 1 = January
-    # dia_inicio_fiscal: Day of month when fiscal year starts
+    # First day of the fiscal year.
     dia_inicio_fiscal = database.Column(database.Integer, nullable=False, default=1)
 
     # Accumulated calculation settings

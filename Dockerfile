@@ -43,10 +43,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpangocairo-1.0-0 \
     tini \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Create non-root user for security
-RUN useradd --create-home --shell /bin/bash coati
+    && apt-get clean \
+    && useradd --create-home --shell /bin/bash coati
 
 # Copy virtual environment from builder stage
 COPY --from=builder /opt/venv /opt/venv

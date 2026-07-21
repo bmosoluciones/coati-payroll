@@ -808,7 +808,7 @@ def initial_balance_form():
         if not account:
             flash(
                 _(
-                    "El empleado {} no tiene una cuenta de vacaciones activa. " "Por favor, cree una cuenta primero."
+                    "El empleado {} no tiene una cuenta de vacaciones activa. Por favor, cree una cuenta primero."
                 ).format(empleado.codigo_empleado),
                 "warning",
             )

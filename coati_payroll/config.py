@@ -183,8 +183,6 @@ if isinstance(database_url_base, str):
                 DATABASE_URL_CORREGIDA = "mysql+pymysql" + DATABASE_URL_BASE[5:]
             case "mariadb":
                 DATABASE_URL_CORREGIDA = "mariadb+mariadbconnector" + DATABASE_URL_BASE[7:]
-            case _:
-                pass
 
     # Actualizar configuración si hubo cambio
     if DATABASE_URL_BASE != DATABASE_URL_CORREGIDA:

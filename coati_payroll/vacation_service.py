@@ -243,14 +243,8 @@ class VacationService:
             return None, None
 
         if bound_policy.planilla_id and bound_policy.planilla_id != self.planilla.id:
-            raise ValidationError(
-                f"Policy {bound_policy.codigo} does not belong to planilla {self.planilla.id}."
-            )
-        if (
-            bound_policy.empresa_id
-            and self.planilla.empresa_id
-            and bound_policy.empresa_id != self.planilla.empresa_id
-        ):
+            raise ValidationError(f"Policy {bound_policy.codigo} does not belong to planilla {self.planilla.id}.")
+        if bound_policy.empresa_id and self.planilla.empresa_id and bound_policy.empresa_id != self.planilla.empresa_id:
             raise ValidationError(f"Policy {bound_policy.codigo} belongs to another empresa.")
 
         existing_account = (
@@ -320,8 +314,12 @@ class VacationService:
                 log.info(
                     "Vacation policy/account resolved: policy_id=%s policy_codigo=%s account_id=%s "
                     "scope=%s planilla_id=%s empresa_id=%s",
-                    account.policy_id, account.policy.codigo, account.id,
-                    scope_name, self.planilla.id, self.planilla.empresa_id,
+                    account.policy_id,
+                    account.policy.codigo,
+                    account.id,
+                    scope_name,
+                    self.planilla.id,
+                    self.planilla.empresa_id,
                 )
                 return account, scope_name
 
@@ -736,6 +734,7 @@ class VacationService:
             )
         else:
             from coati_payroll.model import PlanillaEmpleado
+
             stmt = (
                 db.select(NominaNovedad)
                 .join(PlanillaEmpleado, PlanillaEmpleado.empleado_id == NominaNovedad.empleado_id)
@@ -842,14 +841,22 @@ class VacationService:
         if not self.apply_side_effects:
             log.info(
                 "Usage calculated (no side effects) for employee %s policy=%s units=%s balance_before=%s",
-                empleado.codigo_empleado, policy.codigo, units, balance_before,
+                empleado.codigo_empleado,
+                policy.codigo,
+                units,
+                balance_before,
             )
             return units
 
         ledger_entry = VacationLedger(
-            account_id=account.id, empleado_id=empleado.id, fecha=self.periodo_fin,
-            entry_type=VacationLedgerType.USAGE, quantity=-abs(units), source="novelty",
-            reference_id=vac_novelty.id, reference_type="vacation_novelty",
+            account_id=account.id,
+            empleado_id=empleado.id,
+            fecha=self.periodo_fin,
+            entry_type=VacationLedgerType.USAGE,
+            quantity=-abs(units),
+            source="novelty",
+            reference_id=vac_novelty.id,
+            reference_type="vacation_novelty",
             observaciones=f"Vacaciones del {vac_novelty.start_date} al {vac_novelty.end_date}",
             creado_por=usuario,
         )
@@ -864,12 +871,16 @@ class VacationService:
 
         log.info(
             "Processed vacation usage of %s for employee %s policy=%s balance_before=%s balance_after=%s",
-            abs(units), empleado.codigo_empleado, policy.codigo, balance_before, balance_after,
+            abs(units),
+            empleado.codigo_empleado,
+            policy.codigo,
+            balance_before,
+            balance_after,
         )
         return abs(units)
 
     def procesar_novedades_vacaciones(
-        self, empleado: Empleado, novedades: dict | list, usuario: str | None = None
+        self, empleado: Empleado, _novedades: dict | list, usuario: str | None = None
     ) -> Decimal:
         """Process vacation novelties (leave taken) during payroll execution."""
         total_usado = Decimal("0.00")

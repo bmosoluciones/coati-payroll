@@ -201,7 +201,6 @@ def calcular_interes_compuesto(
     # For simplicity, we compound daily using configured financial year days
     dias_anio = Decimal(str(config.dias_anio_financiero))
     n = dias_anio
-    # A = P * (1 + r/n)^(n*t)
     base = Decimal("1") + (tasa_decimal / n)
     num_periodos = int(dias)
     factor = base**num_periodos

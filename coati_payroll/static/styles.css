@@ -352,13 +352,13 @@ main h2 {
 }
 .btn-outline-danger {
   border-color: var(--coati-border);
-  color: #dc3545;
+  color: #b71c1c;
   background: transparent;
 }
 .btn-outline-danger:hover {
   background: rgba(220,53,69,0.08);
   border-color: #dc3545;
-  color: #dc3545;
+  color: #b71c1c;
 }
 .btn-outline-secondary {
   border-color: var(--coati-border);
@@ -970,22 +970,22 @@ a:hover{ color: var(--coati-primary-hover); }
 
 .bg-success-light {
   background-color: rgba(46,125,50,0.12);
-  color: #2E7D32;
+  color: #1B5E20;
 }
 
 .bg-warning-light {
   background-color: rgba(237,108,2,0.12);
-  color: #ED6C02;
+  color: #7A3B00;
 }
 
 .bg-info-light {
   background-color: rgba(2,136,209,0.12);
-  color: #0288D1;
+  color: #01579B;
 }
 
 .bg-danger-light {
   background-color: rgba(211,47,47,0.12);
-  color: #D32F2F;
+  color: #8B1E1E;
 }
 
 .bg-secondary-light {

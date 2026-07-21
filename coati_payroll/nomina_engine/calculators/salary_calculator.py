@@ -25,7 +25,7 @@ class SalaryCalculator:
         planilla: Planilla,
         periodo_inicio: date,
         periodo_fin: date,
-        fecha_calculo: date,  # noqa: ARG002
+        _fecha_calculo: date,
         fecha_alta: date | None = None,
         fecha_baja: date | None = None,
         configuracion_snapshot: dict[str, Any] | None = None,

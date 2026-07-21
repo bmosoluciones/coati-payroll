@@ -280,7 +280,7 @@ BENEFIT_CONCEPTS = [
     {
         "codigo": "PAID_VACATION_PROVISION",
         "nombre": _("Paid Vacation Provision"),
-        "descripcion": _("Employer provision for paid vacation days " "(universal labor right in the Americas)"),
+        "descripcion": _("Employer provision for paid vacation days (universal labor right in the Americas)"),
     },
     {
         "codigo": "THIRTEENTH_SALARY_PROVISION",

@@ -61,7 +61,7 @@ class ReportExporter:
             ImportError: If openpyxl is not installed
         """
         if not OPENPYXL_AVAILABLE:
-            raise ImportError("openpyxl is required for Excel export. " "Install it with: pip install openpyxl")
+            raise ImportError("openpyxl is required for Excel export. Install it with: pip install openpyxl")
 
         # Generate output path if not provided
         if not output_path:
