@@ -588,7 +588,7 @@ function collectSchemaFromEditor() {
 }
 
 function updateJsonPreview() {
-    schema = collectSchemaFromEditor();
+    const schema = collectSchemaFromEditor();
     document.getElementById('json-preview').value = JSON.stringify(schema, null, 2);
     updateOutputSelect();
     generateTestInputs();
