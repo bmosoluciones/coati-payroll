@@ -603,26 +603,14 @@ class VacationService:
         # Get configuration for vacation calculations
         config = self._obtener_config_calculos()
 
-        # Determine expected days for frequency using configuration
-        if policy.accrual_frequency == AccrualFrequency.MONTHLY:
-            dias_esperados = config.dias_mes_vacaciones
-        elif policy.accrual_frequency == AccrualFrequency.BIWEEKLY:
-            dias_esperados = config.dias_quincena
-        elif policy.accrual_frequency == AccrualFrequency.ANNUAL:
-            dias_esperados = config.dias_anio_vacaciones
-        else:
-            dias_esperados = config.dias_mes_vacaciones
+        dias_esperados = self._expected_period_days(policy, config)
 
         if dias_esperados <= 0:
             raise ValidationError("ConfiguraciÃ³n invÃ¡lida: dias esperados de acumulaciÃ³n debe ser mayor que cero.")
 
         # Backward-compatible path for direct method calls without employee context.
         if empleado is None:
-            if not policy.prorate_by_period_days:
-                return self._quantize_amount(policy.accrual_rate)
-            if dias_periodo == dias_esperados:
-                return self._quantize_amount(policy.accrual_rate)
-            return self._quantize_amount(policy.accrual_rate * Decimal(dias_periodo) / Decimal(dias_esperados))
+            return self._periodic_accrual_without_employee(policy, dias_periodo, dias_esperados)
 
         # Determine worked days inside payroll period (respecting hire/termination dates).
         alta = empleado.fecha_alta
@@ -648,6 +636,24 @@ class VacationService:
         # Prorate using policy frequency cycle (e.g., monthly policy on biweekly payroll => 15/30).
         dias_prorrata = min(dias_trabajados, dias_esperados)
         return self._quantize_amount(policy.accrual_rate * Decimal(dias_prorrata) / Decimal(dias_esperados))
+
+    @staticmethod
+    def _expected_period_days(policy: VacationPolicy, config) -> int:
+        """Return configured days for a vacation accrual frequency."""
+        configured_days = {
+            AccrualFrequency.MONTHLY: config.dias_mes_vacaciones,
+            AccrualFrequency.BIWEEKLY: config.dias_quincena,
+            AccrualFrequency.ANNUAL: config.dias_anio_vacaciones,
+        }
+        return configured_days.get(policy.accrual_frequency, config.dias_mes_vacaciones)
+
+    def _periodic_accrual_without_employee(
+        self, policy: VacationPolicy, dias_periodo: int, dias_esperados: int
+    ) -> Decimal:
+        """Calculate periodic accrual when no employee dates are available."""
+        if not policy.prorate_by_period_days or dias_periodo == dias_esperados:
+            return self._quantize_amount(policy.accrual_rate)
+        return self._quantize_amount(policy.accrual_rate * Decimal(dias_periodo) / Decimal(dias_esperados))
 
     def _calcular_acumulacion_proporcional(self, policy: VacationPolicy | Empleado, *legacy_context) -> Decimal:
         """Calculate proportional accrual (based on worked days/hours).
