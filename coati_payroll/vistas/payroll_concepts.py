@@ -96,11 +96,11 @@ def get_concept_config(concept_type: str) -> dict:
 def list_concepts(concept_type: str):
     """Generic list view for payroll concepts."""
     config = get_concept_config(concept_type)
-    Model = config["model"]
+    model_class = config["model"]
 
     page = request.args.get("page", 1, type=int)
     pagination = db.paginate(
-        db.select(Model).order_by(Model.codigo),
+        db.select(model_class).order_by(model_class.codigo),
         page=page,
         per_page=PER_PAGE,
         error_out=False,
@@ -116,13 +116,13 @@ def list_concepts(concept_type: str):
 def create_concept(concept_type: str):
     """Generic create view for payroll concepts."""
     config = get_concept_config(concept_type)
-    Model = config["model"]
-    Form = config["form"]
+    model_class = config["model"]
+    form_class = config["form"]
 
-    form = Form()
+    form = form_class()
 
     if form.validate_on_submit():
-        concept = Model()
+        concept = model_class()
         populate_concept_from_form(concept, form)
         concept.creado_por = current_user.usuario
 
@@ -156,10 +156,10 @@ def create_concept(concept_type: str):
 def edit_concept(concept_type: str, concept_id: str):
     """Generic edit view for payroll concepts."""
     config = get_concept_config(concept_type)
-    Model = config["model"]
-    Form = config["form"]
+    model_class = config["model"]
+    form_class = config["form"]
 
-    concept = db.session.get(Model, concept_id)
+    concept = db.session.get(model_class, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -180,7 +180,7 @@ def edit_concept(concept_type: str, concept_id: str):
         "activo": concept.activo,
     }
 
-    form = Form(obj=concept)
+    form = form_class(obj=concept)
     if request.method == "GET" and hasattr(form, "formula_tipo"):
         normalized_formula_type = FormulaType.normalize(getattr(concept, "formula_tipo", None))
         if normalized_formula_type:
@@ -235,9 +235,9 @@ def edit_concept(concept_type: str, concept_id: str):
 def delete_concept(concept_type: str, concept_id: str):
     """Generic delete view for payroll concepts."""
     config = get_concept_config(concept_type)
-    Model = config["model"]
+    model_class = config["model"]
 
-    concept = db.session.get(Model, concept_id)
+    concept = db.session.get(model_class, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -464,9 +464,9 @@ def approve_concept_route(concept_type: str, concept_id: str):
         return redirect(url_for(f"{concept_type}.{concept_type}_index"))
 
     config = get_concept_config(concept_type)
-    Model = config["model"]
+    model_class = config["model"]
 
-    concept = db.session.get(Model, concept_id)
+    concept = db.session.get(model_class, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -489,9 +489,9 @@ def reject_concept_route(concept_type: str, concept_id: str):
         return redirect(url_for(f"{concept_type}.{concept_type}_index"))
 
     config = get_concept_config(concept_type)
-    Model = config["model"]
+    model_class = config["model"]
 
-    concept = db.session.get(Model, concept_id)
+    concept = db.session.get(model_class, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -510,9 +510,9 @@ def reject_concept_route(concept_type: str, concept_id: str):
 def view_audit_log_route(concept_type: str, concept_id: str):
     """View audit log for a specific concept."""
     config = get_concept_config(concept_type)
-    Model = config["model"]
+    model_class = config["model"]
 
-    concept = db.session.get(Model, concept_id)
+    concept = db.session.get(model_class, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))

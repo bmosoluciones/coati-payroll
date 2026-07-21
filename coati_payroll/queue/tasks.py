@@ -43,6 +43,8 @@ from coati_payroll.nomina_engine.validators import NominaEngineError, Validation
 from coati_payroll.queue import get_queue_driver
 from coati_payroll.schema_validator import ValidationError as SchemaValidationError
 
+NOMINA_NOT_FOUND = "Nomina not found"
+
 # Error messages
 ERROR_PLANILLA_NOT_FOUND = "Planilla not found"
 ERROR_NO_ACTIVE_EMPLOYEES = "No active employees found"
@@ -249,7 +251,7 @@ def retry_failed_nomina(nomina_id: str, usuario: str | None = None) -> dict[str,
         if not nomina:
             return {
                 "success": False,
-                "error": "Nomina not found",
+                "error": NOMINA_NOT_FOUND,
             }
 
         if nomina.estado == NominaEstado.GENERADO_CON_ERRORES:
@@ -589,7 +591,7 @@ def generate_audit_voucher(
 
         nomina = db.session.get(NominaModel, nomina_id)
         if not nomina:
-            return {"success": False, "error": "Nomina not found"}
+            return {"success": False, "error": NOMINA_NOT_FOUND}
 
         planilla = db.session.get(Planilla, planilla_id)
         if not planilla:
@@ -664,7 +666,7 @@ def process_large_payroll(
             log.error("Nomina %s not found", nomina_id)
             return {
                 "success": False,
-                "error": "Nomina not found",
+                "error": NOMINA_NOT_FOUND,
             }
 
         if nomina.estado != NominaEstado.CALCULANDO:

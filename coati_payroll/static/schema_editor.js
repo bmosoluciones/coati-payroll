@@ -495,7 +495,7 @@ function collectSchemaFromEditor() {
         const selectEl = item.querySelector('.input-source-select');
         const customEl = item.querySelector('.input-source-custom');
         let source = '';
-        if (selectEl && selectEl.value && selectEl.value !== '__custom__' && selectEl.value !== '') {
+        if (selectEl?.value && selectEl.value !== '__custom__' && selectEl.value !== '') {
             source = selectEl.value;
         } else if (customEl) {
             source = customEl.value;
@@ -623,8 +623,8 @@ function formatJson() {
     try {
         const json = JSON.parse(textarea.value);
         textarea.value = JSON.stringify(json, null, 2);
-    } catch (e) {
-        alert('Invalid JSON');
+    } catch (error) {
+        alert('Invalid JSON: ' + error.message);
     }
 }
 
@@ -802,16 +802,16 @@ async function validateJsonSchema(jsonData) {
 
         // Validate step-specific fields
         if (step.type === 'calculation' && !step.formula) {
-                return { valid: false, error: `Calculation step '${step.name}' must have a 'formula' field` };
+            return { valid: false, error: `Calculation step '${step.name}' must have a 'formula' field` };
         }
         if (step.type === 'conditional' && !step.condition) {
-                return { valid: false, error: `Conditional step '${step.name}' must have a 'condition' field` };
+            return { valid: false, error: `Conditional step '${step.name}' must have a 'condition' field` };
         }
         if (step.type === 'tax_lookup' && (!step.table || !step.input)) {
-                return { valid: false, error: `Tax lookup step '${step.name}' must have 'table' and 'input' fields` };
+            return { valid: false, error: `Tax lookup step '${step.name}' must have 'table' and 'input' fields` };
         }
         if (step.type === 'assignment' && step.value === undefined) {
-                return { valid: false, error: `Assignment step '${step.name}' must have a 'value' field` };
+            return { valid: false, error: `Assignment step '${step.name}' must have a 'value' field` };
         }
     }
 

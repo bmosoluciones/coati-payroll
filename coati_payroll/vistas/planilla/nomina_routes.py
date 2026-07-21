@@ -34,6 +34,8 @@ from coati_payroll.i18n import _
 from coati_payroll.nomina_engine.processors.accounting_processor import AccountingProcessor
 from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vistas.planilla import planilla_bp
+
+VACATION_APPLICATION_TEMPLATE = "modules/planilla/aplicar_vacaciones.html"
 from coati_payroll.vistas.planilla.services import NominaService, NovedadService, NominaComparisonService
 from coati_payroll.queue.tasks import retry_failed_nomina
 from coati_payroll.vacation_service import VacationService
@@ -293,12 +295,10 @@ def aplicar_vacaciones_nomina(planilla_id: str, nomina_id: str):
     vacaciones_pendientes = _obtener_vacaciones_aprobadas_pendientes(planilla, nomina)
 
     if request.method == "POST":
-        return _process_vacation_application(
-            planilla, nomina, vacaciones_pendientes, percepciones, deducciones
-        )
+        return _process_vacation_application(planilla, nomina, vacaciones_pendientes, percepciones, deducciones)
 
     return render_template(
-        "modules/planilla/aplicar_vacaciones.html",
+        VACATION_APPLICATION_TEMPLATE,
         planilla=planilla,
         nomina=nomina,
         vacaciones=vacaciones_pendientes,
@@ -318,23 +318,26 @@ def _process_vacation_application(planilla, nomina, vacaciones_pendientes, perce
     deduccion_id = request.form.get("deduccion_id") if tipo_concepto == "deduction" else None
 
     template_ctx = {
-        "planilla": planilla, "nomina": nomina, "vacaciones": vacaciones_pendientes,
-        "percepciones": percepciones, "deducciones": deducciones,
-        "tipo_concepto": tipo_concepto, "percepcion_id": percepcion_id, "deduccion_id": deduccion_id,
+        "planilla": planilla,
+        "nomina": nomina,
+        "vacaciones": vacaciones_pendientes,
+        "percepciones": percepciones,
+        "deducciones": deducciones,
+        "tipo_concepto": tipo_concepto,
+        "percepcion_id": percepcion_id,
+        "deduccion_id": deduccion_id,
     }
 
     if not seleccionadas:
         flash(_("Debe seleccionar al menos una solicitud de vacaciones."), "warning")
-        return render_template("modules/planilla/aplicar_vacaciones.html", **template_ctx)
+        return render_template(VACATION_APPLICATION_TEMPLATE, **template_ctx)
 
     concepto = _resolve_vacation_concept(tipo_concepto, percepcion_id, deduccion_id)
     if not concepto:
         flash(_("Debe seleccionar un concepto válido para aplicar las vacaciones."), "danger")
-        return render_template("modules/planilla/aplicar_vacaciones.html", **template_ctx)
+        return render_template(VACATION_APPLICATION_TEMPLATE, **template_ctx)
 
-    applied_count = _apply_vacation_novelties(
-        seleccionadas, nomina, concepto.codigo, percepcion_id, deduccion_id
-    )
+    applied_count = _apply_vacation_novelties(seleccionadas, nomina, concepto.codigo, percepcion_id, deduccion_id)
 
     if applied_count:
         db.session.commit()
@@ -373,25 +376,36 @@ def _apply_vacation_novelties(seleccionadas, nomina, codigo_concepto, percepcion
         tipo_valor = "horas" if is_hours else "dias"
         fecha_novedad = max(vacation.start_date, nomina.periodo_inicio)
         es_inasistencia, descontar_pago_inasistencia = NovedadService.resolve_absence_flags(
-            percepcion_id=percepcion_id, deduccion_id=deduccion_id,
+            percepcion_id=percepcion_id,
+            deduccion_id=deduccion_id,
         )
 
         nomina_novedad = NominaNovedad(
-            nomina_id=nomina.id, empleado_id=vacation.empleado_id,
-            tipo_valor=tipo_valor, codigo_concepto=codigo_concepto,
-            valor_cantidad=vacation.units, fecha_novedad=fecha_novedad,
-            percepcion_id=percepcion_id, deduccion_id=deduccion_id,
-            es_inasistencia=es_inasistencia, descontar_pago_inasistencia=descontar_pago_inasistencia,
-            es_descanso_vacaciones=True, vacation_novelty_id=vacation.id,
-            fecha_inicio_descanso=vacation.start_date, fecha_fin_descanso=vacation.end_date,
-            estado=NovedadEstado.PENDIENTE, creado_por=current_user.usuario,
+            nomina_id=nomina.id,
+            empleado_id=vacation.empleado_id,
+            tipo_valor=tipo_valor,
+            codigo_concepto=codigo_concepto,
+            valor_cantidad=vacation.units,
+            fecha_novedad=fecha_novedad,
+            percepcion_id=percepcion_id,
+            deduccion_id=deduccion_id,
+            es_inasistencia=es_inasistencia,
+            descontar_pago_inasistencia=descontar_pago_inasistencia,
+            es_descanso_vacaciones=True,
+            vacation_novelty_id=vacation.id,
+            fecha_inicio_descanso=vacation.start_date,
+            fecha_fin_descanso=vacation.end_date,
+            estado=NovedadEstado.PENDIENTE,
+            creado_por=current_user.usuario,
         )
         db.session.add(nomina_novedad)
         db.session.flush()
 
         bridge = VacationNominaNovedad(
-            vacation_novelty_id=vacation.id, nomina_id=nomina.id,
-            nomina_novedad_id=nomina_novedad.id, aplicado_por=current_user.usuario,
+            vacation_novelty_id=vacation.id,
+            nomina_id=nomina.id,
+            nomina_novedad_id=nomina_novedad.id,
+            aplicado_por=current_user.usuario,
         )
         db.session.add(bridge)
 
@@ -867,13 +881,14 @@ def aplicar_nomina(planilla_id: str, nomina_id: str):
         # Actualizar novedades que corresponden a este período o nómina
         if empleado_ids:
             from sqlalchemy import or_, and_
+
             condition = or_(
                 NominaNovedad.nomina_id == nomina.id,
                 and_(
                     NominaNovedad.nomina_id.is_(None),
                     NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
                     NominaNovedad.fecha_novedad <= nomina.periodo_fin,
-                )
+                ),
             )
             novedades = cast(
                 list[NominaNovedad],
