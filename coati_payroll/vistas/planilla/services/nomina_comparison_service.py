@@ -308,64 +308,9 @@ class NominaComparisonService:
             "empleados_variacion_negativa": 0,
         }
         for empleado_id in comunes:
-            base_item = base_by_emp[empleado_id]
-            actual_item = actual_by_emp[empleado_id]
-            base_sueldo = cls._to_decimal(base_item.sueldo_base_historico)
-            actual_sueldo = cls._to_decimal(actual_item.sueldo_base_historico)
-            if base_sueldo != actual_sueldo:
-                analysis["salarios_cambiados"].append(
-                    {
-                        "empleado_id": empleado_id,
-                        "empleado_codigo": actual_item.empleado.codigo_empleado,
-                        "nombre": cls._employee_name(actual_item),
-                        "sueldo_base_anterior": cls._money(base_sueldo),
-                        "sueldo_base_actual": cls._money(actual_sueldo),
-                        "variacion": cls._money(actual_sueldo - base_sueldo),
-                        "variacion_pct": cls._percent(cls._pct_delta(actual_sueldo, base_sueldo)),
-                    }
-                )
-            base_bruto = cls._to_decimal(base_item.salario_bruto)
-            actual_bruto = cls._to_decimal(actual_item.salario_bruto)
-            base_neto = cls._to_decimal(base_item.salario_neto)
-            actual_neto = cls._to_decimal(actual_item.salario_neto)
-            if base_bruto == actual_bruto and base_neto == actual_neto:
-                analysis["sin_cambios"].append(
-                    {
-                        "empleado_id": empleado_id,
-                        "empleado_codigo": actual_item.empleado.codigo_empleado,
-                        "nombre": cls._employee_name(actual_item),
-                    }
-                )
-            delta_neto = actual_neto - base_neto
-            delta_pct = cls._pct_delta(actual_neto, base_neto)
-            analysis["variaciones_neto_detalle"].append(
-                {
-                    "empleado_id": empleado_id,
-                    "delta_neto": delta_neto,
-                    "delta_neto_abs": abs(delta_neto),
-                    "delta_pct": delta_pct,
-                }
+            cls._append_employee_change(
+                analysis, empleado_id, base_by_emp[empleado_id], actual_by_emp[empleado_id], drivers_empleado
             )
-            if delta_neto > Decimal("0"):
-                analysis["empleados_variacion_positiva"] += 1
-            elif delta_neto < Decimal("0"):
-                analysis["empleados_variacion_negativa"] += 1
-            if abs(delta_neto) >= cls.OUTLIER_DELTA_ABS or (
-                delta_pct is not None and abs(delta_pct) >= cls.OUTLIER_DELTA_PCT
-            ):
-                analysis["outliers_neto"].append(
-                    {
-                        "empleado_id": empleado_id,
-                        "empleado_codigo": actual_item.empleado.codigo_empleado,
-                        "nombre": cls._employee_name(actual_item),
-                        "neto_base": cls._money(base_neto),
-                        "neto_actual": cls._money(actual_neto),
-                        "variacion_neto": cls._money(delta_neto),
-                        "variacion_neto_pct": cls._percent(delta_pct),
-                        "driver": cls._driver_principal(empleado_id, drivers_empleado),
-                        "severidad": "alta" if abs(delta_neto) >= (cls.OUTLIER_DELTA_ABS * 2) else "media",
-                    }
-                )
         for item in empleados_actual:
             salario_neto = cls._to_decimal(item.salario_neto)
             if salario_neto == Decimal("0"):
@@ -386,6 +331,65 @@ class NominaComparisonService:
                     }
                 )
         return analysis
+
+    @classmethod
+    def _append_employee_change(cls, analysis, empleado_id, base_item, actual_item, drivers_empleado) -> None:
+        """Append salary and net-pay findings for one common employee."""
+        base_sueldo = cls._to_decimal(base_item.sueldo_base_historico)
+        actual_sueldo = cls._to_decimal(actual_item.sueldo_base_historico)
+        empleado_codigo = actual_item.empleado.codigo_empleado
+        nombre = cls._employee_name(actual_item)
+        if base_sueldo != actual_sueldo:
+            analysis["salarios_cambiados"].append(
+                {
+                    "empleado_id": empleado_id,
+                    "empleado_codigo": empleado_codigo,
+                    "nombre": nombre,
+                    "sueldo_base_anterior": cls._money(base_sueldo),
+                    "sueldo_base_actual": cls._money(actual_sueldo),
+                    "variacion": cls._money(actual_sueldo - base_sueldo),
+                    "variacion_pct": cls._percent(cls._pct_delta(actual_sueldo, base_sueldo)),
+                }
+            )
+
+        base_bruto = cls._to_decimal(base_item.salario_bruto)
+        actual_bruto = cls._to_decimal(actual_item.salario_bruto)
+        base_neto = cls._to_decimal(base_item.salario_neto)
+        actual_neto = cls._to_decimal(actual_item.salario_neto)
+        if base_bruto == actual_bruto and base_neto == actual_neto:
+            analysis["sin_cambios"].append(
+                {"empleado_id": empleado_id, "empleado_codigo": empleado_codigo, "nombre": nombre}
+            )
+
+        delta_neto = actual_neto - base_neto
+        delta_pct = cls._pct_delta(actual_neto, base_neto)
+        analysis["variaciones_neto_detalle"].append(
+            {
+                "empleado_id": empleado_id,
+                "delta_neto": delta_neto,
+                "delta_neto_abs": abs(delta_neto),
+                "delta_pct": delta_pct,
+            }
+        )
+        if delta_neto > Decimal("0"):
+            analysis["empleados_variacion_positiva"] += 1
+        elif delta_neto < Decimal("0"):
+            analysis["empleados_variacion_negativa"] += 1
+        if abs(delta_neto) < cls.OUTLIER_DELTA_ABS and (delta_pct is None or abs(delta_pct) < cls.OUTLIER_DELTA_PCT):
+            return
+        analysis["outliers_neto"].append(
+            {
+                "empleado_id": empleado_id,
+                "empleado_codigo": empleado_codigo,
+                "nombre": nombre,
+                "neto_base": cls._money(base_neto),
+                "neto_actual": cls._money(actual_neto),
+                "variacion_neto": cls._money(delta_neto),
+                "variacion_neto_pct": cls._percent(delta_pct),
+                "driver": cls._driver_principal(empleado_id, drivers_empleado),
+                "severidad": "alta" if abs(delta_neto) >= (cls.OUTLIER_DELTA_ABS * 2) else "media",
+            }
+        )
 
     @classmethod
     def _resumen_totales(
