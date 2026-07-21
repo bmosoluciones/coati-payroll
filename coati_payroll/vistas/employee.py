@@ -15,7 +15,7 @@ from coati_payroll.forms import EmployeeForm
 from coati_payroll.i18n import _
 from coati_payroll.model import CampoPersonalizado, Empleado, Moneda, db
 from coati_payroll.rbac import require_read_access, require_write_access
-from coati_payroll.vistas.constants import PER_PAGE
+from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO, PER_PAGE
 
 employee_bp = Blueprint("employee", __name__, url_prefix="/employee")
 
@@ -260,7 +260,7 @@ def edit(id_: str):
     """Edit an existing employee. Admin and HR can edit employees."""
     employee = db.session.get(Empleado, id_)
     if not employee:
-        flash(_("Empleado no encontrado."), "error")
+        flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "error")
         return redirect(url_for("employee.index"))
 
     form = EmployeeForm(obj=employee)
@@ -347,7 +347,7 @@ def delete(id_: str):
     """Delete an employee. Admin and HR can delete employees."""
     employee = db.session.get(Empleado, id_)
     if not employee:
-        flash(_("Empleado no encontrado."), "error")
+        flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "error")
         return redirect(url_for("employee.index"))
 
     db.session.delete(employee)

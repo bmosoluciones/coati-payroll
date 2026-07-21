@@ -28,6 +28,13 @@ from coati_payroll.model import (
     NominaNovedad,
 )
 from ..utils.rounding import round_money
+from ..constants import (
+    CONCEPTO_SALARIO_BASE,
+    CONCEPTO_SALARIO_BASE_DESC,
+    CONCEPTO_VACACIONES_PAGADAS,
+    CONCEPTO_VACACIONES_PAGADAS_DESC,
+    CONCEPTO_PRESTAMO_ADELANTO,
+)
 
 
 class AccountingVoucherService:
@@ -273,9 +280,9 @@ class AccountingVoucherService:
                 debito=monto,
                 credito=Decimal("0.00"),
                 monto_calculado=monto,
-                concepto="Vacaciones pagadas",
+                concepto=CONCEPTO_VACACIONES_PAGADAS_DESC,
                 tipo_concepto="vacation_liability",
-                concepto_codigo="VAC_PAID_LIAB",
+                concepto_codigo=CONCEPTO_VACACIONES_PAGADAS,
                 orden=orden,
             )
             self.session.add(linea_debe)
@@ -297,9 +304,9 @@ class AccountingVoucherService:
                 debito=Decimal("0.00"),
                 credito=monto,
                 monto_calculado=monto,
-                concepto="Vacaciones pagadas",
+                concepto=CONCEPTO_VACACIONES_PAGADAS_DESC,
                 tipo_concepto="vacation_liability",
-                concepto_codigo="VAC_PAID_LIAB",
+                concepto_codigo=CONCEPTO_VACACIONES_PAGADAS,
                 orden=orden,
             )
             self.session.add(linea_haber)
@@ -430,9 +437,9 @@ class AccountingVoucherService:
                 debito=salario_base,
                 credito=Decimal("0.00"),
                 monto_calculado=salario_base,
-                concepto="Salario Base",
+                concepto=CONCEPTO_SALARIO_BASE_DESC,
                 tipo_concepto="salario_base",
-                concepto_codigo="SALARIO_BASE",
+                concepto_codigo=CONCEPTO_SALARIO_BASE,
                 orden=orden,
             )
             self.session.add(linea_debe)
@@ -456,9 +463,9 @@ class AccountingVoucherService:
                 debito=Decimal("0.00"),
                 credito=salario_base,
                 monto_calculado=salario_base,
-                concepto="Salario Base",
+                concepto=CONCEPTO_SALARIO_BASE_DESC,
                 tipo_concepto="salario_base",
-                concepto_codigo="SALARIO_BASE",
+                concepto_codigo=CONCEPTO_SALARIO_BASE,
                 orden=orden,
             )
             self.session.add(linea_haber)
@@ -524,7 +531,7 @@ class AccountingVoucherService:
                         debito=detalle_monto,
                         credito=Decimal("0.00"),
                         monto_calculado=detalle_monto,
-                        concepto=detalle.descripcion or "Préstamo/Adelanto",
+                        concepto=detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
                         tipo_concepto="loan",
                         concepto_codigo=detalle.codigo,
                         orden=orden,
@@ -549,7 +556,7 @@ class AccountingVoucherService:
                         debito=Decimal("0.00"),
                         credito=detalle_monto,
                         monto_calculado=detalle_monto,
-                        concepto=detalle.descripcion or "Préstamo/Adelanto",
+                        concepto=detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
                         tipo_concepto="loan",
                         concepto_codigo=detalle.codigo,
                         orden=orden,

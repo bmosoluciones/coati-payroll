@@ -16,6 +16,7 @@ from coati_payroll.vistas.planilla.helpers import (
     get_nomina_counts_by_planilla,
 )
 from coati_payroll.vistas.planilla.services import PlanillaService
+from coati_payroll.vistas.constants import TEMPLATE_PLANILLA_FORM
 
 # Import blueprint from __init__.py
 from coati_payroll.vistas.planilla import planilla_bp
@@ -104,10 +105,10 @@ def new():
             policy = db.session.get(VacationPolicy, vacation_policy_id)
             if not policy:
                 flash(_("La regla de vacaciones seleccionada no existe."), "danger")
-                return render_template("modules/planilla/form.html", form=form, is_edit=False)
+                return render_template(TEMPLATE_PLANILLA_FORM, form=form, is_edit=False)
             if policy.empresa_id and policy.empresa_id != (form.empresa_id.data or None):
                 flash(_("La regla de vacaciones pertenece a otra empresa."), "danger")
-                return render_template("modules/planilla/form.html", form=form, is_edit=False)
+                return render_template(TEMPLATE_PLANILLA_FORM, form=form, is_edit=False)
 
         planilla = Planilla(
             nombre=form.nombre.data,
@@ -135,7 +136,7 @@ def new():
         flash(_("Planilla creada exitosamente."), "success")
         return redirect(url_for("planilla.edit", planilla_id=planilla.id))
 
-    return render_template("modules/planilla/form.html", form=form, is_edit=False)
+    return render_template(TEMPLATE_PLANILLA_FORM, form=form, is_edit=False)
 
 
 @planilla_bp.route("/<planilla_id>/edit", methods=["GET", "POST"])
@@ -154,13 +155,13 @@ def edit(planilla_id: str):
                 flash(_("La regla de vacaciones seleccionada no existe."), "danger")
                 counts = get_planilla_component_counts(planilla_id)
                 return render_template(
-                    "modules/planilla/form.html", form=form, planilla=planilla, is_edit=True, **counts
+                    TEMPLATE_PLANILLA_FORM, form=form, planilla=planilla, is_edit=True, **counts
                 )
             if policy.empresa_id and policy.empresa_id != (form.empresa_id.data or None):
                 flash(_("La regla de vacaciones pertenece a otra empresa."), "danger")
                 counts = get_planilla_component_counts(planilla_id)
                 return render_template(
-                    "modules/planilla/form.html", form=form, planilla=planilla, is_edit=True, **counts
+                    TEMPLATE_PLANILLA_FORM, form=form, planilla=planilla, is_edit=True, **counts
                 )
 
         planilla.nombre = form.nombre.data
@@ -190,7 +191,7 @@ def edit(planilla_id: str):
     counts = get_planilla_component_counts(planilla_id)
 
     return render_template(
-        "modules/planilla/form.html",
+        TEMPLATE_PLANILLA_FORM,
         form=form,
         planilla=planilla,
         is_edit=True,

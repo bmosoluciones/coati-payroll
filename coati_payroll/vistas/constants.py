@@ -4,3 +4,9 @@
 
 # Number of items per page for pagination
 PER_PAGE = 10
+
+# Common flash messages
+MSG_EMPLEADO_NO_ENCONTRADO = "Empleado no encontrado."
+
+# Template paths
+TEMPLATE_PLANILLA_FORM = "modules/planilla/form.html"

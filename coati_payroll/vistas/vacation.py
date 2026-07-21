@@ -28,6 +28,7 @@ from coati_payroll.model import (
     Empresa,
 )
 from coati_payroll.rbac import require_role, require_read_access, require_write_access
+from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
 
 vacation_bp = Blueprint("vacation", __name__, url_prefix="/vacation")
 
@@ -550,7 +551,7 @@ def register_vacation_taken():
         empleado = db.session.get(Empleado, empleado_id)
 
         if not empleado:
-            flash(_("Empleado no encontrado."), "danger")
+            flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "danger")
             return render_template(
                 "modules/vacation/register_taken_form.html",
                 form=form,
@@ -794,7 +795,7 @@ def initial_balance_form():
         # Get employee and their vacation account
         empleado = db.session.get(Empleado, empleado_id)
         if not empleado:
-            flash(_("Empleado no encontrado."), "danger")
+            flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "danger")
             return redirect(url_for("vacation.initial_balance_form"))
 
         # Check if employee has an active vacation account

@@ -18,6 +18,7 @@ from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.liquidacion_engine import ejecutar_liquidacion, recalcular_liquidacion
 from coati_payroll.vistas.planilla.helpers import check_openpyxl_available
 from coati_payroll.vistas.planilla.services import ExportService
+from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
 
 liquidacion_bp = Blueprint("liquidacion", __name__, url_prefix="/liquidaciones")
 
@@ -176,7 +177,7 @@ def aplicar(liquidacion_id: str):
 
     empleado = db.session.get(Empleado, liquidacion.empleado_id)
     if not empleado:
-        flash(_("Empleado no encontrado."), "error")
+        flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "error")
         return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
 
     # Mark employee inactive
