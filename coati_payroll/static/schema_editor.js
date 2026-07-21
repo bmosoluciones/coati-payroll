@@ -770,6 +770,37 @@ async function loadJsonFile(event) {
     }
 }
 
+function validateStep(step, index) {
+    if (!step.name) {
+        return { valid: false, error: `Step ${index + 1} must have a 'name' field` };
+    }
+    if (!step.type) {
+        return { valid: false, error: `Step ${index + 1} must have a 'type' field` };
+    }
+
+    const validTypes = ['calculation', 'conditional', 'tax_lookup', 'assignment'];
+    if (!validTypes.includes(step.type)) {
+        return {
+            valid: false,
+            error: `Step ${index + 1} has an invalid type: '${step.type}'. Allowed types: ${validTypes.join(', ')}`
+        };
+    }
+
+    const requiredFields = {
+        calculation: ['formula'],
+        conditional: ['condition'],
+        tax_lookup: ['table', 'input'],
+        assignment: ['value']
+    };
+    const missingField = requiredFields[step.type].find(
+        field => step[field] === undefined || step[field] === '' || step[field] === null
+    );
+    if (missingField) {
+        return { valid: false, error: `Step '${step.name}' must have a '${missingField}' field` };
+    }
+    return null;
+}
+
 async function validateJsonSchema(jsonData) {
     // Basic structure validation
     if (!jsonData || typeof jsonData !== 'object') {
@@ -782,36 +813,10 @@ async function validateJsonSchema(jsonData) {
     }
 
     // Validate steps structure
-    for (let i = 0; i < jsonData.steps.length; i++) {
-        const step = jsonData.steps[i];
-        if (!step.name) {
-            return { valid: false, error: `Step ${i + 1} must have a 'name' field` };
-        }
-        if (!step.type) {
-            return { valid: false, error: `Step ${i + 1} must have a 'type' field` };
-        }
-
-        // Validate step type
-        const validTypes = ['calculation', 'conditional', 'tax_lookup', 'assignment'];
-        if (!validTypes.includes(step.type)) {
-            return {
-                valid: false,
-                error: `Step ${i + 1} has an invalid type: '${step.type}'. Allowed types: ${validTypes.join(', ')}`
-            };
-        }
-
-        // Validate step-specific fields
-        if (step.type === 'calculation' && !step.formula) {
-            return { valid: false, error: `Calculation step '${step.name}' must have a 'formula' field` };
-        }
-        if (step.type === 'conditional' && !step.condition) {
-            return { valid: false, error: `Conditional step '${step.name}' must have a 'condition' field` };
-        }
-        if (step.type === 'tax_lookup' && (!step.table || !step.input)) {
-            return { valid: false, error: `Tax lookup step '${step.name}' must have 'table' and 'input' fields` };
-        }
-        if (step.type === 'assignment' && step.value === undefined) {
-            return { valid: false, error: `Assignment step '${step.name}' must have a 'value' field` };
+    for (const [index, step] of jsonData.steps.entries()) {
+        const validationError = validateStep(step, index);
+        if (validationError) {
+            return validationError;
         }
     }
 
