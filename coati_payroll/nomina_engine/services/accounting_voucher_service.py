@@ -232,9 +232,7 @@ class AccountingVoucherService:
         if not deduccion:
             return False, None
         adelantos = (
-            self.session.execute(
-                db.select(Adelanto).filter_by(empleado_id=empleado.id, deduccion_id=deduccion.id)
-            )
+            self.session.execute(db.select(Adelanto).filter_by(empleado_id=empleado.id, deduccion_id=deduccion.id))
             .scalars()
             .all()
         )
@@ -248,25 +246,46 @@ class AccountingVoucherService:
         return True, cuenta_control_prestamo
 
     def _build_loan_advance_lines(
-        self, comprobante, ne, empleado, empleado_nombre, centro_costos,
-        detalle, cuenta_control_prestamo, planilla, planilla_moneda,
-        orden, null_account_count, total_debitos, total_creditos,
+        self,
+        comprobante,
+        ne,
+        empleado,
+        empleado_nombre,
+        centro_costos,
+        detalle,
+        cuenta_control_prestamo,
+        planilla,
+        planilla_moneda,
+        orden,
+        null_account_count,
+        total_debitos,
+        total_creditos,
     ):
         """Build debit/credit lines for a loan/advance detail."""
-        detalle_monto = round_money(detalle.monto, planilla_moneda)
+        detalle_monto = round_money(detalle.monto)
 
         # Debit: Salary Payable
         orden += 1
         if planilla.codigo_cuenta_haber_salario is None:
             null_account_count += 1
         linea_debe = self._create_line(
-            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
+            comprobante.id,
+            ne,
+            empleado,
+            empleado_nombre,
+            centro_costos,
             planilla.codigo_cuenta_haber_salario,
             (
-                planilla.descripcion_cuenta_haber_salario or "Salario por Pagar"
-            ) if planilla.codigo_cuenta_haber_salario else None,
-            "debito", detalle_monto, detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
-            "loan", detalle.codigo, orden,
+                (planilla.descripcion_cuenta_haber_salario or "Salario por Pagar")
+                if planilla.codigo_cuenta_haber_salario
+                else None
+            ),
+            "debito",
+            detalle_monto,
+            detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
+            "loan",
+            detalle.codigo,
+            orden,
         )
         self.session.add(linea_debe)
         total_debitos += detalle_monto
@@ -276,10 +295,19 @@ class AccountingVoucherService:
         if cuenta_control_prestamo is None:
             null_account_count += 1
         linea_haber = self._create_line(
-            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
+            comprobante.id,
+            ne,
+            empleado,
+            empleado_nombre,
+            centro_costos,
             cuenta_control_prestamo,
             "Cuenta de Control Préstamos/Adelantos" if cuenta_control_prestamo else None,
-            "credito", detalle_monto, detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO, "loan", detalle.codigo, orden,
+            "credito",
+            detalle_monto,
+            detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
+            "loan",
+            detalle.codigo,
+            orden,
         )
         self.session.add(linea_haber)
         total_creditos += detalle_monto
@@ -287,8 +315,18 @@ class AccountingVoucherService:
         return orden, null_account_count, total_debitos, total_creditos
 
     def _build_concept_lines(
-        self, comprobante, ne, empleado, empleado_nombre, centro_costos,
-        detalle, planilla_moneda, orden, null_account_count, total_debitos, total_creditos,
+        self,
+        comprobante,
+        ne,
+        empleado,
+        empleado_nombre,
+        centro_costos,
+        detalle,
+        planilla_moneda,
+        orden,
+        null_account_count,
+        total_debitos,
+        total_creditos,
     ):
         """Build debit/credit lines for income, deduction, or benefit details."""
         entity = None
@@ -318,16 +356,26 @@ class AccountingVoucherService:
         else:
             debe_codigo, haber_codigo, debe_desc, haber_desc = self._resolve_contabilizable_accounts(entity, invertir)
 
-        detalle_monto = round_money(detalle.monto, planilla_moneda)
+        detalle_monto = round_money(detalle.monto)
 
         # Debit line
         orden += 1
         if debe_codigo is None:
             null_account_count += 1
         linea_debe = self._create_line(
-            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
-            debe_codigo, debe_desc if debe_codigo else None,
-            "debito", detalle_monto, detalle.descripcion or entity.nombre, tipo_concepto, entity.codigo, orden,
+            comprobante.id,
+            ne,
+            empleado,
+            empleado_nombre,
+            centro_costos,
+            debe_codigo,
+            debe_desc if debe_codigo else None,
+            "debito",
+            detalle_monto,
+            detalle.descripcion or entity.nombre,
+            tipo_concepto,
+            entity.codigo,
+            orden,
         )
         self.session.add(linea_debe)
         total_debitos += detalle_monto
@@ -337,9 +385,19 @@ class AccountingVoucherService:
         if haber_codigo is None:
             null_account_count += 1
         linea_haber = self._create_line(
-            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
-            haber_codigo, haber_desc if haber_codigo else None,
-            "credito", detalle_monto, detalle.descripcion or entity.nombre, tipo_concepto, entity.codigo, orden,
+            comprobante.id,
+            ne,
+            empleado,
+            empleado_nombre,
+            centro_costos,
+            haber_codigo,
+            haber_desc if haber_codigo else None,
+            "credito",
+            detalle_monto,
+            detalle.descripcion or entity.nombre,
+            tipo_concepto,
+            entity.codigo,
+            orden,
         )
         self.session.add(linea_haber)
         total_creditos += detalle_monto
@@ -426,7 +484,7 @@ class AccountingVoucherService:
             tipo_cambio = Decimal(str(ne.tipo_cambio_aplicado or Decimal("1.00")))
             salario_base = salario_mensual * tipo_cambio
             porcentaje_pago = Decimal(str(policy.porcentaje_pago_vacaciones or Decimal("100.00"))) / Decimal("100")
-            monto = round_money((salario_base / dias_base) * units * porcentaje_pago, planilla_moneda)
+            monto = round_money((salario_base / dias_base) * units * porcentaje_pago)
             if monto <= 0:
                 continue
 
@@ -591,21 +649,29 @@ class AccountingVoucherService:
             empleado_nombre_completo = f"{empleado.primer_nombre} {empleado.primer_apellido}"
 
             # 1. Base Salary Accounting
-            salario_base = round_money(ne.sueldo_base_historico, planilla_moneda)
+            salario_base = round_money(ne.sueldo_base_historico)
 
             # Debit: Salary Expense
             orden += 1
             if planilla.codigo_cuenta_debe_salario is None:
                 null_account_count += 1
             linea_debe = self._create_line(
-                comprobante.id, ne, empleado, empleado_nombre_completo, centro_costos,
+                comprobante.id,
+                ne,
+                empleado,
+                empleado_nombre_completo,
+                centro_costos,
                 planilla.codigo_cuenta_debe_salario,
                 (
                     planilla.descripcion_cuenta_debe_salario
                     or ("Gasto por Salario" if planilla.codigo_cuenta_debe_salario else None)
                 ),
-                "debito", salario_base, CONCEPTO_SALARIO_BASE_DESC,
-                "salario_base", CONCEPTO_SALARIO_BASE, orden,
+                "debito",
+                salario_base,
+                CONCEPTO_SALARIO_BASE_DESC,
+                "salario_base",
+                CONCEPTO_SALARIO_BASE,
+                orden,
             )
             self.session.add(linea_debe)
             total_debitos += salario_base
@@ -615,14 +681,22 @@ class AccountingVoucherService:
             if planilla.codigo_cuenta_haber_salario is None:
                 null_account_count += 1
             linea_haber = self._create_line(
-                comprobante.id, ne, empleado, empleado_nombre_completo, centro_costos,
+                comprobante.id,
+                ne,
+                empleado,
+                empleado_nombre_completo,
+                centro_costos,
                 planilla.codigo_cuenta_haber_salario,
                 (
                     planilla.descripcion_cuenta_haber_salario
                     or ("Salario por Pagar" if planilla.codigo_cuenta_haber_salario else None)
                 ),
-                "credito", salario_base, CONCEPTO_SALARIO_BASE_DESC,
-                "salario_base", CONCEPTO_SALARIO_BASE, orden,
+                "credito",
+                salario_base,
+                CONCEPTO_SALARIO_BASE_DESC,
+                "salario_base",
+                CONCEPTO_SALARIO_BASE,
+                orden,
             )
             self.session.add(linea_haber)
             total_creditos += salario_base
@@ -641,14 +715,33 @@ class AccountingVoucherService:
 
                 if is_loan_advance:
                     orden, null_account_count, total_debitos, total_creditos = self._build_loan_advance_lines(
-                        comprobante, ne, empleado, empleado_nombre_completo, centro_costos,
-                        detalle, cuenta_control_prestamo, planilla, planilla_moneda,
-                        orden, null_account_count, total_debitos, total_creditos,
+                        comprobante,
+                        ne,
+                        empleado,
+                        empleado_nombre_completo,
+                        centro_costos,
+                        detalle,
+                        cuenta_control_prestamo,
+                        planilla,
+                        planilla_moneda,
+                        orden,
+                        null_account_count,
+                        total_debitos,
+                        total_creditos,
                     )
                 else:
                     orden, null_account_count, total_debitos, total_creditos = self._build_concept_lines(
-                        comprobante, ne, empleado, empleado_nombre_completo, centro_costos,
-                        detalle, planilla_moneda, orden, null_account_count, total_debitos, total_creditos,
+                        comprobante,
+                        ne,
+                        empleado,
+                        empleado_nombre_completo,
+                        centro_costos,
+                        detalle,
+                        planilla_moneda,
+                        orden,
+                        null_account_count,
+                        total_debitos,
+                        total_creditos,
                     )
 
         vac_debitos, vac_creditos, orden, null_account_count = self._build_paid_vacation_liability_lines(
@@ -663,9 +756,9 @@ class AccountingVoucherService:
         total_creditos += vac_creditos
 
         # Calculate balance (should be 0 for balanced voucher)
-        total_debitos = round_money(total_debitos, planilla_moneda)
-        total_creditos = round_money(total_creditos, planilla_moneda)
-        balance = round_money(total_debitos - total_creditos, planilla_moneda)
+        total_debitos = round_money(total_debitos)
+        total_creditos = round_money(total_creditos)
+        balance = round_money(total_debitos - total_creditos)
 
         # Validate balance
         if balance != Decimal("0.00"):
@@ -703,9 +796,9 @@ class AccountingVoucherService:
         )
         errores = []
         for linea in lineas:
-            debito = round_money(linea.debito, comprobante_moneda)
-            credito = round_money(linea.credito, comprobante_moneda)
-            monto_calculado = round_money(linea.monto_calculado, comprobante_moneda)
+            debito = round_money(linea.debito)
+            credito = round_money(linea.credito)
+            monto_calculado = round_money(linea.monto_calculado)
             tiene_debito = debito > 0
             tiene_credito = credito > 0
 
@@ -714,7 +807,7 @@ class AccountingVoucherService:
                     f"Línea {linea.id}: debe contener solo débito o crédito (debito={debito}, credito={credito})."
                 )
 
-            if monto_calculado != round_money(debito + credito, comprobante_moneda):
+            if monto_calculado != round_money(debito + credito):
                 errores.append(
                     "Línea "
                     f"{linea.id}: monto_calculado inconsistente "
@@ -782,8 +875,8 @@ class AccountingVoucherService:
                 continue  # Skip NULL accounts
 
             key = (linea.codigo_cuenta, linea.centro_costos)
-            summary_dict[key]["debito"] += round_money(linea.debito, comprobante_moneda)
-            summary_dict[key]["credito"] += round_money(linea.credito, comprobante_moneda)
+            summary_dict[key]["debito"] += round_money(linea.debito)
+            summary_dict[key]["credito"] += round_money(linea.credito)
             # Use first description found for this account
             if not summary_dict[key]["descripcion"]:
                 summary_dict[key]["descripcion"] = linea.descripcion_cuenta or ""
@@ -796,7 +889,7 @@ class AccountingVoucherService:
 
             # Net debits and credits
             if debito > credito:
-                monto_neto = round_money(debito - credito, comprobante_moneda)
+                monto_neto = round_money(debito - credito)
                 summarized_entries.append(
                     {
                         "codigo_cuenta": codigo_cuenta,
@@ -807,7 +900,7 @@ class AccountingVoucherService:
                     }
                 )
             elif credito > debito:
-                monto_neto = round_money(credito - debito, comprobante_moneda)
+                monto_neto = round_money(credito - debito)
                 summarized_entries.append(
                     {
                         "codigo_cuenta": codigo_cuenta,

@@ -7,7 +7,7 @@ from __future__ import annotations
 from decimal import Decimal, ROUND_HALF_UP
 
 
-def round_money(amount: Decimal | None, _moneda=None) -> Decimal:
+def round_money(amount: Decimal | None) -> Decimal:
     """Round monetary amounts using the accounting policy.
 
     Args:

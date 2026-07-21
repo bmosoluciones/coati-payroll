@@ -423,21 +423,17 @@ class PayrollExecutionService:
             configuracion_snapshot,
         )
         salario_periodo_origen_neto = max(Decimal("0.00"), salario_periodo_origen - descuento_inasistencia)
-        planilla_moneda = cast(Moneda | None, planilla.moneda)
-
         if emp_calculo.tipo_cambio != Decimal("1.00"):
-            descuento_inasistencia_planilla = round_money(
-                descuento_inasistencia * emp_calculo.tipo_cambio, planilla_moneda
-            )
-            salario_mensual = round_money(salario_mensual_origen * emp_calculo.tipo_cambio, planilla_moneda)
-            salario_periodo = round_money(salario_periodo_origen * emp_calculo.tipo_cambio, planilla_moneda)
-            salario_periodo_neto = round_money(salario_periodo_origen_neto * emp_calculo.tipo_cambio, planilla_moneda)
+            descuento_inasistencia_planilla = round_money(descuento_inasistencia * emp_calculo.tipo_cambio)
+            salario_mensual = round_money(salario_mensual_origen * emp_calculo.tipo_cambio)
+            salario_periodo = round_money(salario_periodo_origen * emp_calculo.tipo_cambio)
+            salario_periodo_neto = round_money(salario_periodo_origen_neto * emp_calculo.tipo_cambio)
         else:
             # Always quantize to ensure consistent decimal precision
-            descuento_inasistencia_planilla = round_money(descuento_inasistencia, planilla_moneda)
-            salario_mensual = round_money(salario_mensual_origen, planilla_moneda)
-            salario_periodo = round_money(salario_periodo_origen, planilla_moneda)
-            salario_periodo_neto = round_money(salario_periodo_origen_neto, planilla_moneda)
+            descuento_inasistencia_planilla = round_money(descuento_inasistencia)
+            salario_mensual = round_money(salario_mensual_origen)
+            salario_periodo = round_money(salario_periodo_origen)
+            salario_periodo_neto = round_money(salario_periodo_origen_neto)
 
         emp_calculo.salario_base = salario_periodo
         emp_calculo.salario_mensual = salario_mensual
@@ -617,7 +613,6 @@ class PayrollExecutionService:
             total_deducciones += emp_calculo.total_deducciones
             total_neto += emp_calculo.salario_neto
 
-        nomina_moneda = cast(Moneda | None, nomina.planilla.moneda) if nomina.planilla else None
-        nomina.total_bruto = round_money(total_bruto, nomina_moneda)
-        nomina.total_deducciones = round_money(total_deducciones, nomina_moneda)
-        nomina.total_neto = round_money(total_neto, nomina_moneda)
+        nomina.total_bruto = round_money(total_bruto)
+        nomina.total_deducciones = round_money(total_deducciones)
+        nomina.total_neto = round_money(total_neto)
