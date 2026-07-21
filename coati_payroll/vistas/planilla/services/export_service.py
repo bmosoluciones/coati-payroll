@@ -26,6 +26,153 @@ class ExportService:
     """Service for Excel export operations."""
 
     @staticmethod
+    def _create_styles(openpyxl_classes):
+        """Create common Excel styles from openpyxl classes."""
+        Workbook, Font, Alignment, PatternFill, Border, Side = openpyxl_classes
+        return {
+            "header_font": Font(bold=True, size=14, color="FFFFFF"),
+            "header_fill": PatternFill(start_color="366092", end_color="366092", fill_type="solid"),
+            "subheader_font": Font(bold=True, size=11),
+            "subheader_fill": PatternFill(start_color="B8CCE4", end_color="B8CCE4", fill_type="solid"),
+            "total_font": Font(bold=True, size=11),
+            "total_fill": PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid"),
+            "border": Border(
+                left=Side(style="thin"),
+                right=Side(style="thin"),
+                top=Side(style="thin"),
+                bottom=Side(style="thin"),
+            ),
+        }
+
+    @staticmethod
+    def _write_title(ws, title: str, styles: dict, merge_range: str = "A1:F1"):
+        """Write a styled title to the worksheet."""
+        ws.merge_cells(merge_range)
+        cell = ws["A1"]
+        cell.value = title
+        cell.font = styles["header_font"]
+        cell.fill = styles["header_fill"]
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    @staticmethod
+    def _write_info_block(ws, row: int, planilla, nomina=None, comprobante=None) -> int:
+        """Write common metadata info block. Returns next available row."""
+        Alignment = None  # noqa: N806
+
+        if planilla.empresa_id and planilla.empresa:
+            ws[f"A{row}"] = "Empresa:"
+            ws[f"B{row}"] = planilla.empresa.razon_social
+            row += 1
+            if planilla.empresa.ruc:
+                ws[f"A{row}"] = "RUC:"
+                ws[f"B{row}"] = planilla.empresa.ruc
+                row += 1
+
+        if nomina:
+            ws[f"A{row}"] = "Período:"
+            ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
+            row += 1
+            ws[f"A{row}"] = "Estado:"
+            ws[f"B{row}"] = nomina.estado
+            row += 1
+            ws[f"A{row}"] = "Generado por:"
+            ws[f"B{row}"] = nomina.generado_por or ""
+            row += 1
+
+        if comprobante:
+            ws[f"A{row}"] = "Concepto:"
+            ws[f"B{row}"] = comprobante.concepto or ""
+            row += 1
+            ws[f"A{row}"] = "Fecha de Cálculo:"
+            ws[f"B{row}"] = comprobante.fecha_calculo.strftime("%d/%m/%Y")
+            row += 1
+            ws[f"A{row}"] = "ID Planilla:"
+            ws[f"B{row}"] = planilla.id
+            row += 1
+            ws[f"A{row}"] = "Estatus Planilla:"
+            ws[f"B{row}"] = nomina.estado
+            row += 1
+            if comprobante.moneda:
+                ws[f"A{row}"] = "Moneda:"
+                ws[f"B{row}"] = f"{comprobante.moneda.codigo} - {comprobante.moneda.nombre}"
+                row += 1
+            if comprobante.aplicado_por:
+                ws[f"A{row}"] = "Aplicado por:"
+                ws[f"B{row}"] = comprobante.aplicado_por
+                row += 1
+            if comprobante.fecha_aplicacion:
+                ws[f"A{row}"] = "Fecha aplicación:"
+                ws[f"B{row}"] = comprobante.fecha_aplicacion.strftime("%d/%m/%Y %H:%M")
+                row += 1
+            if comprobante.veces_modificado > 0:
+                ws[f"A{row}"] = "Modificado:"
+                ws[f"B{row}"] = f"{comprobante.veces_modificado} vez/veces"
+                row += 1
+                if comprobante.modificado_por:
+                    ws[f"A{row}"] = "Última modificación por:"
+                    ws[f"B{row}"] = comprobante.modificado_por
+                    row += 1
+                if comprobante.fecha_modificacion:
+                    ws[f"A{row}"] = "Fecha última modificación:"
+                    ws[f"B{row}"] = comprobante.fecha_modificacion.strftime("%d/%m/%Y %H:%M")
+                    row += 1
+
+        return row
+
+    @staticmethod
+    def _write_table_headers(ws, row: int, headers: list[str], styles: dict):
+        """Write styled table headers."""
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = styles["subheader_font"]
+            cell.fill = styles["subheader_fill"]
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = styles["border"]
+
+    @staticmethod
+    def _write_totals_row(ws, row: int, total_debitos, total_credito, styles: dict):
+        """Write a totals row."""
+        border = styles["border"]
+        ws.cell(row=row, column=1, value="TOTALES").font = styles["total_font"]
+        ws.cell(row=row, column=1).fill = styles["total_fill"]
+        ws.cell(row=row, column=1).border = border
+        ws.cell(row=row, column=2).border = border
+        ws.cell(row=row, column=3).border = border
+
+        cell_debito = ws.cell(row=row, column=4, value=float(total_debitos))
+        cell_debito.font = styles["total_font"]
+        cell_debito.fill = styles["total_fill"]
+        cell_debito.border = border
+
+        cell_credito = ws.cell(row=row, column=5, value=float(total_credito))
+        cell_credito.font = styles["total_font"]
+        cell_credito.fill = styles["total_fill"]
+        cell_credito.border = border
+
+    @staticmethod
+    def _write_warnings(ws, row: int, warnings: list[str]):
+        """Write warning messages."""
+        if not warnings:
+            return row
+        ws[f"A{row}"] = "ADVERTENCIAS:"
+        ws[f"A{row}"].font = Font(bold=True, color="FF0000")
+        row += 1
+        for warning in warnings:
+            ws[f"A{row}"] = f"• {warning}"
+            ws[f"A{row}"].font = Font(color="FF0000")
+            row += 1
+        return row + 1
+
+    @staticmethod
+    def _save_workbook(wb, planilla, nomina, prefix: str) -> tuple[BytesIO, str]:
+        """Save workbook to BytesIO and return with filename."""
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        filename = f"{prefix}_{planilla.nombre}_{nomina.periodo_inicio.strftime('%Y%m%d')}_{nomina.id[:8]}.xlsx"
+        return output, filename
+
+    @staticmethod
     def _add_traceability_section(ws, row: int, nomina: Nomina) -> int:
         """Add user traceability section and return next available row."""
         ws[f"A{row}"] = "TRAZABILIDAD DE USUARIO:"
@@ -60,106 +207,44 @@ class ExportService:
 
         Workbook, Font, Alignment, PatternFill, Border, Side = openpyxl_classes
 
-        # Get all nomina employees
         nomina_empleados = db.session.execute(db.select(NominaEmpleado).filter_by(nomina_id=nomina.id)).scalars().all()
 
-        # Create workbook
         wb = Workbook()
         ws = wb.active
         ws.title = "Nómina"
 
-        # Define styles
-        header_font = Font(bold=True, size=14, color="FFFFFF")
-        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-        subheader_font = Font(bold=True, size=11)
-        subheader_fill = PatternFill(start_color="B8CCE4", end_color="B8CCE4", fill_type="solid")
-        border = Border(
-            left=Side(style="thin"),
-            right=Side(style="thin"),
-            top=Side(style="thin"),
-            bottom=Side(style="thin"),
-        )
+        styles = ExportService._create_styles(openpyxl_classes)
+        ExportService._write_title(ws, f"NÓMINA - {planilla.nombre}", styles, "A1:P1")
 
-        # Title
-        ws.merge_cells("A1:P1")
-        title_cell = ws["A1"]
-        title_cell.value = f"NÓMINA - {planilla.nombre}"
-        title_cell.font = header_font
-        title_cell.fill = header_fill
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
-
-        # Nomina info
-        row = 3
-        if planilla.empresa_id and planilla.empresa:
-            ws[f"A{row}"] = "Empresa:"
-            ws[f"B{row}"] = planilla.empresa.razon_social
-            row += 1
-            if planilla.empresa.ruc:
-                ws[f"A{row}"] = "RUC:"
-                ws[f"B{row}"] = planilla.empresa.ruc
-                row += 1
-        ws[f"A{row}"] = "Período:"
-        ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
+        row = ExportService._write_info_block(ws, 3, planilla, nomina)
         row += 1
-        ws[f"A{row}"] = "Estado:"
-        ws[f"B{row}"] = nomina.estado
-        row += 1
-        ws[f"A{row}"] = "Generado por:"
-        ws[f"B{row}"] = nomina.generado_por or ""
-        row += 2
 
-        # Table headers
         headers = [
-            "Cód. Empleado",
-            "Identificación",
-            "No. Seg. Social",
-            "ID Fiscal",
-            "Nombres",
-            "Apellidos",
-            "Cargo",
-            "Salario Base",
-            "Total Percepciones",
-            "Total Deducciones",
-            "Salario Neto",
+            "Cód. Empleado", "Identificación", "No. Seg. Social", "ID Fiscal",
+            "Nombres", "Apellidos", "Cargo", "Salario Base",
+            "Total Percepciones", "Total Deducciones", "Salario Neto",
         ]
+        ExportService._write_table_headers(ws, row, headers, styles)
 
-        for col, header in enumerate(headers, start=1):
-            cell = ws.cell(row=row, column=col, value=header)
-            cell.font = subheader_font
-            cell.fill = subheader_fill
-            cell.alignment = Alignment(horizontal="center", vertical="center")
-            cell.border = border
-
-        # Data rows
         for ne in nomina_empleados:
             row += 1
             emp = ne.empleado
+            ws.cell(row=row, column=1, value=emp.codigo_empleado).border = styles["border"]
+            ws.cell(row=row, column=2, value=emp.identificacion_personal).border = styles["border"]
+            ws.cell(row=row, column=3, value=emp.id_seguridad_social or "").border = styles["border"]
+            ws.cell(row=row, column=4, value=emp.id_fiscal or "").border = styles["border"]
+            ws.cell(row=row, column=5, value=f"{emp.primer_nombre} {emp.segundo_nombre or ''}".strip()).border = styles["border"]
+            ws.cell(row=row, column=6, value=f"{emp.primer_apellido} {emp.segundo_apellido or ''}".strip()).border = styles["border"]
+            ws.cell(row=row, column=7, value=ne.cargo_snapshot or emp.cargo or "").border = styles["border"]
+            ws.cell(row=row, column=8, value=float(ne.sueldo_base_historico)).border = styles["border"]
+            ws.cell(row=row, column=9, value=float(ne.total_ingresos)).border = styles["border"]
+            ws.cell(row=row, column=10, value=float(ne.total_deducciones)).border = styles["border"]
+            ws.cell(row=row, column=11, value=float(ne.salario_neto)).border = styles["border"]
 
-            ws.cell(row=row, column=1, value=emp.codigo_empleado).border = border
-            ws.cell(row=row, column=2, value=emp.identificacion_personal).border = border
-            ws.cell(row=row, column=3, value=emp.id_seguridad_social or "").border = border
-            ws.cell(row=row, column=4, value=emp.id_fiscal or "").border = border
-            ws.cell(row=row, column=5, value=f"{emp.primer_nombre} {emp.segundo_nombre or ''}".strip()).border = border
-            ws.cell(row=row, column=6, value=f"{emp.primer_apellido} {emp.segundo_apellido or ''}".strip()).border = (
-                border
-            )
-            ws.cell(row=row, column=7, value=ne.cargo_snapshot or emp.cargo or "").border = border
-            ws.cell(row=row, column=8, value=float(ne.sueldo_base_historico)).border = border
-            ws.cell(row=row, column=9, value=float(ne.total_ingresos)).border = border
-            ws.cell(row=row, column=10, value=float(ne.total_deducciones)).border = border
-            ws.cell(row=row, column=11, value=float(ne.salario_neto)).border = border
-
-        # Auto-adjust column widths
         for col in range(1, 12):
             ws.column_dimensions[chr(64 + col)].width = 15
 
-        # Save to BytesIO
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
-
-        filename = f"nomina_{planilla.nombre}_{nomina.periodo_inicio.strftime('%Y%m%d')}_{nomina.id[:8]}.xlsx"
-        return output, filename
+        return ExportService._save_workbook(wb, planilla, nomina, "nomina")
 
     @staticmethod
     def exportar_prestaciones_excel(planilla: Planilla, nomina: Nomina) -> tuple[BytesIO, str]:
