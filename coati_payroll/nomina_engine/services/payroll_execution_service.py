@@ -9,7 +9,7 @@ from decimal import Decimal
 from typing import Any, cast
 from types import SimpleNamespace
 
-from coati_payroll.model import db, Planilla, Empleado, Nomina, Moneda
+from coati_payroll.model import db, Planilla, Empleado, Nomina
 from coati_payroll.enums import NominaEstado
 from coati_payroll.formula_engine import FormulaEngineError
 from coati_payroll.log import log

@@ -32,14 +32,14 @@ from coati_payroll.model import (
 from coati_payroll.enums import NominaEstado, NovedadEstado, VacacionEstado
 from coati_payroll.i18n import _
 from coati_payroll.nomina_engine.processors.accounting_processor import AccountingProcessor
+from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
 from coati_payroll.rbac import require_read_access, require_write_access
+from coati_payroll.queue.tasks import retry_failed_nomina
 from coati_payroll.vistas.planilla import planilla_bp
+from coati_payroll.vistas.planilla.services import NominaService, NovedadService, NominaComparisonService
+from coati_payroll.vacation_service import VacationService
 
 VACATION_APPLICATION_TEMPLATE = "modules/planilla/aplicar_vacaciones.html"
-from coati_payroll.vistas.planilla.services import NominaService, NovedadService, NominaComparisonService
-from coati_payroll.queue.tasks import retry_failed_nomina
-from coati_payroll.vacation_service import VacationService
-from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
 
 # Constants
 ROUTE_EJECUTAR_NOMINA = "planilla.ejecutar_nomina"
