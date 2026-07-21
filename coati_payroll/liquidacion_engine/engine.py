@@ -26,7 +26,6 @@ from coati_payroll.model import (
 )
 from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
 from coati_payroll.nomina_engine.processors.loan_processor import LoanProcessor
-from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
 
 
 @dataclass(frozen=True)
@@ -203,6 +202,7 @@ def recalcular_liquidacion(liquidacion_id: str, fecha_calculo: date | None = Non
 
     empleado = db.session.get(Empleado, liquidacion.empleado_id)
     if not empleado:
+        from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
         return None, [MSG_EMPLEADO_NO_ENCONTRADO], []
 
     # Revert loan/advance payments applied by this liquidation
@@ -245,6 +245,7 @@ def ejecutar_liquidacion(
     """Convenience function to create and calculate a liquidacion."""
     empleado = db.session.get(Empleado, empleado_id)
     if not empleado:
+        from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
         return None, [MSG_EMPLEADO_NO_ENCONTRADO], []
 
     liquidacion = Liquidacion(

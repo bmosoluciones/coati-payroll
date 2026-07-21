@@ -918,7 +918,7 @@ class TestExportarPrestacionesExcel:
                     labels[key] = ws[f"B{row}"].value
 
             assert labels.get("ID Planilla:") == planilla.id
-            assert labels.get("Estado Nómina (Generado, Aprobado, Aplicado):") == "applied"
+            assert labels.get("Estado Nomina:") == "applied"
             assert labels.get("Creado por:") == "creator_user"
             assert labels.get("Aprobado por:") == "approver_user"
             assert labels.get("Aplicado por:") == "applier_user"

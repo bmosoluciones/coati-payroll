@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 """Helper functions for managing planilla associations."""
 
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.sql.functions import count
 from coati_payroll.model import (
@@ -57,7 +59,7 @@ def get_nomina_counts_by_planilla(planilla_ids: list[str]) -> dict[str, int]:
     return counts
 
 
-_COMPONENT_REGISTRY = {
+_COMPONENT_REGISTRY: dict[str, dict[str, Any]] = {
     "income": {
         "model": PlanillaIngreso,
         "fk_field": "percepcion_id",
