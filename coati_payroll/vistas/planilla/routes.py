@@ -100,15 +100,10 @@ def new():
     populate_form_choices(form)
 
     if form.validate_on_submit():
-        vacation_policy_id = form.vacation_policy_id.data or None
-        if vacation_policy_id:
-            policy = db.session.get(VacationPolicy, vacation_policy_id)
-            if not policy:
-                flash(_("La regla de vacaciones seleccionada no existe."), "danger")
-                return render_template(TEMPLATE_PLANILLA_FORM, form=form, is_edit=False)
-            if policy.empresa_id and policy.empresa_id != (form.empresa_id.data or None):
-                flash(_("La regla de vacaciones pertenece a otra empresa."), "danger")
-                return render_template(TEMPLATE_PLANILLA_FORM, form=form, is_edit=False)
+        vacation_policy_id, policy_error = _validate_vacation_policy(form)
+        if policy_error:
+            flash(_(policy_error), "danger")
+            return render_template(TEMPLATE_PLANILLA_FORM, form=form, is_edit=False)
 
         planilla = Planilla(
             nombre=form.nombre.data,
@@ -139,6 +134,19 @@ def new():
     return render_template(TEMPLATE_PLANILLA_FORM, form=form, is_edit=False)
 
 
+def _validate_vacation_policy(form) -> tuple[str | None, str | None]:
+    """Validate that a selected vacation policy belongs to the form company."""
+    vacation_policy_id = form.vacation_policy_id.data or None
+    if not vacation_policy_id:
+        return None, None
+    policy = db.session.get(VacationPolicy, vacation_policy_id)
+    if not policy:
+        return vacation_policy_id, "La regla de vacaciones seleccionada no existe."
+    if policy.empresa_id and policy.empresa_id != (form.empresa_id.data or None):
+        return vacation_policy_id, "La regla de vacaciones pertenece a otra empresa."
+    return vacation_policy_id, None
+
+
 @planilla_bp.route("/<planilla_id>/edit", methods=["GET", "POST"])
 @require_write_access()
 def edit(planilla_id: str):
@@ -148,21 +156,11 @@ def edit(planilla_id: str):
     populate_form_choices(form)
 
     if form.validate_on_submit():
-        vacation_policy_id = form.vacation_policy_id.data or None
-        if vacation_policy_id:
-            policy = db.session.get(VacationPolicy, vacation_policy_id)
-            if not policy:
-                flash(_("La regla de vacaciones seleccionada no existe."), "danger")
-                counts = get_planilla_component_counts(planilla_id)
-                return render_template(
-                    TEMPLATE_PLANILLA_FORM, form=form, planilla=planilla, is_edit=True, **counts
-                )
-            if policy.empresa_id and policy.empresa_id != (form.empresa_id.data or None):
-                flash(_("La regla de vacaciones pertenece a otra empresa."), "danger")
-                counts = get_planilla_component_counts(planilla_id)
-                return render_template(
-                    TEMPLATE_PLANILLA_FORM, form=form, planilla=planilla, is_edit=True, **counts
-                )
+        vacation_policy_id, policy_error = _validate_vacation_policy(form)
+        if policy_error:
+            flash(_(policy_error), "danger")
+            counts = get_planilla_component_counts(planilla_id)
+            return render_template(TEMPLATE_PLANILLA_FORM, form=form, planilla=planilla, is_edit=True, **counts)
 
         planilla.nombre = form.nombre.data
         planilla.descripcion = form.descripcion.data
