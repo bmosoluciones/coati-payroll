@@ -171,6 +171,178 @@ class AccountingVoucherService:
             return Decimal("30")
         return Decimal(str(config.dias_mes_vacaciones))
 
+    def _create_line(
+        self,
+        comprobante_id: str,
+        ne: NominaEmpleado,
+        empleado,
+        empleado_nombre_completo: str,
+        centro_costos: str | None,
+        codigo_cuenta: str | None,
+        descripcion_cuenta: str | None,
+        tipo_debito_credito: str,
+        monto: Decimal,
+        concepto: str,
+        tipo_concepto: str,
+        concepto_codigo: str,
+        orden: int,
+    ) -> ComprobanteContableLinea:
+        """Create a single accounting voucher line."""
+        return ComprobanteContableLinea(
+            comprobante_id=comprobante_id,
+            nomina_empleado_id=ne.id,
+            empleado_id=empleado.id,
+            empleado_codigo=empleado.codigo_empleado,
+            empleado_nombre=empleado_nombre_completo,
+            codigo_cuenta=codigo_cuenta,
+            descripcion_cuenta=descripcion_cuenta,
+            centro_costos=centro_costos,
+            tipo_debito_credito=tipo_debito_credito,
+            debito=monto if tipo_debito_credito == "debito" else Decimal("0.00"),
+            credito=monto if tipo_debito_credito == "credito" else Decimal("0.00"),
+            monto_calculado=monto,
+            concepto=concepto,
+            tipo_concepto=tipo_concepto,
+            concepto_codigo=concepto_codigo,
+            orden=orden,
+        )
+
+    def _resolve_contabilizable_accounts(self, entity, invertir: bool = False):
+        """Resolve debit/credit account codes and descriptions for a contabilizable entity.
+
+        Returns (debe_codigo, haber_codigo, debe_desc, haber_desc).
+        """
+        if invertir:
+            debe_codigo = entity.codigo_cuenta_haber
+            haber_codigo = entity.codigo_cuenta_debe
+            debe_desc = entity.descripcion_cuenta_haber or entity.nombre
+            haber_desc = entity.descripcion_cuenta_debe or entity.nombre
+        else:
+            debe_codigo = entity.codigo_cuenta_debe
+            haber_codigo = entity.codigo_cuenta_haber
+            debe_desc = entity.descripcion_cuenta_debe or entity.nombre
+            haber_desc = entity.descripcion_cuenta_haber or entity.nombre
+        return debe_codigo, haber_codigo, debe_desc, haber_desc
+
+    def _check_is_loan_advance(self, detalle, empleado) -> tuple[bool, str | None]:
+        """Check if a detail line represents a loan/advance deduction."""
+        if not detalle.deduccion_id:
+            return False, None
+        deduccion = self.session.get(Deduccion, detalle.deduccion_id)
+        if not deduccion:
+            return False, None
+        adelantos = (
+            self.session.execute(
+                db.select(Adelanto).filter_by(empleado_id=empleado.id, deduccion_id=deduccion.id)
+            )
+            .scalars()
+            .all()
+        )
+        if not adelantos:
+            return False, None
+        cuenta_control_prestamo = None
+        for adelanto in adelantos:
+            if adelanto.estado in ("approved", "applied"):
+                cuenta_control_prestamo = adelanto.cuenta_haber
+                break
+        return True, cuenta_control_prestamo
+
+    def _build_loan_advance_lines(
+        self, comprobante, ne, empleado, empleado_nombre, centro_costos,
+        detalle, cuenta_control_prestamo, planilla, planilla_moneda,
+        orden, null_account_count, total_debitos, total_creditos,
+    ):
+        """Build debit/credit lines for a loan/advance detail."""
+        detalle_monto = round_money(detalle.monto, planilla_moneda)
+
+        # Debit: Salary Payable
+        orden += 1
+        if planilla.codigo_cuenta_haber_salario is None:
+            null_account_count += 1
+        linea_debe = self._create_line(
+            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
+            planilla.codigo_cuenta_haber_salario,
+            (planilla.descripcion_cuenta_haber_salario or "Salario por Pagar") if planilla.codigo_cuenta_haber_salario else None,
+            "debito", detalle_monto, detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO, "loan", detalle.codigo, orden,
+        )
+        self.session.add(linea_debe)
+        total_debitos += detalle_monto
+
+        # Credit: Loan Control Account
+        orden += 1
+        if cuenta_control_prestamo is None:
+            null_account_count += 1
+        linea_haber = self._create_line(
+            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
+            cuenta_control_prestamo,
+            "Cuenta de Control Préstamos/Adelantos" if cuenta_control_prestamo else None,
+            "credito", detalle_monto, detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO, "loan", detalle.codigo, orden,
+        )
+        self.session.add(linea_haber)
+        total_creditos += detalle_monto
+
+        return orden, null_account_count, total_debitos, total_creditos
+
+    def _build_concept_lines(
+        self, comprobante, ne, empleado, empleado_nombre, centro_costos,
+        detalle, planilla_moneda, orden, null_account_count, total_debitos, total_creditos,
+    ):
+        """Build debit/credit lines for income, deduction, or benefit details."""
+        entity = None
+        tipo_concepto = None
+        invertir = False
+
+        if detalle.tipo == "income" and detalle.percepcion_id:
+            entity = self.session.get(Percepcion, detalle.percepcion_id)
+            tipo_concepto = "percepcion"
+            invertir = getattr(entity, "invertir_asiento_contable", False) if entity else False
+        elif detalle.tipo == "deduction" and detalle.deduccion_id:
+            entity = self.session.get(Deduccion, detalle.deduccion_id)
+            tipo_concepto = "deduction"
+            invertir = getattr(entity, "invertir_asiento_contable", False) if entity else False
+        elif detalle.tipo == "benefit" and detalle.prestacion_id:
+            entity = self.session.get(Prestacion, detalle.prestacion_id)
+            tipo_concepto = "benefit"
+
+        if not entity or not entity.contabilizable:
+            return orden, null_account_count, total_debitos, total_creditos
+
+        if tipo_concepto == "benefit":
+            debe_codigo = entity.codigo_cuenta_debe
+            haber_codigo = entity.codigo_cuenta_haber
+            debe_desc = entity.descripcion_cuenta_debe or entity.nombre if entity.codigo_cuenta_debe else None
+            haber_desc = entity.descripcion_cuenta_haber or entity.nombre if entity.codigo_cuenta_haber else None
+        else:
+            debe_codigo, haber_codigo, debe_desc, haber_desc = self._resolve_contabilizable_accounts(entity, invertir)
+
+        detalle_monto = round_money(detalle.monto, planilla_moneda)
+
+        # Debit line
+        orden += 1
+        if debe_codigo is None:
+            null_account_count += 1
+        linea_debe = self._create_line(
+            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
+            debe_codigo, debe_desc if debe_codigo else None,
+            "debito", detalle_monto, detalle.descripcion or entity.nombre, tipo_concepto, entity.codigo, orden,
+        )
+        self.session.add(linea_debe)
+        total_debitos += detalle_monto
+
+        # Credit line
+        orden += 1
+        if haber_codigo is None:
+            null_account_count += 1
+        linea_haber = self._create_line(
+            comprobante.id, ne, empleado, empleado_nombre, centro_costos,
+            haber_codigo, haber_desc if haber_codigo else None,
+            "credito", detalle_monto, detalle.descripcion or entity.nombre, tipo_concepto, entity.codigo, orden,
+        )
+        self.session.add(linea_haber)
+        total_creditos += detalle_monto
+
+        return orden, null_account_count, total_debitos, total_creditos
+
     def _build_paid_vacation_liability_lines(
         self,
         comprobante: ComprobanteContable,
@@ -416,31 +588,17 @@ class AccountingVoucherService:
             empleado_nombre_completo = f"{empleado.primer_nombre} {empleado.primer_apellido}"
 
             # 1. Base Salary Accounting
-            # Always generate lines even if accounts are missing (use NULL for missing accounts)
             salario_base = round_money(ne.sueldo_base_historico, planilla_moneda)
 
             # Debit: Salary Expense
             orden += 1
             if planilla.codigo_cuenta_debe_salario is None:
                 null_account_count += 1
-            linea_debe = ComprobanteContableLinea(
-                comprobante_id=comprobante.id,
-                nomina_empleado_id=ne.id,
-                empleado_id=empleado.id,
-                empleado_codigo=empleado.codigo_empleado,
-                empleado_nombre=empleado_nombre_completo,
-                codigo_cuenta=planilla.codigo_cuenta_debe_salario,  # Can be None if not configured
-                descripcion_cuenta=planilla.descripcion_cuenta_debe_salario
-                or ("Gasto por Salario" if planilla.codigo_cuenta_debe_salario else None),
-                centro_costos=centro_costos,
-                tipo_debito_credito="debito",
-                debito=salario_base,
-                credito=Decimal("0.00"),
-                monto_calculado=salario_base,
-                concepto=CONCEPTO_SALARIO_BASE_DESC,
-                tipo_concepto="salario_base",
-                concepto_codigo=CONCEPTO_SALARIO_BASE,
-                orden=orden,
+            linea_debe = self._create_line(
+                comprobante.id, ne, empleado, empleado_nombre_completo, centro_costos,
+                planilla.codigo_cuenta_debe_salario,
+                planilla.descripcion_cuenta_debe_salario or ("Gasto por Salario" if planilla.codigo_cuenta_debe_salario else None),
+                "debito", salario_base, CONCEPTO_SALARIO_BASE_DESC, "salario_base", CONCEPTO_SALARIO_BASE, orden,
             )
             self.session.add(linea_debe)
             total_debitos += salario_base
@@ -449,30 +607,16 @@ class AccountingVoucherService:
             orden += 1
             if planilla.codigo_cuenta_haber_salario is None:
                 null_account_count += 1
-            linea_haber = ComprobanteContableLinea(
-                comprobante_id=comprobante.id,
-                nomina_empleado_id=ne.id,
-                empleado_id=empleado.id,
-                empleado_codigo=empleado.codigo_empleado,
-                empleado_nombre=empleado_nombre_completo,
-                codigo_cuenta=planilla.codigo_cuenta_haber_salario,  # Can be None if not configured
-                descripcion_cuenta=planilla.descripcion_cuenta_haber_salario
-                or ("Salario por Pagar" if planilla.codigo_cuenta_haber_salario else None),
-                centro_costos=centro_costos,
-                tipo_debito_credito="credito",
-                debito=Decimal("0.00"),
-                credito=salario_base,
-                monto_calculado=salario_base,
-                concepto=CONCEPTO_SALARIO_BASE_DESC,
-                tipo_concepto="salario_base",
-                concepto_codigo=CONCEPTO_SALARIO_BASE,
-                orden=orden,
+            linea_haber = self._create_line(
+                comprobante.id, ne, empleado, empleado_nombre_completo, centro_costos,
+                planilla.codigo_cuenta_haber_salario,
+                planilla.descripcion_cuenta_haber_salario or ("Salario por Pagar" if planilla.codigo_cuenta_haber_salario else None),
+                "credito", salario_base, CONCEPTO_SALARIO_BASE_DESC, "salario_base", CONCEPTO_SALARIO_BASE, orden,
             )
             self.session.add(linea_haber)
             total_creditos += salario_base
 
             # 2. Process Loans and Advances (special treatment)
-            # Loans/advances debit salary payable and credit loan control account
             detalles = (
                 self.session.execute(
                     db.select(NominaDetalle).filter_by(nomina_empleado_id=ne.id).order_by(NominaDetalle.orden)
@@ -482,293 +626,19 @@ class AccountingVoucherService:
             )
 
             for detalle in detalles:
-                # Check if this is a loan/advance deduction
-                is_loan_advance = False
-                cuenta_control_prestamo = None
-
-                if detalle.deduccion_id:
-                    deduccion = self.session.get(Deduccion, detalle.deduccion_id)
-                    if deduccion:
-                        # Check if this deduction is associated with loans/advances
-                        adelantos = (
-                            self.session.execute(
-                                db.select(Adelanto).filter_by(empleado_id=empleado.id, deduccion_id=deduccion.id)
-                            )
-                            .scalars()
-                            .all()
-                        )
-                        if adelantos:
-                            is_loan_advance = True
-                            # Get loan control account from first active loan
-                            for adelanto in adelantos:
-                                if adelanto.estado in ("approved", "applied"):
-                                    cuenta_control_prestamo = adelanto.cuenta_haber
-                                    break
+                is_loan_advance, cuenta_control_prestamo = self._check_is_loan_advance(detalle, empleado)
 
                 if is_loan_advance:
-                    # Loan/advance: Debit salary payable, Credit loan control
-                    # Always create both lines even if accounts are NULL
-
-                    # Debit: Salary Payable (same as base salary credit account, can be NULL)
-                    orden += 1
-                    if planilla.codigo_cuenta_haber_salario is None:
-                        null_account_count += 1
-                    detalle_monto = round_money(detalle.monto, planilla_moneda)
-                    linea_debe = ComprobanteContableLinea(
-                        comprobante_id=comprobante.id,
-                        nomina_empleado_id=ne.id,
-                        empleado_id=empleado.id,
-                        empleado_codigo=empleado.codigo_empleado,
-                        empleado_nombre=empleado_nombre_completo,
-                        codigo_cuenta=planilla.codigo_cuenta_haber_salario,  # Can be None
-                        descripcion_cuenta=(
-                            (planilla.descripcion_cuenta_haber_salario or "Salario por Pagar")
-                            if planilla.codigo_cuenta_haber_salario
-                            else None
-                        ),
-                        centro_costos=centro_costos,
-                        tipo_debito_credito="debito",
-                        debito=detalle_monto,
-                        credito=Decimal("0.00"),
-                        monto_calculado=detalle_monto,
-                        concepto=detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
-                        tipo_concepto="loan",
-                        concepto_codigo=detalle.codigo,
-                        orden=orden,
+                    orden, null_account_count, total_debitos, total_creditos = self._build_loan_advance_lines(
+                        comprobante, ne, empleado, empleado_nombre_completo, centro_costos,
+                        detalle, cuenta_control_prestamo, planilla, planilla_moneda,
+                        orden, null_account_count, total_debitos, total_creditos,
                     )
-                    self.session.add(linea_debe)
-                    total_debitos += detalle_monto
-
-                    # Credit: Loan Control Account (can be NULL)
-                    orden += 1
-                    if cuenta_control_prestamo is None:
-                        null_account_count += 1
-                    linea_haber = ComprobanteContableLinea(
-                        comprobante_id=comprobante.id,
-                        nomina_empleado_id=ne.id,
-                        empleado_id=empleado.id,
-                        empleado_codigo=empleado.codigo_empleado,
-                        empleado_nombre=empleado_nombre_completo,
-                        codigo_cuenta=cuenta_control_prestamo,  # Can be None
-                        descripcion_cuenta="Cuenta de Control Préstamos/Adelantos" if cuenta_control_prestamo else None,
-                        centro_costos=centro_costos,
-                        tipo_debito_credito="credito",
-                        debito=Decimal("0.00"),
-                        credito=detalle_monto,
-                        monto_calculado=detalle_monto,
-                        concepto=detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
-                        tipo_concepto="loan",
-                        concepto_codigo=detalle.codigo,
-                        orden=orden,
-                    )
-                    self.session.add(linea_haber)
-                    total_creditos += detalle_monto
-
                 else:
-                    # Regular concept - use configured accounts (or NULL if missing)
-                    if detalle.tipo == "income" and detalle.percepcion_id:
-                        percepcion = self.session.get(Percepcion, detalle.percepcion_id)
-                        if percepcion and percepcion.contabilizable:
-                            invertir_asiento = getattr(percepcion, "invertir_asiento_contable", False)
-                            debe_codigo = (
-                                percepcion.codigo_cuenta_haber if invertir_asiento else percepcion.codigo_cuenta_debe
-                            )
-                            haber_codigo = (
-                                percepcion.codigo_cuenta_debe if invertir_asiento else percepcion.codigo_cuenta_haber
-                            )
-                            debe_descripcion = (
-                                (percepcion.descripcion_cuenta_haber or percepcion.nombre)
-                                if invertir_asiento
-                                else (percepcion.descripcion_cuenta_debe or percepcion.nombre)
-                            )
-                            haber_descripcion = (
-                                (percepcion.descripcion_cuenta_debe or percepcion.nombre)
-                                if invertir_asiento
-                                else (percepcion.descripcion_cuenta_haber or percepcion.nombre)
-                            )
-                            # Always create debit line (even if account is NULL)
-                            orden += 1
-                            if debe_codigo is None:
-                                null_account_count += 1
-                            detalle_monto = round_money(detalle.monto, planilla_moneda)
-                            linea_debe = ComprobanteContableLinea(
-                                comprobante_id=comprobante.id,
-                                nomina_empleado_id=ne.id,
-                                empleado_id=empleado.id,
-                                empleado_codigo=empleado.codigo_empleado,
-                                empleado_nombre=empleado_nombre_completo,
-                                codigo_cuenta=debe_codigo,  # Can be None
-                                descripcion_cuenta=(debe_descripcion if debe_codigo else None),
-                                centro_costos=centro_costos,
-                                tipo_debito_credito="debito",
-                                debito=detalle_monto,
-                                credito=Decimal("0.00"),
-                                monto_calculado=detalle_monto,
-                                concepto=detalle.descripcion or percepcion.nombre,
-                                tipo_concepto="percepcion",
-                                concepto_codigo=percepcion.codigo,
-                                orden=orden,
-                            )
-                            self.session.add(linea_debe)
-                            total_debitos += detalle_monto
-
-                            # Always create credit line (even if account is NULL)
-                            orden += 1
-                            if haber_codigo is None:
-                                null_account_count += 1
-                            linea_haber = ComprobanteContableLinea(
-                                comprobante_id=comprobante.id,
-                                nomina_empleado_id=ne.id,
-                                empleado_id=empleado.id,
-                                empleado_codigo=empleado.codigo_empleado,
-                                empleado_nombre=empleado_nombre_completo,
-                                codigo_cuenta=haber_codigo,  # Can be None
-                                descripcion_cuenta=(haber_descripcion if haber_codigo else None),
-                                centro_costos=centro_costos,
-                                tipo_debito_credito="credito",
-                                debito=Decimal("0.00"),
-                                credito=detalle_monto,
-                                monto_calculado=detalle_monto,
-                                concepto=detalle.descripcion or percepcion.nombre,
-                                tipo_concepto="percepcion",
-                                concepto_codigo=percepcion.codigo,
-                                orden=orden,
-                            )
-                            self.session.add(linea_haber)
-                            total_creditos += detalle_monto
-
-                    elif detalle.tipo == "deduction" and detalle.deduccion_id:
-                        deduccion = self.session.get(Deduccion, detalle.deduccion_id)
-                        if deduccion and deduccion.contabilizable:
-                            invertir_asiento = getattr(deduccion, "invertir_asiento_contable", False)
-                            debe_codigo = (
-                                deduccion.codigo_cuenta_haber if invertir_asiento else deduccion.codigo_cuenta_debe
-                            )
-                            haber_codigo = (
-                                deduccion.codigo_cuenta_debe if invertir_asiento else deduccion.codigo_cuenta_haber
-                            )
-                            debe_descripcion = (
-                                (deduccion.descripcion_cuenta_haber or deduccion.nombre)
-                                if invertir_asiento
-                                else (deduccion.descripcion_cuenta_debe or deduccion.nombre)
-                            )
-                            haber_descripcion = (
-                                (deduccion.descripcion_cuenta_debe or deduccion.nombre)
-                                if invertir_asiento
-                                else (deduccion.descripcion_cuenta_haber or deduccion.nombre)
-                            )
-                            # Always create debit line (even if account is NULL)
-                            orden += 1
-                            if debe_codigo is None:
-                                null_account_count += 1
-                            detalle_monto = round_money(detalle.monto, planilla_moneda)
-                            linea_debe = ComprobanteContableLinea(
-                                comprobante_id=comprobante.id,
-                                nomina_empleado_id=ne.id,
-                                empleado_id=empleado.id,
-                                empleado_codigo=empleado.codigo_empleado,
-                                empleado_nombre=empleado_nombre_completo,
-                                codigo_cuenta=debe_codigo,  # Can be None
-                                descripcion_cuenta=(debe_descripcion if debe_codigo else None),
-                                centro_costos=centro_costos,
-                                tipo_debito_credito="debito",
-                                debito=detalle_monto,
-                                credito=Decimal("0.00"),
-                                monto_calculado=detalle_monto,
-                                concepto=detalle.descripcion or deduccion.nombre,
-                                tipo_concepto="deduction",
-                                concepto_codigo=deduccion.codigo,
-                                orden=orden,
-                            )
-                            self.session.add(linea_debe)
-                            total_debitos += detalle_monto
-
-                            # Always create credit line (even if account is NULL)
-                            orden += 1
-                            if haber_codigo is None:
-                                null_account_count += 1
-                            linea_haber = ComprobanteContableLinea(
-                                comprobante_id=comprobante.id,
-                                nomina_empleado_id=ne.id,
-                                empleado_id=empleado.id,
-                                empleado_codigo=empleado.codigo_empleado,
-                                empleado_nombre=empleado_nombre_completo,
-                                codigo_cuenta=haber_codigo,  # Can be None
-                                descripcion_cuenta=(haber_descripcion if haber_codigo else None),
-                                centro_costos=centro_costos,
-                                tipo_debito_credito="credito",
-                                debito=Decimal("0.00"),
-                                credito=detalle_monto,
-                                monto_calculado=detalle_monto,
-                                concepto=detalle.descripcion or deduccion.nombre,
-                                tipo_concepto="deduction",
-                                concepto_codigo=deduccion.codigo,
-                                orden=orden,
-                            )
-                            self.session.add(linea_haber)
-                            total_creditos += detalle_monto
-
-                    elif detalle.tipo == "benefit" and detalle.prestacion_id:
-                        prestacion = self.session.get(Prestacion, detalle.prestacion_id)
-                        if prestacion and prestacion.contabilizable:
-                            # Always create debit line (even if account is NULL)
-                            orden += 1
-                            if prestacion.codigo_cuenta_debe is None:
-                                null_account_count += 1
-                            detalle_monto = round_money(detalle.monto, planilla_moneda)
-                            linea_debe = ComprobanteContableLinea(
-                                comprobante_id=comprobante.id,
-                                nomina_empleado_id=ne.id,
-                                empleado_id=empleado.id,
-                                empleado_codigo=empleado.codigo_empleado,
-                                empleado_nombre=empleado_nombre_completo,
-                                codigo_cuenta=prestacion.codigo_cuenta_debe,  # Can be None
-                                descripcion_cuenta=(
-                                    (prestacion.descripcion_cuenta_debe or prestacion.nombre)
-                                    if prestacion.codigo_cuenta_debe
-                                    else None
-                                ),
-                                centro_costos=centro_costos,
-                                tipo_debito_credito="debito",
-                                debito=detalle_monto,
-                                credito=Decimal("0.00"),
-                                monto_calculado=detalle_monto,
-                                concepto=detalle.descripcion or prestacion.nombre,
-                                tipo_concepto="benefit",
-                                concepto_codigo=prestacion.codigo,
-                                orden=orden,
-                            )
-                            self.session.add(linea_debe)
-                            total_debitos += detalle_monto
-
-                            # Always create credit line (even if account is NULL)
-                            orden += 1
-                            if prestacion.codigo_cuenta_haber is None:
-                                null_account_count += 1
-                            linea_haber = ComprobanteContableLinea(
-                                comprobante_id=comprobante.id,
-                                nomina_empleado_id=ne.id,
-                                empleado_id=empleado.id,
-                                empleado_codigo=empleado.codigo_empleado,
-                                empleado_nombre=empleado_nombre_completo,
-                                codigo_cuenta=prestacion.codigo_cuenta_haber,  # Can be None
-                                descripcion_cuenta=(
-                                    (prestacion.descripcion_cuenta_haber or prestacion.nombre)
-                                    if prestacion.codigo_cuenta_haber
-                                    else None
-                                ),
-                                centro_costos=centro_costos,
-                                tipo_debito_credito="credito",
-                                debito=Decimal("0.00"),
-                                credito=detalle_monto,
-                                monto_calculado=detalle_monto,
-                                concepto=detalle.descripcion or prestacion.nombre,
-                                tipo_concepto="benefit",
-                                concepto_codigo=prestacion.codigo,
-                                orden=orden,
-                            )
-                            self.session.add(linea_haber)
-                            total_creditos += detalle_monto
+                    orden, null_account_count, total_debitos, total_creditos = self._build_concept_lines(
+                        comprobante, ne, empleado, empleado_nombre_completo, centro_costos,
+                        detalle, planilla_moneda, orden, null_account_count, total_debitos, total_creditos,
+                    )
 
         vac_debitos, vac_creditos, orden, null_account_count = self._build_paid_vacation_liability_lines(
             comprobante,
