@@ -52,7 +52,7 @@ def get_nomina_counts_by_planilla(planilla_ids: list[str]) -> dict[str, int]:
         .group_by(Nomina.planilla_id)
     ).all()
 
-    counts = {planilla_id: 0 for planilla_id in planilla_ids}
+    counts = dict.fromkeys(planilla_ids, 0)
     counts.update(dict(tuple(row) for row in rows))
     return counts
 

@@ -152,7 +152,7 @@ function addInput(data = null) {
                            value="${currentSourceValue}"
                            placeholder="Source (employee.field) or default value"
                            onchange="updateJsonPreview()"
-                           style="${currentSourceValue && !availableSources.find(s => s.value === currentSourceValue) ? '' : 'display:none'}">
+                           style="${currentSourceValue && !availableSources.some(s => s.value === currentSourceValue) ? '' : 'display:none'}">
                 </div>
                 <div class="col-md-6">
                     <input type="text" class="form-control form-control-sm input-description"
@@ -168,7 +168,7 @@ function addInput(data = null) {
     // Set the select value if it matches an available source
     const selectEl = document.querySelector(`#input-${id} .input-source-select`);
     if (currentSourceValue) {
-        const matchingSource = availableSources.find(s => s.value === currentSourceValue);
+        const matchingSource = availableSources.some(s => s.value === currentSourceValue);
         if (matchingSource) {
             selectEl.value = currentSourceValue;
         } else {
@@ -503,8 +503,8 @@ function collectSchemaFromEditor() {
         if (source) {
             if (source.includes('.')) {
                 input.source = source;
-            } else if (!isNaN(source)) {
-                input.default = parseFloat(source);
+            } else if (!Number.isNaN(source)) {
+                input.default = Number.parseFloat(source);
             } else {
                 input.default = source;
             }
@@ -534,8 +534,8 @@ function collectSchemaFromEditor() {
                     right: item.querySelector('.step-cond-right').value
                 };
                 // Try to parse right value as number
-                if (!isNaN(step.condition.right)) {
-                    step.condition.right = parseFloat(step.condition.right);
+                if (!Number.isNaN(step.condition.right)) {
+                    step.condition.right = Number.parseFloat(step.condition.right);
                 }
                 step.if_true = item.querySelector('.step-if-true').value;
                 step.if_false = item.querySelector('.step-if-false').value;
@@ -569,12 +569,12 @@ function collectSchemaFromEditor() {
             const fixed = row.querySelector('.bracket-fixed').value;
             const over = row.querySelector('.bracket-over').value;
 
-            if (min !== '') bracket.min = parseFloat(min);
-            if (max !== '') bracket.max = parseFloat(max);
+            if (min !== '') bracket.min = Number.parseFloat(min);
+            if (max !== '') bracket.max = Number.parseFloat(max);
             else bracket.max = null;
-            if (rate !== '') bracket.rate = parseFloat(rate);
-            if (fixed !== '') bracket.fixed = parseFloat(fixed);
-            if (over !== '') bracket.over = parseFloat(over);
+            if (rate !== '') bracket.rate = Number.parseFloat(rate);
+            if (fixed !== '') bracket.fixed = Number.parseFloat(fixed);
+            if (over !== '') bracket.over = Number.parseFloat(over);
 
             if (Object.keys(bracket).length > 0) brackets.push(bracket);
         });
@@ -613,9 +613,9 @@ function generateTestInputs() {
 
 function copyJson() {
     const textarea = document.getElementById('json-preview');
-    textarea.select();
-    document.execCommand('copy');
-    alert('JSON copied to clipboard');
+    navigator.clipboard.writeText(textarea.value).then(() => {
+        alert('JSON copied to clipboard');
+    });
 }
 
 function formatJson() {
@@ -630,7 +630,7 @@ function formatJson() {
 
 function loadExample() {
     if (confirm('Load progressive tax example? This will replace the current schema.')) {
-        schema = JSON.parse(JSON.stringify(exampleSchema));
+        schema = structuredClone(exampleSchema);
         loadSchemaToEditor();
         updateJsonPreview();
         alert('Example loaded successfully');
@@ -666,7 +666,7 @@ async function testCalculation() {
     try {
         const testInputs = {};
         document.querySelectorAll('.test-input').forEach(input => {
-            testInputs[input.dataset.name] = parseFloat(input.value) || 0;
+            testInputs[input.dataset.name] = Number.parseFloat(input.value) || 0;
         });
 
         const ruleId = document.body.dataset.ruleId;
@@ -707,7 +707,7 @@ async function testCalculation() {
 
 function formatResultWithDecimals(obj) {
     if (typeof obj === 'number') {
-        return parseFloat(obj.toFixed(2));
+        return Number.parseFloat(obj.toFixed(2));
     } else if (typeof obj === 'object' && obj !== null) {
         if (Array.isArray(obj)) {
             return obj.map(item => formatResultWithDecimals(item));

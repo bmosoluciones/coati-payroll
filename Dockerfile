@@ -9,10 +9,10 @@ FROM python:3.14-slim AS builder
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libffi-dev \
-    libpango1.0-dev \
     libcairo2-dev \
+    libffi-dev \
     libgdk-pixbuf-2.0-dev \
+    libpango1.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment
@@ -35,12 +35,12 @@ FROM python:3.14-slim AS runtime
 # Also install tini as a minimal init system for proper signal handling
 # Install PostgreSQL and MySQL clients for database backups
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-dejavu-core \
+    libcairo2 \
+    libffi8 \
+    libgdk-pixbuf-2.0-0 \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    libcairo2 \
-    libgdk-pixbuf-2.0-0 \
-    libffi8 \
-    fonts-dejavu-core \
     tini \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
