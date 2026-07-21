@@ -42,7 +42,7 @@ def process_line(line: str) -> str:
         return raw  # preserve special entries as-is
 
     # Separate inline comment (a '#' preceded by whitespace)
-    parts = re.split(r"\s+#", raw, maxsplit=1)
+    parts = re.split(r"[ \t]+#", raw, maxsplit=1)
     left = parts[0].rstrip()
     comment = ("  #" + parts[1]) if len(parts) > 1 else ""
 
@@ -63,7 +63,11 @@ def main():
     parser.add_argument("file", nargs="?", default="requirements.txt", help="Ruta al requirements.txt")
     args = parser.parse_args()
 
-    input_path = args.file
+    working_directory = os.path.realpath(os.getcwd())
+    input_path = os.path.realpath(os.path.abspath(args.file))
+    if os.path.commonpath((working_directory, input_path)) != working_directory:
+        print("[ERROR] La ruta debe estar dentro del directorio de trabajo.", file=sys.stderr)
+        sys.exit(1)
     if not os.path.exists(input_path):
         print(f"[ERROR] Archivo no encontrado: {input_path}", file=sys.stderr)
         sys.exit(1)
