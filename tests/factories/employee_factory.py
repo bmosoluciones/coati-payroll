@@ -54,7 +54,7 @@ def create_employee(
     empleado.primer_apellido = primer_apellido
     empleado.segundo_apellido = segundo_apellido
     # Generate unique identificacion_personal if not provided
-    empleado.identificacion_personal = identificacion_personal or f"ID-{generador_de_codigos_unicos()[:12]}"
+    empleado.identificacion_personal = identificacion_personal or f"ID-{generador_de_codigos_unicos()}"
     empleado.salario_base = salario_base
     empleado.fecha_ingreso = fecha_ingreso or date.today()
     empleado.activo = activo
