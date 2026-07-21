@@ -209,6 +209,49 @@ class CustomReportBuilder:
 
         return errors
 
+    def _apply_definition_filters(self, stmt):
+        """Apply configured filters using only whitelisted fields/operators."""
+        for filt in self.definition.get("filters", []):
+            field_name = filt.get("field")
+            operator = filt.get("operator")
+            value = filt.get("value")
+            if not field_name or operator not in ALLOWED_OPERATORS:
+                continue
+            field = getattr(self.base_entity, field_name, None)
+            if field is not None:
+                stmt = stmt.filter(ALLOWED_OPERATORS[operator](field, value))
+        return stmt
+
+    def _apply_runtime_filters(self, stmt, filters: Optional[Dict[str, Any]]):
+        """Apply exact-match filters supplied at runtime."""
+        allowed_fields = ALLOWED_FIELDS.get(self.base_entity_name, [])
+        for field_name, value in (filters or {}).items():
+            if field_name not in allowed_fields:
+                continue
+            field = getattr(self.base_entity, field_name, None)
+            if field is not None:
+                stmt = stmt.filter(field == value)
+        return stmt
+
+    def _apply_sorting(self, stmt):
+        """Apply configured ordering on whitelisted fields."""
+        allowed_fields = ALLOWED_FIELDS.get(self.base_entity_name, [])
+        for sort in self.definition.get("sorting", []):
+            field_name = sort.get("field")
+            if field_name not in allowed_fields:
+                continue
+            field = getattr(self.base_entity, field_name, None)
+            if field is None:
+                continue
+            stmt = stmt.order_by(field.desc() if sort.get("direction", "asc").lower() == "desc" else field.asc())
+        return stmt
+
+    @staticmethod
+    def _apply_pagination(stmt, page: int, per_page: int):
+        """Apply bounded pagination to a query."""
+        stmt = stmt.limit(min(per_page, MAX_ROWS_PER_EXECUTION))
+        return stmt.offset((page - 1) * per_page) if page > 1 else stmt
+
     def build_query(self, filters: Optional[Dict[str, Any]] = None, page: int = 1, per_page: int = 100):
         """Build SQLAlchemy select statement for the report.
 
@@ -223,47 +266,10 @@ class CustomReportBuilder:
         # Start with base entity
         stmt = db.select(self.base_entity)
 
-        # Apply filters from definition
-        definition_filters = self.definition.get("filters", [])
-        for filt in definition_filters:
-            field_name = filt.get("field")
-            operator = filt.get("operator")
-            value = filt.get("value")
-
-            if field_name and operator in ALLOWED_OPERATORS:
-                field = getattr(self.base_entity, field_name, None)
-                if field is not None:
-                    filter_func = ALLOWED_OPERATORS[operator]
-                    stmt = stmt.filter(filter_func(field, value))
-
-        # Apply runtime filters
-        if filters:
-            for field_name, value in filters.items():
-                if field_name in ALLOWED_FIELDS.get(self.base_entity_name, []):
-                    field = getattr(self.base_entity, field_name, None)
-                    if field is not None:
-                        stmt = stmt.filter(field == value)
-
-        # Apply sorting
-        sorting = self.definition.get("sorting", [])
-        for sort in sorting:
-            field_name = sort.get("field")
-            direction = sort.get("direction", "asc")
-
-            if field_name in ALLOWED_FIELDS.get(self.base_entity_name, []):
-                field = getattr(self.base_entity, field_name, None)
-                if field is not None:
-                    if direction.lower() == "desc":
-                        stmt = stmt.order_by(field.desc())
-                    else:
-                        stmt = stmt.order_by(field.asc())
-
-        # Apply pagination
-        stmt = stmt.limit(min(per_page, MAX_ROWS_PER_EXECUTION))
-        if page > 1:
-            stmt = stmt.offset((page - 1) * per_page)
-
-        return stmt
+        stmt = self._apply_definition_filters(stmt)
+        stmt = self._apply_runtime_filters(stmt, filters)
+        stmt = self._apply_sorting(stmt)
+        return self._apply_pagination(stmt, page, per_page)
 
     def execute(
         self, filters: Optional[Dict[str, Any]] = None, page: int = 1, per_page: int = 100
