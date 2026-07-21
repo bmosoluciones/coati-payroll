@@ -63,73 +63,67 @@ class ReportExporter:
         if not OPENPYXL_AVAILABLE:
             raise ImportError("openpyxl is required for Excel export. Install it with: pip install openpyxl")
 
-        # Generate output path if not provided
-        if not output_path:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            safe_name = "".join(c for c in self.report_name if c.isalnum() or c in (" ", "_", "-")).strip()
-            safe_name = safe_name.replace(" ", "_")  # Replace spaces with underscores for Windows compatibility
-            filename = f"{safe_name}_{timestamp}.xlsx"
-
-            # Create exports directory if it doesn't exist
-            exports_dir = Path(DIRECTORIO_APP) / "exports" / "reports"
-            exports_dir.mkdir(parents=True, exist_ok=True)
-
-            output_path = str((exports_dir / filename).absolute())
+        output_path = self._resolve_output_path(output_path, ".xlsx")
 
         # Create workbook
         wb = Workbook()
         ws = wb.active
         ws.title = self.report_name[:31]  # Excel sheet name limit
 
-        # Add metadata
-        ws["A1"] = "Report:"
-        ws["B1"] = self.report_name
-        ws["A2"] = "Generated:"
-        ws["B2"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ws["A3"] = "Total Records:"
-        ws["B3"] = len(self.results)
-
-        # Style metadata
-        for cell in ["A1", "A2", "A3"]:
-            ws[cell].font = Font(bold=True)
-
-        # Add blank row
-        start_row = 5
-
-        if self.results:
-            # Add headers
-            headers = list(self.results[0].keys())
-            for col_idx, header in enumerate(headers, start=1):
-                cell = ws.cell(row=start_row, column=col_idx, value=header)
-                cell.font = Font(bold=True, color="FFFFFF")
-                cell.fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-                cell.alignment = Alignment(horizontal="center", vertical="center")
-
-            # Add data
-            for row_idx, row_data in enumerate(self.results, start=start_row + 1):
-                for col_idx, header in enumerate(headers, start=1):
-                    value = row_data.get(header)
-                    ws.cell(row=row_idx, column=col_idx, value=value)
-
-            # Auto-adjust column widths
-            for col_idx, header in enumerate(headers, start=1):
-                column_letter = get_column_letter(col_idx)
-                max_length = len(str(header))
-
-                for row_data in self.results:
-                    value = row_data.get(header)
-                    if value is not None:
-                        max_length = max(max_length, len(str(value)))
-
-                # Set width with some padding
-                adjusted_width = min(max_length + 2, 50)  # Max 50 chars
-                ws.column_dimensions[column_letter].width = adjusted_width
+        self._write_metadata(ws)
+        self._write_result_table(ws, start_row=5)
 
         # Save workbook
         wb.save(output_path)
         log.info("Report exported to: %s", output_path)
 
         return output_path
+
+    def _resolve_output_path(self, output_path: Optional[str], extension: str) -> str:
+        """Return the requested path or create a safe default export path."""
+        if output_path:
+            return output_path
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_name = "".join(c for c in self.report_name if c.isalnum() or c in (" ", "_", "-")).strip()
+        filename = f"{safe_name.replace(' ', '_')}_{timestamp}{extension}"
+        exports_dir = Path(DIRECTORIO_APP) / "exports" / "reports"
+        exports_dir.mkdir(parents=True, exist_ok=True)
+        return str((exports_dir / filename).absolute())
+
+    def _write_metadata(self, worksheet) -> None:
+        """Write report metadata and formatting to a worksheet."""
+        metadata = [
+            ("A1", "Report:", self.report_name),
+            ("A2", "Generated:", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("A3", "Total Records:", len(self.results)),
+        ]
+        for label_cell, label, value in metadata:
+            worksheet[label_cell] = label
+            worksheet[label_cell].font = Font(bold=True)
+            worksheet.cell(row=worksheet[label_cell].row, column=2, value=value)
+
+    def _write_result_table(self, worksheet, start_row: int) -> None:
+        """Write result rows and adjust their column widths."""
+        if not self.results:
+            return
+        headers = list(self.results[0].keys())
+        self._write_headers(worksheet, headers, start_row)
+        for row_idx, row_data in enumerate(self.results, start=start_row + 1):
+            for col_idx, header in enumerate(headers, start=1):
+                worksheet.cell(row=row_idx, column=col_idx, value=row_data.get(header))
+        for col_idx, header in enumerate(headers, start=1):
+            values = [len(str(row_data.get(header))) for row_data in self.results if row_data.get(header) is not None]
+            max_length = max([len(str(header)), *values])
+            worksheet.column_dimensions[get_column_letter(col_idx)].width = min(max_length + 2, 50)
+
+    @staticmethod
+    def _write_headers(worksheet, headers: list[str], row: int) -> None:
+        """Write and style result table headers."""
+        for col_idx, header in enumerate(headers, start=1):
+            cell = worksheet.cell(row=row, column=col_idx, value=header)
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center", vertical="center")
 
     def to_csv(self, output_path: Optional[str] = None) -> str:
         """Export results to CSV format.
