@@ -12,9 +12,9 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@3d3c42e  # v7.0.1
     - name: Set up Python 3
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@5fda3b9  # v7.0.0
       with:
         python-version: 3.11
     - name: Install build
