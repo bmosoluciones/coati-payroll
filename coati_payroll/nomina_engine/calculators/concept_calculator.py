@@ -175,22 +175,15 @@ class ConceptCalculator:
         # Calculate total for days
         return (tasa_dia * dias).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-    def _calculate_formula(
-        self, emp_calculo: EmpleadoCalculo, formula: dict | None, codigo_concepto: str | None
-    ) -> Decimal:
-        """Calculate using formula engine."""
-        if not formula or not isinstance(formula, dict):
-            return Decimal("0.00")
+    def _build_formula_inputs(self, emp_calculo: EmpleadoCalculo, schema: dict | None) -> dict:
+        """Build input variables for formula engine."""
+        inputs = {**emp_calculo.variables_calculo}
+        inputs["salario_bruto"] = emp_calculo.salario_bruto
+        inputs["total_percepciones"] = emp_calculo.total_percepciones
+        inputs["total_deducciones"] = emp_calculo.total_deducciones
 
-        try:
-            # Merge variables with formula inputs
-            inputs = {**emp_calculo.variables_calculo}
-            inputs["salario_bruto"] = emp_calculo.salario_bruto
-            inputs["total_percepciones"] = emp_calculo.total_percepciones
-            inputs["total_deducciones"] = emp_calculo.total_deducciones
-
-            # Map generic formula input sources to input names when present
-            for input_def in formula.get("inputs", []) if isinstance(formula.get("inputs"), list) else []:
+        if isinstance(schema, dict):
+            for input_def in schema.get("inputs", []):
                 name = input_def.get("name")
                 source = input_def.get("source")
                 if not name or not source:
@@ -198,141 +191,105 @@ class ConceptCalculator:
                 if source in inputs:
                     inputs[name] = inputs[source]
                     continue
-                # Support dotted notation for potential namespaced sources (e.g., "novedad.HORAS_EXTRA")
-                # Extract the last segment after the final dot as a fallback lookup key
                 if "." in source:
                     source_key = source.split(".")[-1]
                     if source_key in inputs:
                         inputs[name] = inputs[source_key]
 
-            # Calculate before-tax deductions already processed in this period
-            deducciones_antes_impuesto_periodo = Decimal("0.00")
-            for ded in emp_calculo.deducciones:
-                if not ded.deduccion_id:
-                    continue
-                ded_metadata = self._get_deduccion_metadata(ded.deduccion_id)
-                if ded_metadata and ded_metadata.get("antes_impuesto"):
-                    deducciones_antes_impuesto_periodo += ded.monto
-            inputs["deducciones_antes_impuesto_periodo"] = deducciones_antes_impuesto_periodo
-            # Legacy alias for backward compatibility (deprecated but kept to avoid breaking existing schemas)
-            inputs["inss_periodo"] = deducciones_antes_impuesto_periodo
-            # New generic aliases (preferred for new schemas)
-            inputs["pre_tax_deductions"] = deducciones_antes_impuesto_periodo
-            inputs["social_security_deduction"] = deducciones_antes_impuesto_periodo
+        deducciones_antes_impuesto_periodo = Decimal("0.00")
+        for ded in emp_calculo.deducciones:
+            if not ded.deduccion_id:
+                continue
+            ded_metadata = self._get_deduccion_metadata(ded.deduccion_id)
+            if ded_metadata and ded_metadata.get("antes_impuesto"):
+                deducciones_antes_impuesto_periodo += ded.monto
+        inputs["deducciones_antes_impuesto_periodo"] = deducciones_antes_impuesto_periodo
+        inputs["inss_periodo"] = deducciones_antes_impuesto_periodo
+        inputs["pre_tax_deductions"] = deducciones_antes_impuesto_periodo
+        inputs["social_security_deduction"] = deducciones_antes_impuesto_periodo
 
-            engine = FormulaEngine(formula)
+        return inputs
+
+    def _execute_formula(self, emp_calculo: EmpleadoCalculo, schema: dict, label: str) -> Decimal:
+        """Execute formula engine with shared input preparation."""
+        try:
+            inputs = self._build_formula_inputs(emp_calculo, schema)
+            engine = FormulaEngine(schema)
             result = engine.execute(inputs)
             return Decimal(str(result.get("output", 0))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         except FormulaEngineError as e:
-            self.warnings.append(f"Error en f\u00f3rmula: {str(e)}")
+            self.warnings.append(f"Error en {label}: {str(e)}")
             return Decimal("0.00")
+
+    def _calculate_formula(
+        self, emp_calculo: EmpleadoCalculo, formula: dict | None, codigo_concepto: str | None
+    ) -> Decimal:
+        """Calculate using formula engine."""
+        if not formula or not isinstance(formula, dict):
+            return Decimal("0.00")
+        return self._execute_formula(emp_calculo, formula, "fórmula")
+
+    def _resolve_regla_from_snapshot(self, codigo_concepto: str | None) -> tuple[dict | None, str | None]:
+        """Try to get ReglaCalculo from snapshot."""
+        if not self.deducciones_snapshot or not codigo_concepto:
+            return None, None
+        deduccion_data = self.deducciones_snapshot.get(codigo_concepto)
+        if deduccion_data and "regla_calculo" in deduccion_data:
+            return deduccion_data["regla_calculo"]["esquema_json"], deduccion_data["regla_calculo"]["codigo"]
+        return None, None
+
+    def _find_regla_by_concept_id(self, codigo_concepto: str):
+        """Find ReglaCalculo by direct FK matches."""
+        from sqlalchemy import select, or_
+        return db.session.execute(
+            select(ReglaCalculo).filter(
+                ReglaCalculo.activo.is_(True),
+                or_(
+                    ReglaCalculo.deduccion_id == codigo_concepto,
+                    ReglaCalculo.prestacion_id == codigo_concepto,
+                    ReglaCalculo.percepcion_id == codigo_concepto,
+                ),
+            )
+        ).scalar_one_or_none()
+
+    def _find_regla_by_model(self, model_class, codigo_concepto: str, fk_field: str):
+        """Find ReglaCalculo by looking up concept ID via a model class."""
+        from sqlalchemy import select
+        obj = db.session.execute(
+            select(model_class).filter_by(codigo=codigo_concepto)
+        ).scalar_one_or_none()
+        if not obj:
+            return None
+        return db.session.execute(
+            select(ReglaCalculo)
+            .filter_by(**{fk_field: obj.id})
+            .filter(ReglaCalculo.activo.is_(True))
+        ).scalar_one_or_none()
+
+    def _resolve_regla_from_db(self, codigo_concepto: str | None) -> tuple[dict | None, str | None]:
+        """Fallback: find ReglaCalculo from live DB."""
+        if not codigo_concepto:
+            return None, None
+        regla = self._find_regla_by_concept_id(codigo_concepto)
+        if not regla:
+            regla = self._find_regla_by_model(Deduccion, codigo_concepto, "deduccion_id")
+        if not regla:
+            regla = self._find_regla_by_model(Prestacion, codigo_concepto, "prestacion_id")
+        if not regla:
+            regla = self._find_regla_by_model(Percepcion, codigo_concepto, "percepcion_id")
+        if regla and regla.esquema_json:
+            return regla.esquema_json, regla.codigo
+        return None, None
 
     def _calculate_regla_calculo(self, emp_calculo: EmpleadoCalculo, codigo_concepto: str | None) -> Decimal:
         """Calculate using ReglaCalculo from snapshot (if available) or live DB."""
-        # First try to get ReglaCalculo from snapshot (for reproducibility)
-        regla_schema = None
-        regla_codigo = None
-        if self.deducciones_snapshot and codigo_concepto:
-            deduccion_data = self.deducciones_snapshot.get(codigo_concepto)
-            if deduccion_data and "regla_calculo" in deduccion_data:
-                regla_schema = deduccion_data["regla_calculo"]["esquema_json"]
-                regla_codigo = deduccion_data["regla_calculo"]["codigo"]
-        # Fallback to live DB if not in snapshot (backward compatibility)
+        regla_schema, regla_codigo = self._resolve_regla_from_snapshot(codigo_concepto)
         if not regla_schema:
-            from sqlalchemy import select, or_
-
-            regla = None
-            # If caller passed a concept ID, try direct FK matches first.
-            if codigo_concepto:
-                regla = db.session.execute(
-                    select(ReglaCalculo).filter(
-                        ReglaCalculo.activo.is_(True),
-                        or_(
-                            ReglaCalculo.deduccion_id == codigo_concepto,
-                            ReglaCalculo.prestacion_id == codigo_concepto,
-                            ReglaCalculo.percepcion_id == codigo_concepto,
-                        ),
-                    )
-                ).scalar_one_or_none()
-            if not regla and codigo_concepto:
-                # Fallback by concept code -> concept ID -> linked ReglaCalculo.
-                deduccion_obj = db.session.execute(
-                    select(Deduccion).filter_by(codigo=codigo_concepto)
-                ).scalar_one_or_none()
-                if deduccion_obj:
-                    regla = db.session.execute(
-                        select(ReglaCalculo)
-                        .filter_by(deduccion_id=deduccion_obj.id)
-                        .filter(ReglaCalculo.activo.is_(True))
-                    ).scalar_one_or_none()
-            if not regla and codigo_concepto:
-                prestacion_obj = db.session.execute(
-                    select(Prestacion).filter_by(codigo=codigo_concepto)
-                ).scalar_one_or_none()
-                if prestacion_obj:
-                    regla = db.session.execute(
-                        select(ReglaCalculo)
-                        .filter_by(prestacion_id=prestacion_obj.id)
-                        .filter(ReglaCalculo.activo.is_(True))
-                    ).scalar_one_or_none()
-            if not regla and codigo_concepto:
-                percepcion_obj = db.session.execute(
-                    select(Percepcion).filter_by(codigo=codigo_concepto)
-                ).scalar_one_or_none()
-                if percepcion_obj:
-                    regla = db.session.execute(
-                        select(ReglaCalculo)
-                        .filter_by(percepcion_id=percepcion_obj.id)
-                        .filter(ReglaCalculo.activo.is_(True))
-                    ).scalar_one_or_none()
-            if regla and regla.esquema_json:
-                regla_schema = regla.esquema_json
-                regla_codigo = regla.codigo
+            regla_schema, regla_codigo = self._resolve_regla_from_db(codigo_concepto)
         if not regla_schema:
             self.warnings.append(f"ReglaCalculo no encontrada para concepto {codigo_concepto}")
             return Decimal("0.00")
-        try:
-            # Prepare inputs for formula engine
-            inputs = {**emp_calculo.variables_calculo}
-            inputs["salario_bruto"] = emp_calculo.salario_bruto
-            inputs["total_percepciones"] = emp_calculo.total_percepciones
-            inputs["total_deducciones"] = emp_calculo.total_deducciones
-            # Map generic schema input sources to input names when present.
-            # This keeps parity with FormulaType.FORMULA behavior and allows
-            # rules that declare sources such as "nomina.salario_bruto".
-            if isinstance(regla_schema, dict):
-                for input_def in regla_schema.get("inputs", []):
-                    name = input_def.get("name")
-                    source = input_def.get("source")
-                    if not name or not source:
-                        continue
-                    if source in inputs:
-                        inputs[name] = inputs[source]
-                        continue
-                    if "." in source:
-                        source_key = source.split(".")[-1]
-                        if source_key in inputs:
-                            inputs[name] = inputs[source_key]
-            # Calculate before-tax deductions already processed
-            deducciones_antes_impuesto_periodo = Decimal("0.00")
-            for ded in emp_calculo.deducciones:
-                if not ded.deduccion_id:
-                    continue
-                ded_metadata = self._get_deduccion_metadata(ded.deduccion_id)
-                if ded_metadata and ded_metadata.get("antes_impuesto"):
-                    deducciones_antes_impuesto_periodo += ded.monto
-            inputs["deducciones_antes_impuesto_periodo"] = deducciones_antes_impuesto_periodo
-            # Legacy alias for backward compatibility (deprecated but kept to avoid breaking existing schemas)
-            inputs["inss_periodo"] = deducciones_antes_impuesto_periodo
-            # New generic aliases (preferred for new schemas)
-            inputs["pre_tax_deductions"] = deducciones_antes_impuesto_periodo
-            inputs["social_security_deduction"] = deducciones_antes_impuesto_periodo
-            engine = FormulaEngine(regla_schema)
-            result = engine.execute(inputs)
-            return Decimal(str(result.get("output", 0))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        except FormulaEngineError as e:
-            self.warnings.append(f"Error en ReglaCalculo {regla_codigo}: {str(e)}")
-            return Decimal("0.00")
+        return self._execute_formula(emp_calculo, regla_schema, f"ReglaCalculo {regla_codigo}")
 
     def _get_deduccion_metadata(self, deduccion_id: str) -> dict[str, Any] | None:
         deducciones_snapshot = self.deducciones_snapshot
