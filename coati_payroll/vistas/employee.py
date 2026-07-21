@@ -159,7 +159,8 @@ def _update_employee_from_form(employee, form, custom_fields, *, is_new: bool) -
     for field_name in optional_fields:
         setattr(employee, field_name, getattr(form, field_name).data or None)
 
-    employee.salario_base = form.salario_base.data or Decimal("0.00")
+    if is_new:
+        employee.salario_base = form.salario_base.data or Decimal("0.00")
     employee.salario_acumulado = form.salario_acumulado.data or Decimal("0.00")
     employee.impuesto_acumulado = form.impuesto_acumulado.data or Decimal("0.00")
     employee.ultimos_tres_salarios = process_last_three_salaries(form)
