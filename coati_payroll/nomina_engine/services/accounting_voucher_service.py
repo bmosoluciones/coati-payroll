@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any, cast
+from typing import Any
 from collections import defaultdict
 from datetime import date
 
@@ -21,7 +21,6 @@ from coati_payroll.model import (
     Adelanto,
     ComprobanteContable,
     ComprobanteContableLinea,
-    Moneda,
     VacationLedger,
     VacationPolicy,
     ConfiguracionCalculos,
@@ -255,7 +254,6 @@ class AccountingVoucherService:
         detalle,
         cuenta_control_prestamo,
         planilla,
-        planilla_moneda,
         orden,
         null_account_count,
         total_debitos,
@@ -322,7 +320,6 @@ class AccountingVoucherService:
         empleado_nombre,
         centro_costos,
         detalle,
-        planilla_moneda,
         orden,
         null_account_count,
         total_debitos,
@@ -414,7 +411,6 @@ class AccountingVoucherService:
         null_account_count: int,
     ) -> tuple[Decimal, Decimal, int, int]:
         """Build accounting lines for paid vacation liability movements tied to this payroll."""
-        planilla_moneda = cast(Moneda | None, planilla.moneda)
         total_debitos = Decimal("0.00")
         total_creditos = Decimal("0.00")
 
@@ -575,8 +571,6 @@ class AccountingVoucherService:
         # Use nomina's calculation date or periodo_fin
         if fecha_calculo is None:
             fecha_calculo = nomina.fecha_calculo_original or nomina.periodo_fin
-        planilla_moneda = cast(Moneda | None, planilla.moneda)
-
         # Generate voucher concept
         concepto = (
             f"Nómina {planilla.nombre}"
@@ -723,7 +717,6 @@ class AccountingVoucherService:
                         detalle,
                         cuenta_control_prestamo,
                         planilla,
-                        planilla_moneda,
                         orden,
                         null_account_count,
                         total_debitos,
@@ -737,7 +730,6 @@ class AccountingVoucherService:
                         empleado_nombre_completo,
                         centro_costos,
                         detalle,
-                        planilla_moneda,
                         orden,
                         null_account_count,
                         total_debitos,
@@ -788,7 +780,6 @@ class AccountingVoucherService:
 
     def validate_line_integrity(self, comprobante: ComprobanteContable) -> None:
         """Validate integrity rules for voucher lines."""
-        comprobante_moneda = cast(Moneda | None, comprobante.moneda)
         lineas = (
             self.session.execute(db.select(ComprobanteContableLinea).filter_by(comprobante_id=comprobante.id))
             .scalars()
@@ -844,7 +835,6 @@ class AccountingVoucherService:
             ValueError: If comprobante has NULL accounts (incomplete configuration)
         """
         self.validate_line_integrity(comprobante)
-        comprobante_moneda = cast(Moneda | None, comprobante.moneda)
         # Dictionary to accumulate by (account, cost_center)
         summary_dict: dict[tuple[str, str | None], dict[str, Any]] = defaultdict(
             lambda: {"debito": Decimal("0.00"), "credito": Decimal("0.00"), "descripcion": ""}

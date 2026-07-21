@@ -102,7 +102,7 @@ def import_accounting_configuration_rows(rows: list[list[object]]) -> BulkAccoun
         if len(normalized_row) < 6:
             normalized_row.extend([""] * (6 - len(normalized_row)))
 
-        row_type, visible_id, debit_account, debit_description, credit_account, credit_description = normalized_row[:6]
+        row_type, visible_id, *_ = normalized_row[:6]
 
         if not any(normalized_row):
             continue
