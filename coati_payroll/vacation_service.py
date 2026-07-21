@@ -204,97 +204,89 @@ class VacationService:
         account.current_balance = balance_decimal
         return balance_decimal
 
-    def _resolver_cuenta_vacaciones(self, empleado: Empleado) -> tuple[VacationAccount | None, str | None]:
+    def _resolve_bound_policy_account(self, empleado, filtros_base):
+        """Resolve vacation account via planilla-bound policy."""
         from coati_payroll.model import db, VacationAccount, VacationPolicy
 
-        if not self.planilla:
-            return None, None
-
-        if empleado.empresa_id and self.planilla.empresa_id and empleado.empresa_id != self.planilla.empresa_id:
-            raise ValidationError(f"Empleado {empleado.codigo_empleado} pertenece a empresa distinta a la planilla.")
-
-        filtros_base = [
-            VacationAccount.empleado_id == empleado.id,
-            VacationAccount.activo.is_(True),
-            VacationPolicy.activo.is_(True),
-        ]
-
-        # Strong relation: if payroll has an explicit vacation policy binding, use only that rule.
-        if self.planilla.vacation_policy_id:
-            bound_accounts = (
-                db.session.execute(
-                    db.select(VacationAccount)
-                    .join(VacationAccount.policy)
-                    .filter(*filtros_base)
-                    .filter(VacationPolicy.id == self.planilla.vacation_policy_id)
-                )
-                .scalars()
-                .all()
+        bound_accounts = (
+            db.session.execute(
+                db.select(VacationAccount)
+                .join(VacationAccount.policy)
+                .filter(*filtros_base)
+                .filter(VacationPolicy.id == self.planilla.vacation_policy_id)
             )
-            if len(bound_accounts) > 1:
-                raise ValidationError(
-                    f"Más de una cuenta de vacaciones encontrada para empleado {empleado.codigo_empleado} "
-                    f"y política vinculada de planilla."
-                )
-            if len(bound_accounts) == 1:
-                account = bound_accounts[0]
-                return account, "planilla_bound"
+            .scalars()
+            .all()
+        )
+        if len(bound_accounts) > 1:
+            raise ValidationError(
+                f"Más de una cuenta de vacaciones encontrada para empleado {empleado.codigo_empleado} "
+                f"y política vinculada de planilla."
+            )
+        if len(bound_accounts) == 1:
+            return bound_accounts[0], "planilla_bound"
 
-            # Bootstrap account automatically for bound policy during payroll processing.
-            if self.apply_side_effects:
-                bound_policy = (
-                    db.session.execute(
-                        db.select(VacationPolicy).filter(
-                            VacationPolicy.id == self.planilla.vacation_policy_id,
-                            VacationPolicy.activo.is_(True),
-                        )
-                    )
-                    .scalars()
-                    .first()
-                )
-                if bound_policy:
-                    if bound_policy.planilla_id and bound_policy.planilla_id != self.planilla.id:
-                        raise ValidationError(
-                            f"Policy {bound_policy.codigo} does not belong to planilla {self.planilla.id}."
-                        )
-                    if (
-                        bound_policy.empresa_id
-                        and self.planilla.empresa_id
-                        and bound_policy.empresa_id != self.planilla.empresa_id
-                    ):
-                        raise ValidationError(f"Policy {bound_policy.codigo} belongs to another empresa.")
-
-                    existing_account = (
-                        db.session.execute(
-                            db.select(VacationAccount).filter(
-                                VacationAccount.empleado_id == empleado.id,
-                                VacationAccount.policy_id == bound_policy.id,
-                            )
-                        )
-                        .scalars()
-                        .first()
-                    )
-                    if existing_account:
-                        if not existing_account.activo:
-                            existing_account.activo = True
-                        return existing_account, "planilla_bound_reactivated"
-
-                    account = VacationAccount(
-                        empleado_id=empleado.id,
-                        policy_id=bound_policy.id,
-                        current_balance=Decimal("0.0000"),
-                        activo=True,
-                    )
-                    db.session.add(account)
-                    db.session.flush()
-                    log.info(
-                        "Vacation account auto-created for employee %s with policy %s (planilla=%s).",
-                        empleado.codigo_empleado,
-                        bound_policy.codigo,
-                        self.planilla.id,
-                    )
-                    return account, "planilla_bound_auto_created"
+        if not self.apply_side_effects:
             return None, None
+
+        bound_policy = (
+            db.session.execute(
+                db.select(VacationPolicy).filter(
+                    VacationPolicy.id == self.planilla.vacation_policy_id,
+                    VacationPolicy.activo.is_(True),
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if not bound_policy:
+            return None, None
+
+        if bound_policy.planilla_id and bound_policy.planilla_id != self.planilla.id:
+            raise ValidationError(
+                f"Policy {bound_policy.codigo} does not belong to planilla {self.planilla.id}."
+            )
+        if (
+            bound_policy.empresa_id
+            and self.planilla.empresa_id
+            and bound_policy.empresa_id != self.planilla.empresa_id
+        ):
+            raise ValidationError(f"Policy {bound_policy.codigo} belongs to another empresa.")
+
+        existing_account = (
+            db.session.execute(
+                db.select(VacationAccount).filter(
+                    VacationAccount.empleado_id == empleado.id,
+                    VacationAccount.policy_id == bound_policy.id,
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if existing_account:
+            if not existing_account.activo:
+                existing_account.activo = True
+            return existing_account, "planilla_bound_reactivated"
+
+        account = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=bound_policy.id,
+            current_balance=Decimal("0.0000"),
+            activo=True,
+        )
+        db.session.add(account)
+        db.session.flush()
+        log.info(
+            "Vacation account auto-created for employee %s with policy %s (planilla=%s).",
+            empleado.codigo_empleado,
+            bound_policy.codigo,
+            self.planilla.id,
+        )
+        return account, "planilla_bound_auto_created"
+
+    def _resolve_scoped_account(self, empleado, filtros_base):
+        """Resolve vacation account via scope-based fallback."""
+        from coati_payroll.model import db, VacationAccount, VacationPolicy
 
         scopes = [
             (
@@ -310,9 +302,7 @@ class VacationService:
             ),
         ]
 
-        for scope in scopes:
-            scope_name = scope[0]
-            scope_filters = scope[1:]
+        for scope_name, *scope_filters in scopes:
             accounts = (
                 db.session.execute(
                     db.select(VacationAccount).join(VacationAccount.policy).filter(*filtros_base).filter(*scope_filters)
@@ -330,16 +320,33 @@ class VacationService:
                 log.info(
                     "Vacation policy/account resolved: policy_id=%s policy_codigo=%s account_id=%s "
                     "scope=%s planilla_id=%s empresa_id=%s",
-                    account.policy_id,
-                    account.policy.codigo,
-                    account.id,
-                    scope_name,
-                    self.planilla.id,
-                    self.planilla.empresa_id,
+                    account.policy_id, account.policy.codigo, account.id,
+                    scope_name, self.planilla.id, self.planilla.empresa_id,
                 )
                 return account, scope_name
 
         return None, None
+
+    def _resolver_cuenta_vacaciones(self, empleado: Empleado) -> tuple[VacationAccount | None, str | None]:
+        from coati_payroll.model import VacationAccount, VacationPolicy
+
+        if not self.planilla:
+            return None, None
+
+        if empleado.empresa_id and self.planilla.empresa_id and empleado.empresa_id != self.planilla.empresa_id:
+            raise ValidationError(f"Empleado {empleado.codigo_empleado} pertenece a empresa distinta a la planilla.")
+
+        filtros_base = [
+            VacationAccount.empleado_id == empleado.id,
+            VacationAccount.activo.is_(True),
+            VacationPolicy.activo.is_(True),
+        ]
+
+        if self.planilla.vacation_policy_id:
+            account, scope = self._resolve_bound_policy_account(empleado, filtros_base)
+            return account, scope
+
+        return self._resolve_scoped_account(empleado, filtros_base)
 
     def _validar_empleado_en_planilla(self, empleado: Empleado) -> None:
         from coati_payroll.model import db, PlanillaEmpleado
