@@ -284,65 +284,33 @@ class CustomReportBuilder:
         Returns:
             Tuple of (results as list of dicts, total count)
         """
-        # Build base query without pagination for count
         from sqlalchemy.sql.functions import count
 
-        # Start with base entity
-        count_stmt = db.select(self.base_entity)
-
-        # Apply filters from definition
-        definition_filters = self.definition.get("filters", [])
-        for filt in definition_filters:
-            field_name = filt.get("field")
-            operator = filt.get("operator")
-            value = filt.get("value")
-
-            if field_name and operator in ALLOWED_OPERATORS:
-                field = getattr(self.base_entity, field_name, None)
-                if field is not None:
-                    filter_func = ALLOWED_OPERATORS[operator]
-                    count_stmt = count_stmt.filter(filter_func(field, value))
-
-        # Apply runtime filters
-        if filters:
-            for field_name, value in filters.items():
-                if field_name in ALLOWED_FIELDS.get(self.base_entity_name, []):
-                    field = getattr(self.base_entity, field_name, None)
-                    if field is not None:
-                        count_stmt = count_stmt.filter(field == value)
-
-        # Get total count (without pagination or sorting)
+        count_stmt = self._apply_runtime_filters(self._apply_definition_filters(db.select(self.base_entity)), filters)
         total_count = db.session.execute(db.select(count()).select_from(count_stmt.subquery())).scalar() or 0
-
-        # Build query with pagination for results
         stmt = self.build_query(filters, page, per_page)
-
-        # Execute statement
         results = db.session.execute(stmt).scalars().all()
+        return self._serialize_results(results), total_count
 
-        # Convert to list of dicts
+    def _serialize_results(self, results) -> list[dict[str, Any]]:
+        """Convert report rows to JSON-compatible dictionaries."""
         columns = self.definition.get("columns", [])
         output = []
-
         for row in results:
             row_dict = {}
             for col in columns:
-                if col.get("type") == "field":
-                    field_name = col.get("field")
-                    label = col.get("label", field_name)
-                    value = getattr(row, field_name, None)
-
-                    # Convert Decimal to float for JSON serialization
-                    if isinstance(value, Decimal):
-                        value = float(value)
-                    elif isinstance(value, datetime):
-                        value = value.isoformat()
-
-                    row_dict[label] = value
-
+                if col.get("type") != "field":
+                    continue
+                field_name = col.get("field")
+                label = col.get("label", field_name)
+                value = getattr(row, field_name, None)
+                if isinstance(value, Decimal):
+                    value = float(value)
+                elif isinstance(value, datetime):
+                    value = value.isoformat()
+                row_dict[label] = value
             output.append(row_dict)
-
-        return output, total_count
+        return output
 
 
 # ============================================================================
