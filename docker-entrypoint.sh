@@ -17,17 +17,17 @@ is_true() {
 }
 
 if [ ! -x "$PYTHON" ]; then
-  echo "[entrypoint] ERROR: python not found at $PYTHON"
+  echo "[entrypoint] ERROR: python not found at $PYTHON" >&2
   exit 1
 fi
 
 if [ ! -x "$PAYROLLCTL" ]; then
-  echo "[entrypoint] ERROR: payrollctl not found at $PAYROLLCTL"
+  echo "[entrypoint] ERROR: payrollctl not found at $PAYROLLCTL" >&2
   exit 1
 fi
 
 if [ ! -x "$DRAMATIQ" ]; then
-  echo "[entrypoint] ERROR: dramatiq not found at $DRAMATIQ"
+  echo "[entrypoint] ERROR: dramatiq not found at $DRAMATIQ" >&2
   exit 1
 fi
 
@@ -59,7 +59,7 @@ if [ "$PROCESS_ROLE" = "worker" ]; then
     echo "[entrypoint] Starting Dramatiq worker (dedicated mode, threads=$WORKER_THREADS, processes=$WORKER_PROCESSES)"
     exec "$DRAMATIQ" coati_payroll.queue.tasks --threads "$WORKER_THREADS" --processes "$WORKER_PROCESSES"
   else
-    echo "[entrypoint] ERROR: Worker role requires QUEUE_ENABLED=1 and REDIS_URL to be configured"
+    echo "[entrypoint] ERROR: Worker role requires QUEUE_ENABLED=1 and REDIS_URL to be configured" >&2
     exit 1
   fi
 elif [ "$PROCESS_ROLE" = "all" ]; then
@@ -77,6 +77,6 @@ elif [ "$PROCESS_ROLE" = "web" ]; then
   echo "[entrypoint] Starting app in web-only mode (no worker): $*"
   exec "$PYTHON" app.py
 else
-  echo "[entrypoint] ERROR: Invalid PROCESS_ROLE='$PROCESS_ROLE'. Valid options: web, worker, all"
+  echo "[entrypoint] ERROR: Invalid PROCESS_ROLE='$PROCESS_ROLE'. Valid options: web, worker, all" >&2
   exit 1
 fi

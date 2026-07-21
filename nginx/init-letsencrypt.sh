@@ -13,9 +13,9 @@
 
 set -e
 
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <domain> <email>"
-    echo "Example: $0 payroll.example.com admin@example.com"
+if [[ "$#" -ne 2 ]]; then
+    echo "Usage: $0 <domain> <email>" >&2
+    echo "Example: $0 payroll.example.com admin@example.com" >&2
     exit 1
 fi
 
@@ -31,7 +31,7 @@ echo ""
 
 # Check if docker-compose is available
 if ! command -v docker-compose &> /dev/null; then
-    echo "ERROR: docker-compose is not installed or not in PATH"
+    echo "ERROR: docker-compose is not installed or not in PATH" >&2
     exit 1
 fi
 
@@ -122,12 +122,12 @@ if [ $? -eq 0 ]; then
     echo "Configuration updated! Now uncomment the HTTPS server block and restart nginx."
 else
     echo ""
-    echo "ERROR: Failed to obtain certificate."
-    echo "Please check:"
-    echo "- Domain $DOMAIN points to this server's IP address"
-    echo "- Port 80 is accessible from the internet"
-    echo "- You have not exceeded Let's Encrypt rate limits"
-    echo ""
+    echo "ERROR: Failed to obtain certificate." >&2
+    echo "Please check:" >&2
+    echo "- Domain $DOMAIN points to this server's IP address" >&2
+    echo "- Port 80 is accessible from the internet" >&2
+    echo "- You have not exceeded Let's Encrypt rate limits" >&2
+    echo "" >&2
     
     # Restore original configuration
     if [ -f nginx/nginx.conf.backup ]; then
