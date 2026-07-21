@@ -15,6 +15,7 @@ from coati_payroll.model import Moneda, db
 from coati_payroll.vistas.constants import PER_PAGE
 
 currency_bp = Blueprint("currency", __name__, url_prefix="/currency")
+CURRENCY_INDEX_ENDPOINT = "currency.index"
 
 
 @currency_bp.route("/", methods=["GET"])
@@ -79,7 +80,7 @@ def new():
         db.session.add(currency)
         db.session.commit()
         flash(_("Moneda creada exitosamente."), "success")
-        return redirect(url_for("currency.index"))
+        return redirect(url_for(CURRENCY_INDEX_ENDPOINT))
 
     return render_template("modules/currency/form.html", form=form, title=_("Nueva Moneda"))
 
@@ -91,7 +92,7 @@ def edit(id_: str):
     currency = db.session.get(Moneda, id_)
     if not currency:
         flash(_("Moneda no encontrada."), "error")
-        return redirect(url_for("currency.index"))
+        return redirect(url_for(CURRENCY_INDEX_ENDPOINT))
 
     form = CurrencyForm(obj=currency)
 
@@ -104,7 +105,7 @@ def edit(id_: str):
 
         db.session.commit()
         flash(_("Moneda actualizada exitosamente."), "success")
-        return redirect(url_for("currency.index"))
+        return redirect(url_for(CURRENCY_INDEX_ENDPOINT))
 
     return render_template(
         "modules/currency/form.html",
@@ -121,9 +122,9 @@ def delete(id_: str):
     currency = db.session.get(Moneda, id_)
     if not currency:
         flash(_("Moneda no encontrada."), "error")
-        return redirect(url_for("currency.index"))
+        return redirect(url_for(CURRENCY_INDEX_ENDPOINT))
 
     db.session.delete(currency)
     db.session.commit()
     flash(_("Moneda eliminada exitosamente."), "success")
-    return redirect(url_for("currency.index"))
+    return redirect(url_for(CURRENCY_INDEX_ENDPOINT))

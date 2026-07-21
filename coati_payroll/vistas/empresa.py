@@ -16,6 +16,7 @@ from coati_payroll.model import Empleado, Empresa, Nomina, Planilla, db
 from coati_payroll.rbac import require_role, require_read_access
 
 empresa_bp = Blueprint("empresa", __name__, url_prefix="/empresa")
+EMPRESA_INDEX_ENDPOINT = "empresa.index"
 
 
 def _bootstrap_fields_locked(empresa_id: str) -> bool:
@@ -102,7 +103,7 @@ def new():
         try:
             db.session.commit()
             flash(_("Empresa creada exitosamente."), "success")
-            return redirect(url_for("empresa.index"))
+            return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al crear la empresa: {}").format(str(e)), "danger")
@@ -121,7 +122,7 @@ def edit(empresa_id):
     empresa = db.session.get(Empresa, empresa_id)
     if not empresa:
         flash(_("Empresa no encontrada."), "warning")
-        return redirect(url_for("empresa.index"))
+        return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
 
     lock_bootstrap_fields = _bootstrap_fields_locked(empresa.id)
     form = EmpresaForm(obj=empresa)
@@ -151,7 +152,7 @@ def edit(empresa_id):
         try:
             db.session.commit()
             flash(_("Empresa actualizada exitosamente."), "success")
-            return redirect(url_for("empresa.index"))
+            return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al actualizar la empresa: {}").format(str(e)), "danger")
@@ -172,7 +173,7 @@ def delete(empresa_id):
     empresa = db.session.get(Empresa, empresa_id)
     if not empresa:
         flash(_("Empresa no encontrada."), "warning")
-        return redirect(url_for("empresa.index"))
+        return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
 
     # Prevent deletion when the company still has active links.
     has_active_employees = db.session.execute(
@@ -191,7 +192,7 @@ def delete(empresa_id):
             _("No se puede eliminar la empresa porque tiene empleados activos o nóminas asociadas."),
             "danger",
         )
-        return redirect(url_for("empresa.index"))
+        return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
 
     try:
         db.session.delete(empresa)
@@ -201,7 +202,7 @@ def delete(empresa_id):
         db.session.rollback()
         flash(_("Error al eliminar la empresa: {}").format(str(e)), "danger")
 
-    return redirect(url_for("empresa.index"))
+    return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
 
 
 @empresa_bp.route("/<string:empresa_id>/toggle", methods=["POST"])
@@ -211,7 +212,7 @@ def toggle_active(empresa_id):
     empresa = db.session.get(Empresa, empresa_id)
     if not empresa:
         flash(_("Empresa no encontrada."), "warning")
-        return redirect(url_for("empresa.index"))
+        return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
 
     empresa.activo = not empresa.activo
     empresa.modificado_por = current_user.usuario
@@ -224,4 +225,4 @@ def toggle_active(empresa_id):
         db.session.rollback()
         flash(_("Error al cambiar el estado de la empresa: {}").format(str(e)), "danger")
 
-    return redirect(url_for("empresa.index"))
+    return redirect(url_for(EMPRESA_INDEX_ENDPOINT))
