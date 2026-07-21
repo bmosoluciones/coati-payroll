@@ -50,48 +50,17 @@ class ConceptCalculator:
     ) -> Decimal:
         """Calculate concept amount."""
         normalized_formula_tipo = FormulaType.normalize(formula_tipo)
-        # Use overrides if provided
-        if monto_override:
-            monto_calculado = Decimal(str(monto_override))
-        elif porcentaje_override:
-            monto_calculado = (emp_calculo.salario_base * Decimal(str(porcentaje_override)) / Decimal("100")).quantize(
-                Decimal("0.01"), rounding=ROUND_HALF_UP
+        monto_calculado = self._calculate_override(emp_calculo, monto_override, porcentaje_override)
+        if monto_calculado is None:
+            monto_calculado = self._calculate_by_formula_type(
+                emp_calculo,
+                normalized_formula_tipo or formula_tipo,
+                monto_default,
+                porcentaje,
+                formula,
+                codigo_concepto,
+                base_calculo,
             )
-        else:
-            match normalized_formula_tipo or formula_tipo:
-                case FormulaType.FIJO:
-                    monto_calculado = Decimal(str(monto_default or 0))
-
-                case FormulaType.PORCENTAJE_SALARIO | FormulaType.PORCENTAJE:
-                    if porcentaje:
-                        monto_calculado = (
-                            emp_calculo.salario_base * Decimal(str(porcentaje)) / Decimal("100")
-                        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-                    else:
-                        monto_calculado = Decimal("0.00")
-
-                case FormulaType.PORCENTAJE_BRUTO:
-                    if porcentaje:
-                        monto_calculado = (
-                            emp_calculo.salario_bruto * Decimal(str(porcentaje)) / Decimal("100")
-                        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-                    else:
-                        monto_calculado = Decimal("0.00")
-
-                case FormulaType.HORAS:
-                    monto_calculado = self._calculate_hours(emp_calculo, porcentaje, codigo_concepto, base_calculo)
-
-                case FormulaType.DIAS:
-                    monto_calculado = self._calculate_days(emp_calculo, porcentaje, codigo_concepto, base_calculo)
-
-                case FormulaType.FORMULA:
-                    monto_calculado = self._calculate_formula(emp_calculo, formula, codigo_concepto)
-
-                case FormulaType.REGLA_CALCULO:
-                    monto_calculado = self._calculate_regla_calculo(emp_calculo, codigo_concepto)
-
-                case _:
-                    monto_calculado = Decimal(str(monto_default or 0))
 
         # Ensure calculated amounts are never negative
         if monto_calculado < 0:
@@ -103,6 +72,57 @@ class ConceptCalculator:
             return Decimal("0.00")
 
         return monto_calculado
+
+    @staticmethod
+    def _calculate_override(
+        emp_calculo: EmpleadoCalculo,
+        monto_override: Decimal | None,
+        porcentaje_override: Decimal | None,
+    ) -> Decimal | None:
+        """Calculate a value from an explicit override, when provided."""
+        if monto_override:
+            return Decimal(str(monto_override))
+        if porcentaje_override:
+            return (emp_calculo.salario_base * Decimal(str(porcentaje_override)) / Decimal("100")).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+        return None
+
+    def _calculate_by_formula_type(
+        self,
+        emp_calculo: EmpleadoCalculo,
+        formula_tipo: str,
+        monto_default: Decimal | None,
+        porcentaje: Decimal | None,
+        formula: dict | None,
+        codigo_concepto: str | None,
+        base_calculo: str | None,
+    ) -> Decimal:
+        """Dispatch formula calculation to the appropriate strategy."""
+        match formula_tipo:
+            case FormulaType.FIJO:
+                return Decimal(str(monto_default or 0))
+            case FormulaType.PORCENTAJE_SALARIO | FormulaType.PORCENTAJE:
+                return self._calculate_percentage(emp_calculo.salario_base, porcentaje)
+            case FormulaType.PORCENTAJE_BRUTO:
+                return self._calculate_percentage(emp_calculo.salario_bruto, porcentaje)
+            case FormulaType.HORAS:
+                return self._calculate_hours(emp_calculo, porcentaje, codigo_concepto, base_calculo)
+            case FormulaType.DIAS:
+                return self._calculate_days(emp_calculo, porcentaje, codigo_concepto, base_calculo)
+            case FormulaType.FORMULA:
+                return self._calculate_formula(emp_calculo, formula, codigo_concepto)
+            case FormulaType.REGLA_CALCULO:
+                return self._calculate_regla_calculo(emp_calculo, codigo_concepto)
+            case _:
+                return Decimal(str(monto_default or 0))
+
+    @staticmethod
+    def _calculate_percentage(base: Decimal, porcentaje: Decimal | None) -> Decimal:
+        """Calculate a percentage of a base amount."""
+        if not porcentaje:
+            return Decimal("0.00")
+        return (base * Decimal(str(porcentaje)) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def _calculate_hours(
         self,
