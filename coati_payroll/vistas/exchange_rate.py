@@ -18,6 +18,8 @@ from coati_payroll.model import Moneda, TipoCambio, db
 from coati_payroll.vistas.constants import PER_PAGE
 
 exchange_rate_bp = Blueprint("exchange_rate", __name__, url_prefix="/exchange_rate")
+EXCHANGE_RATE_INDEX_ENDPOINT = "exchange_rate.index"
+EXCHANGE_RATE_IMPORT_ENDPOINT = "exchange_rate.import_excel"
 
 
 def get_currency_choices():
@@ -95,7 +97,7 @@ def new():
         db.session.add(exchange_rate)
         db.session.commit()
         flash(_("Tipo de cambio creado exitosamente."), "success")
-        return redirect(url_for("exchange_rate.index"))
+        return redirect(url_for(EXCHANGE_RATE_INDEX_ENDPOINT))
 
     # Default date to today
     if not form.fecha.data:
@@ -111,7 +113,7 @@ def edit(id_: str):
     exchange_rate = db.session.get(TipoCambio, id_)
     if not exchange_rate:
         flash(_("Tipo de cambio no encontrado."), "error")
-        return redirect(url_for("exchange_rate.index"))
+        return redirect(url_for(EXCHANGE_RATE_INDEX_ENDPOINT))
 
     form = ExchangeRateForm(obj=exchange_rate)
     form.moneda_origen_id.choices = [("", _("Seleccionar..."))] + get_currency_choices()
@@ -126,7 +128,7 @@ def edit(id_: str):
 
         db.session.commit()
         flash(_("Tipo de cambio actualizado exitosamente."), "success")
-        return redirect(url_for("exchange_rate.index"))
+        return redirect(url_for(EXCHANGE_RATE_INDEX_ENDPOINT))
 
     return render_template(
         "modules/exchange_rate/form.html",
@@ -143,12 +145,12 @@ def delete(id_: str):
     exchange_rate = db.session.get(TipoCambio, id_)
     if not exchange_rate:
         flash(_("Tipo de cambio no encontrado."), "error")
-        return redirect(url_for("exchange_rate.index"))
+        return redirect(url_for(EXCHANGE_RATE_INDEX_ENDPOINT))
 
     db.session.delete(exchange_rate)
     db.session.commit()
     flash(_("Tipo de cambio eliminado exitosamente."), "success")
-    return redirect(url_for("exchange_rate.index"))
+    return redirect(url_for(EXCHANGE_RATE_INDEX_ENDPOINT))
 
 
 # Constants for Excel import
@@ -166,19 +168,19 @@ def import_excel():
     # Check if file is in request
     if "file" not in request.files:
         flash(_("No se seleccionó ningún archivo."), "error")
-        return redirect(url_for("exchange_rate.import_excel"))
+        return redirect(url_for(EXCHANGE_RATE_IMPORT_ENDPOINT))
 
     file = request.files["file"]
 
     # Check if file has a name
     if file.filename == "":
         flash(_("No se seleccionó ningún archivo."), "error")
-        return redirect(url_for("exchange_rate.import_excel"))
+        return redirect(url_for(EXCHANGE_RATE_IMPORT_ENDPOINT))
 
     # Check if file is Excel
     if not file.filename.lower().endswith((".xlsx", ".xls")):
         flash(_("El archivo debe ser un archivo Excel (.xlsx o .xls)."), "error")
-        return redirect(url_for("exchange_rate.import_excel"))
+        return redirect(url_for(EXCHANGE_RATE_IMPORT_ENDPOINT))
 
     try:
         # Load the workbook
@@ -322,9 +324,9 @@ def import_excel():
             if len(errors) > MAX_ERRORS_DISPLAYED:
                 flash(_("... y {} errores más.").format(len(errors) - MAX_ERRORS_DISPLAYED), "error")
 
-        return redirect(url_for("exchange_rate.index"))
+        return redirect(url_for(EXCHANGE_RATE_INDEX_ENDPOINT))
 
     except Exception as e:
         db.session.rollback()
         flash(_("Error al procesar el archivo: {}.").format(str(e)), "error")
-        return redirect(url_for("exchange_rate.import_excel"))
+        return redirect(url_for(EXCHANGE_RATE_IMPORT_ENDPOINT))
