@@ -55,6 +55,33 @@ def _find_by_name_or_code(
     ).scalar_one_or_none()
 
 
+ACCOUNT_FIELDS = {
+    "company": (
+        "codigo_cuenta_debe_salario",
+        "descripcion_cuenta_debe_salario",
+        "codigo_cuenta_haber_salario",
+        "descripcion_cuenta_haber_salario",
+    ),
+    "earnings": ("codigo_cuenta_debe", "descripcion_cuenta_debe", "codigo_cuenta_haber", "descripcion_cuenta_haber"),
+    "deductions": ("codigo_cuenta_debe", "descripcion_cuenta_debe", "codigo_cuenta_haber", "descripcion_cuenta_haber"),
+    "benefits": ("codigo_cuenta_debe", "descripcion_cuenta_debe", "codigo_cuenta_haber", "descripcion_cuenta_haber"),
+    "vacation_policy": (
+        "cuenta_debito_vacaciones_pagadas",
+        "descripcion_cuenta_debito_vacaciones_pagadas",
+        "cuenta_credito_vacaciones_pagadas",
+        "descripcion_cuenta_credito_vacaciones_pagadas",
+    ),
+}
+
+ENTITY_LOOKUPS = {
+    "company": _find_company,
+    "earnings": lambda visible_id: _find_by_name_or_code(Percepcion, visible_id),
+    "deductions": lambda visible_id: _find_by_name_or_code(Deduccion, visible_id),
+    "benefits": lambda visible_id: _find_by_name_or_code(Prestacion, visible_id),
+    "vacation_policy": lambda visible_id: _find_by_name_or_code(VacationPolicy, visible_id),
+}
+
+
 def _validate_headers(header_row: list[str]) -> None:
     normalized_headers = [_normalize(value).lower() for value in header_row]
     if normalized_headers != EXPECTED_HEADERS:
@@ -85,55 +112,18 @@ def import_accounting_configuration_rows(rows: list[list[object]]) -> BulkAccoun
             continue
 
         row_type = row_type.lower()
-
-        if row_type == "company":
-            entity = _find_company(visible_id)
-            if not entity:
-                result.skipped_rows += 1
-                continue
-            entity.codigo_cuenta_debe_salario = debit_account
-            entity.descripcion_cuenta_debe_salario = debit_description
-            entity.codigo_cuenta_haber_salario = credit_account
-            entity.descripcion_cuenta_haber_salario = credit_description
-        elif row_type == "earnings":
-            entity = _find_by_name_or_code(Percepcion, visible_id)
-            if not entity:
-                result.skipped_rows += 1
-                continue
-            entity.codigo_cuenta_debe = debit_account
-            entity.descripcion_cuenta_debe = debit_description
-            entity.codigo_cuenta_haber = credit_account
-            entity.descripcion_cuenta_haber = credit_description
-        elif row_type == "deductions":
-            entity = _find_by_name_or_code(Deduccion, visible_id)
-            if not entity:
-                result.skipped_rows += 1
-                continue
-            entity.codigo_cuenta_debe = debit_account
-            entity.descripcion_cuenta_debe = debit_description
-            entity.codigo_cuenta_haber = credit_account
-            entity.descripcion_cuenta_haber = credit_description
-        elif row_type == "benefits":
-            entity = _find_by_name_or_code(Prestacion, visible_id)
-            if not entity:
-                result.skipped_rows += 1
-                continue
-            entity.codigo_cuenta_debe = debit_account
-            entity.descripcion_cuenta_debe = debit_description
-            entity.codigo_cuenta_haber = credit_account
-            entity.descripcion_cuenta_haber = credit_description
-        elif row_type == "vacation_policy":
-            entity = _find_by_name_or_code(VacationPolicy, visible_id)
-            if not entity:
-                result.skipped_rows += 1
-                continue
-            entity.cuenta_debito_vacaciones_pagadas = debit_account
-            entity.descripcion_cuenta_debito_vacaciones_pagadas = debit_description
-            entity.cuenta_credito_vacaciones_pagadas = credit_account
-            entity.descripcion_cuenta_credito_vacaciones_pagadas = credit_description
-        else:
+        lookup = ENTITY_LOOKUPS.get(row_type)
+        fields = ACCOUNT_FIELDS.get(row_type)
+        if lookup is None or fields is None:
             result.skipped_rows += 1
             continue
+
+        entity = lookup(visible_id)
+        if not entity:
+            result.skipped_rows += 1
+            continue
+        for field, value in zip(fields, normalized_row[2:6]):
+            setattr(entity, field, value)
 
         result.updated_rows += 1
 

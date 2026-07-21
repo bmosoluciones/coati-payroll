@@ -181,34 +181,41 @@ class ConceptCalculator:
         inputs["salario_bruto"] = emp_calculo.salario_bruto
         inputs["total_percepciones"] = emp_calculo.total_percepciones
         inputs["total_deducciones"] = emp_calculo.total_deducciones
-
-        if isinstance(schema, dict):
-            for input_def in schema.get("inputs", []):
-                name = input_def.get("name")
-                source = input_def.get("source")
-                if not name or not source:
-                    continue
-                if source in inputs:
-                    inputs[name] = inputs[source]
-                    continue
-                if "." in source:
-                    source_key = source.split(".")[-1]
-                    if source_key in inputs:
-                        inputs[name] = inputs[source_key]
-
-        deducciones_antes_impuesto_periodo = Decimal("0.00")
-        for ded in emp_calculo.deducciones:
-            if not ded.deduccion_id:
-                continue
-            ded_metadata = self._get_deduccion_metadata(ded.deduccion_id)
-            if ded_metadata and ded_metadata.get("antes_impuesto"):
-                deducciones_antes_impuesto_periodo += ded.monto
+        self._add_schema_inputs(inputs, schema)
+        deducciones_antes_impuesto_periodo = self._calculate_pre_tax_deductions(emp_calculo)
         inputs["deducciones_antes_impuesto_periodo"] = deducciones_antes_impuesto_periodo
         inputs["inss_periodo"] = deducciones_antes_impuesto_periodo
         inputs["pre_tax_deductions"] = deducciones_antes_impuesto_periodo
         inputs["social_security_deduction"] = deducciones_antes_impuesto_periodo
 
         return inputs
+
+    @staticmethod
+    def _add_schema_inputs(inputs: dict, schema: dict | None) -> None:
+        """Map schema input aliases to values already available to the formula."""
+        if not isinstance(schema, dict):
+            return
+        for input_def in schema.get("inputs", []):
+            name = input_def.get("name")
+            source = input_def.get("source")
+            if not name or not source:
+                continue
+            source_key = source.split(".")[-1]
+            if source in inputs:
+                inputs[name] = inputs[source]
+            elif source_key in inputs:
+                inputs[name] = inputs[source_key]
+
+    def _calculate_pre_tax_deductions(self, emp_calculo: EmpleadoCalculo) -> Decimal:
+        """Return deductions that reduce the taxable amount for the period."""
+        return sum(
+            (
+                ded.monto
+                for ded in emp_calculo.deducciones
+                if ded.deduccion_id and (self._get_deduccion_metadata(ded.deduccion_id) or {}).get("antes_impuesto")
+            ),
+            Decimal("0.00"),
+        )
 
     def _execute_formula(self, emp_calculo: EmpleadoCalculo, schema: dict, label: str) -> Decimal:
         """Execute formula engine with shared input preparation."""
@@ -241,6 +248,7 @@ class ConceptCalculator:
     def _find_regla_by_concept_id(self, codigo_concepto: str):
         """Find ReglaCalculo by direct FK matches."""
         from sqlalchemy import select, or_
+
         return db.session.execute(
             select(ReglaCalculo).filter(
                 ReglaCalculo.activo.is_(True),
@@ -255,15 +263,12 @@ class ConceptCalculator:
     def _find_regla_by_model(self, model_class, codigo_concepto: str, fk_field: str):
         """Find ReglaCalculo by looking up concept ID via a model class."""
         from sqlalchemy import select
-        obj = db.session.execute(
-            select(model_class).filter_by(codigo=codigo_concepto)
-        ).scalar_one_or_none()
+
+        obj = db.session.execute(select(model_class).filter_by(codigo=codigo_concepto)).scalar_one_or_none()
         if not obj:
             return None
         return db.session.execute(
-            select(ReglaCalculo)
-            .filter_by(**{fk_field: obj.id})
-            .filter(ReglaCalculo.activo.is_(True))
+            select(ReglaCalculo).filter_by(**{fk_field: obj.id}).filter(ReglaCalculo.activo.is_(True))
         ).scalar_one_or_none()
 
     def _resolve_regla_from_db(self, codigo_concepto: str | None) -> tuple[dict | None, str | None]:
