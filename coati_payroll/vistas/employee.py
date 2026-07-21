@@ -58,47 +58,42 @@ def process_custom_fields_from_request(custom_fields):
         Dictionary with custom field names as keys and their converted values
     """
 
-    def normalize_custom_field_type(tipo_dato: str) -> str:
-        return {
-            "texto": "text",
-            "entero": "integer",
-            "decimal": "decimal",
-            "booleano": "boolean",
-        }.get(tipo_dato, tipo_dato)
-
     datos_adicionales = {}
     for field in custom_fields:
         field_name = f"custom_{field.nombre_campo}"
         raw_value = request.form.get(field_name, "")
-        tipo_dato = normalize_custom_field_type(field.tipo_dato)
-
-        match tipo_dato:
-            case "text":
-                stripped = raw_value.strip() if raw_value else ""
-                datos_adicionales[field.nombre_campo] = stripped or None
-            case "integer":
-                try:
-                    datos_adicionales[field.nombre_campo] = int(raw_value) if raw_value else None
-                except ValueError:
-                    datos_adicionales[field.nombre_campo] = None
-            case "decimal":
-                try:
-                    clean_value = raw_value.strip() if raw_value else ""
-                    if clean_value:
-                        decimal_value = Decimal(clean_value)
-                        # Store exact text representation to avoid float precision loss in JSON.
-                        datos_adicionales[field.nombre_campo] = format(decimal_value, "f")
-                    else:
-                        datos_adicionales[field.nombre_campo] = None
-                except (ValueError, InvalidOperation):
-                    datos_adicionales[field.nombre_campo] = None
-            case "boolean":
-                # Checkbox will send value only if checked
-                datos_adicionales[field.nombre_campo] = field_name in request.form
-            case _:
-                # Unknown type, store as text
-                datos_adicionales[field.nombre_campo] = raw_value or None
+        datos_adicionales[field.nombre_campo] = _convert_custom_field_value(
+            field.tipo_dato, raw_value, field_name in request.form
+        )
     return datos_adicionales
+
+
+def _convert_custom_field_value(tipo_dato: str, raw_value: str, checkbox_checked: bool):
+    """Convert one custom field value to its JSON-safe representation."""
+    tipo_dato = {
+        "texto": "text",
+        "entero": "integer",
+        "decimal": "decimal",
+        "booleano": "boolean",
+    }.get(tipo_dato, tipo_dato)
+
+    if tipo_dato == "text":
+        stripped = raw_value.strip() if raw_value else ""
+        return stripped or None
+    if tipo_dato == "integer":
+        try:
+            return int(raw_value) if raw_value else None
+        except ValueError:
+            return None
+    if tipo_dato == "decimal":
+        try:
+            clean_value = raw_value.strip() if raw_value else ""
+            return format(Decimal(clean_value), "f") if clean_value else None
+        except (ValueError, InvalidOperation):
+            return None
+    if tipo_dato == "boolean":
+        return checkbox_checked
+    return raw_value or None
 
 
 def process_last_three_salaries(form):
