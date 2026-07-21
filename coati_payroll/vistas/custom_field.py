@@ -14,6 +14,7 @@ from coati_payroll.model import CampoPersonalizado, db
 from coati_payroll.vistas.constants import PER_PAGE
 
 custom_field_bp = Blueprint("custom_field", __name__, url_prefix="/custom_field")
+CUSTOM_FIELD_INDEX_ENDPOINT = "custom_field.index"
 
 
 @custom_field_bp.route("/", methods=["GET"])
@@ -53,7 +54,7 @@ def new():
         db.session.add(custom_field)
         db.session.commit()
         flash(_("Campo personalizado creado exitosamente."), "success")
-        return redirect(url_for("custom_field.index"))
+        return redirect(url_for(CUSTOM_FIELD_INDEX_ENDPOINT))
 
     return render_template(
         "modules/custom_field/form.html",
@@ -69,7 +70,7 @@ def edit(id_: str):
     custom_field = db.session.get(CampoPersonalizado, id_)
     if not custom_field:
         flash(_("Campo personalizado no encontrado."), "error")
-        return redirect(url_for("custom_field.index"))
+        return redirect(url_for(CUSTOM_FIELD_INDEX_ENDPOINT))
 
     form = CustomFieldForm(obj=custom_field)
 
@@ -84,7 +85,7 @@ def edit(id_: str):
 
         db.session.commit()
         flash(_("Campo personalizado actualizado exitosamente."), "success")
-        return redirect(url_for("custom_field.index"))
+        return redirect(url_for(CUSTOM_FIELD_INDEX_ENDPOINT))
 
     return render_template(
         "modules/custom_field/form.html",
@@ -101,9 +102,9 @@ def delete(id_: str):
     custom_field = db.session.get(CampoPersonalizado, id_)
     if not custom_field:
         flash(_("Campo personalizado no encontrado."), "error")
-        return redirect(url_for("custom_field.index"))
+        return redirect(url_for(CUSTOM_FIELD_INDEX_ENDPOINT))
 
     db.session.delete(custom_field)
     db.session.commit()
     flash(_("Campo personalizado eliminado exitosamente."), "success")
-    return redirect(url_for("custom_field.index"))
+    return redirect(url_for(CUSTOM_FIELD_INDEX_ENDPOINT))

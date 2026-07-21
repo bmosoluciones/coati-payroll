@@ -14,6 +14,7 @@ from coati_payroll.model import TipoPlanilla, db
 from coati_payroll.vistas.constants import PER_PAGE
 
 tipo_planilla_bp = Blueprint("tipo_planilla", __name__, url_prefix="/tipo-planilla")
+TIPO_PLANILLA_INDEX_ENDPOINT = "tipo_planilla.index"
 
 
 @tipo_planilla_bp.route("/", methods=["GET"])
@@ -56,7 +57,7 @@ def new():
         db.session.add(tipo_planilla)
         db.session.commit()
         flash(_("Tipo de planilla creado exitosamente."), "success")
-        return redirect(url_for("tipo_planilla.index"))
+        return redirect(url_for(TIPO_PLANILLA_INDEX_ENDPOINT))
 
     return render_template(
         "modules/tipo_planilla/form.html",
@@ -72,7 +73,7 @@ def edit(id_: str):
     tipo_planilla = db.session.get(TipoPlanilla, id_)
     if not tipo_planilla:
         flash(_("Tipo de planilla no encontrado."), "error")
-        return redirect(url_for("tipo_planilla.index"))
+        return redirect(url_for(TIPO_PLANILLA_INDEX_ENDPOINT))
 
     form = TipoPlanillaForm(obj=tipo_planilla)
 
@@ -90,7 +91,7 @@ def edit(id_: str):
 
         db.session.commit()
         flash(_("Tipo de planilla actualizado exitosamente."), "success")
-        return redirect(url_for("tipo_planilla.index"))
+        return redirect(url_for(TIPO_PLANILLA_INDEX_ENDPOINT))
 
     return render_template(
         "modules/tipo_planilla/form.html",
@@ -107,7 +108,7 @@ def delete(id_: str):
     tipo_planilla = db.session.get(TipoPlanilla, id_)
     if not tipo_planilla:
         flash(_("Tipo de planilla no encontrado."), "error")
-        return redirect(url_for("tipo_planilla.index"))
+        return redirect(url_for(TIPO_PLANILLA_INDEX_ENDPOINT))
 
     # Check if this type is used by any planilla
     if tipo_planilla.planillas:
@@ -115,9 +116,9 @@ def delete(id_: str):
             _("No se puede eliminar un tipo de planilla que está siendo usado."),
             "error",
         )
-        return redirect(url_for("tipo_planilla.index"))
+        return redirect(url_for(TIPO_PLANILLA_INDEX_ENDPOINT))
 
     db.session.delete(tipo_planilla)
     db.session.commit()
     flash(_("Tipo de planilla eliminado exitosamente."), "success")
-    return redirect(url_for("tipo_planilla.index"))
+    return redirect(url_for(TIPO_PLANILLA_INDEX_ENDPOINT))
