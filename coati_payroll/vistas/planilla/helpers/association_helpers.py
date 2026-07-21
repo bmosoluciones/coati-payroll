@@ -57,6 +57,39 @@ def get_nomina_counts_by_planilla(planilla_ids: list[str]) -> dict[str, int]:
     return counts
 
 
+_COMPONENT_REGISTRY = {
+    "income": {
+        "model": PlanillaIngreso,
+        "fk_field": "percepcion_id",
+        "create_fields": lambda cid, extra, user: dict(
+            percepcion_id=cid, orden=extra.get("orden", 0), editable=True, activo=True, creado_por=user,
+        ),
+    },
+    "deduction": {
+        "model": PlanillaDeduccion,
+        "fk_field": "deduccion_id",
+        "create_fields": lambda cid, extra, user: dict(
+            deduccion_id=cid, prioridad=extra.get("prioridad", 100),
+            es_obligatoria=extra.get("es_obligatoria", False), editable=True, activo=True, creado_por=user,
+        ),
+    },
+    "benefit": {
+        "model": PlanillaPrestacion,
+        "fk_field": "prestacion_id",
+        "create_fields": lambda cid, extra, user: dict(
+            prestacion_id=cid, orden=extra.get("orden", 0), editable=True, activo=True, creado_por=user,
+        ),
+    },
+    "regla": {
+        "model": PlanillaReglaCalculo,
+        "fk_field": "regla_calculo_id",
+        "create_fields": lambda cid, extra, user: dict(
+            regla_calculo_id=cid, orden=extra.get("orden", 0), activo=True, creado_por=user,
+        ),
+    },
+}
+
+
 def agregar_asociacion(
     planilla_id: str,
     tipo_componente: str,
@@ -79,7 +112,6 @@ def agregar_asociacion(
     datos_extra = datos_extra or {}
     usuario = usuario or "system"
 
-    # Verify planilla exists
     planilla = db.session.get(Planilla, planilla_id)
     if not planilla:
         return False, "Planilla no encontrada", None
@@ -87,82 +119,23 @@ def agregar_asociacion(
     if not componente_id:
         return False, f"Debe seleccionar una {tipo_componente}.", None
 
-    tipo_componente = {
-        "percepcion": "income",
-        "deduccion": "deduction",
-        "prestacion": "benefit",
-    }.get(tipo_componente, tipo_componente)
+    tipo_componente = {"percepcion": "income", "deduccion": "deduction", "prestacion": "benefit"}.get(
+        tipo_componente, tipo_componente
+    )
 
-    # Check for existing association based on type
-    existing = None
-    association_class = None
-    filter_params = {"planilla_id": planilla_id}
-
-    if tipo_componente == "income":
-        association_class = PlanillaIngreso
-        filter_params["percepcion_id"] = componente_id
-    elif tipo_componente == "deduction":
-        association_class = PlanillaDeduccion
-        filter_params["deduccion_id"] = componente_id
-    elif tipo_componente == "benefit":
-        association_class = PlanillaPrestacion
-        filter_params["prestacion_id"] = componente_id
-    elif tipo_componente == "regla":
-        association_class = PlanillaReglaCalculo
-        filter_params["regla_calculo_id"] = componente_id
-    else:
+    reg = _COMPONENT_REGISTRY.get(tipo_componente)
+    if not reg:
         return False, f"Tipo de componente desconocido: {tipo_componente}", None
 
-    existing = db.session.execute(db.select(association_class).filter_by(**filter_params)).scalar_one_or_none()
-
+    filter_params = {"planilla_id": planilla_id, reg["fk_field"]: componente_id}
+    existing = db.session.execute(db.select(reg["model"]).filter_by(**filter_params)).scalar_one_or_none()
     if existing:
         return False, f"La {tipo_componente} ya está asignada a esta planilla.", None
 
-    # Create association based on type
-    if tipo_componente == "income":
-        orden = datos_extra.get("orden", 0)
-        association = PlanillaIngreso(
-            planilla_id=planilla_id,
-            percepcion_id=componente_id,
-            orden=orden,
-            editable=True,
-            activo=True,
-            creado_por=usuario,
-        )
-    elif tipo_componente == "deduction":
-        prioridad = datos_extra.get("prioridad", 100)
-        es_obligatoria = datos_extra.get("es_obligatoria", False)
-        association = PlanillaDeduccion(
-            planilla_id=planilla_id,
-            deduccion_id=componente_id,
-            prioridad=prioridad,
-            es_obligatoria=es_obligatoria,
-            editable=True,
-            activo=True,
-            creado_por=usuario,
-        )
-    elif tipo_componente == "benefit":
-        orden = datos_extra.get("orden", 0)
-        association = PlanillaPrestacion(
-            planilla_id=planilla_id,
-            prestacion_id=componente_id,
-            orden=orden,
-            editable=True,
-            activo=True,
-            creado_por=usuario,
-        )
-    elif tipo_componente == "regla":
-        orden = datos_extra.get("orden", 0)
-        association = PlanillaReglaCalculo(
-            planilla_id=planilla_id,
-            regla_calculo_id=componente_id,
-            orden=orden,
-            activo=True,
-            creado_por=usuario,
-        )
-    else:
-        return False, f"Tipo de componente desconocido: {tipo_componente}", None
-
+    association = reg["model"](
+        planilla_id=planilla_id,
+        **reg["create_fields"](componente_id, datos_extra, usuario),
+    )
     db.session.add(association)
     db.session.commit()
 
