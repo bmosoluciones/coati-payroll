@@ -302,7 +302,9 @@ def _generar_cuotas_amortizacion(
         if numero == num_cuotas:
             capital = saldo
         elif metodo == MetodoAmortizacion.FRANCES:
-            if cuota_constante is not None and cuota_constante <= interes_q:
+            if cuota_constante is None:
+                raise ValueError("La cuota constante es requerida para la amortización francesa.")
+            if cuota_constante <= interes_q:
                 raise ValueError("La cuota constante no cubre el interés; la amortización sería negativa.")
             capital = cuota_constante - interes_q
         else:

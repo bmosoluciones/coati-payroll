@@ -297,7 +297,7 @@ class NominaComparisonService:
         cls, comunes, base_by_emp, actual_by_emp, empleados_actual, drivers_empleado
     ) -> dict[str, Any]:
         """Analyze employee-level payroll changes and net salary alerts."""
-        analysis = {
+        analysis: dict[str, Any] = {
             "salarios_cambiados": [],
             "saldo_neto_cero": [],
             "saldo_neto_negativo": [],
