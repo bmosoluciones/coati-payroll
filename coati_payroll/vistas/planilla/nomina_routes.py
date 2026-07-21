@@ -1058,7 +1058,7 @@ def _aplicar_vacaciones_nomina(nomina: Nomina, planilla: Planilla, usuario: str 
             continue
         # Persist accruals and vacation usage only when the payroll is applied.
         vacation_service.acumular_vacaciones_empleado(empleado, nomina_empleado, usuario)
-        vacation_service.procesar_novedades_vacaciones(empleado, {}, usuario)
+        vacation_service.procesar_novedades_vacaciones(empleado, usuario)
 
 
 @planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/reintentar", methods=["POST"])

@@ -12,8 +12,6 @@ def round_money(amount: Decimal | None) -> Decimal:
 
     Args:
         amount: The amount to round.
-        moneda: Optional currency (reserved for future policy variations).
-
     Returns:
         Rounded Decimal value with 2 decimal places.
     """

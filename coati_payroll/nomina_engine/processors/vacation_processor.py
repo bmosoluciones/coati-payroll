@@ -60,7 +60,6 @@ class VacationProcessor:
             # Process vacation novelties (time off taken)
             used = vacation_service.procesar_novedades_vacaciones(
                 empleado=empleado,
-                novedades=emp_calculo.novedades,
                 usuario=self.usuario,
             )
             resumen_after = vacation_service.obtener_resumen_vacaciones(empleado)

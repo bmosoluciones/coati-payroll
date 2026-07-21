@@ -531,6 +531,7 @@ def test_acumular_vacaciones_max_balance_limit(app, db_session, planilla, emplea
 
         # Create ledger entry to establish balance
         from coati_payroll.model import VacationLedger
+
         ledger = VacationLedger(
             account_id=account.id,
             empleado_id=empleado.id,
@@ -734,7 +735,7 @@ def test_procesar_novedades_vacaciones_no_novelties(app, db_session, planilla, e
         service = VacationService(planilla, periodo_inicio, periodo_fin)
 
         # Process with no novelties
-        total_usado = service.procesar_novedades_vacaciones(empleado, {}, "test_user")
+        total_usado = service.procesar_novedades_vacaciones(empleado, "test_user")
 
         assert total_usado == Decimal("0.00")
 

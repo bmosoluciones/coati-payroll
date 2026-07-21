@@ -879,9 +879,7 @@ class VacationService:
         )
         return abs(units)
 
-    def procesar_novedades_vacaciones(
-        self, empleado: Empleado, _novedades: dict | list, usuario: str | None = None
-    ) -> Decimal:
+    def procesar_novedades_vacaciones(self, empleado: Empleado, usuario: str | None = None) -> Decimal:
         """Process vacation novelties (leave taken) during payroll execution."""
         total_usado = Decimal("0.00")
         self._validar_empleado_en_planilla(empleado)
