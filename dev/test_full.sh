@@ -44,15 +44,15 @@ VALIDATION_EXIT_CODE=$?
 
 # Report results
 echo ""
-if [ $REGULAR_EXIT_CODE -eq 0 ] && [ $VALIDATION_EXIT_CODE -eq 0 ]; then
+if [[ $REGULAR_EXIT_CODE -eq 0 && $VALIDATION_EXIT_CODE -eq 0 ]]; then
     echo -e "${GREEN}✓ All tests passed!${NC}"
     echo -e "${GREEN}Coverage report generated: coverage.xml${NC}"
     EXIT_CODE=0
 else
-    if [ $REGULAR_EXIT_CODE -ne 0 ]; then
+    if [[ $REGULAR_EXIT_CODE -ne 0 ]]; then
         echo -e "${RED}✗ Regular tests failed${NC}"
     fi
-    if [ $VALIDATION_EXIT_CODE -ne 0 ]; then
+    if [[ $VALIDATION_EXIT_CODE -ne 0 ]]; then
         echo -e "${RED}✗ Validation tests failed${NC}"
     fi
     EXIT_CODE=1

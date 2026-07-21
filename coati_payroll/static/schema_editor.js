@@ -630,7 +630,7 @@ function formatJson() {
 
 function loadExample() {
     if (confirm('Load progressive tax example? This will replace the current schema.')) {
-        schema = structuredClone(exampleSchema);
+        window.schema = structuredClone(exampleSchema);
         loadSchemaToEditor();
         updateJsonPreview();
         alert('Example loaded successfully');
@@ -757,7 +757,7 @@ async function loadJsonFile(event) {
 
         // Show confirmation dialog
         if (confirm('Load this schema? This will replace the current schema.')) {
-            schema = jsonData;
+            window.schema = jsonData;
             loadSchemaToEditor();
             updateJsonPreview();
             alert('Schema loaded successfully');

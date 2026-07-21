@@ -79,7 +79,7 @@ def ready():
         return {"status": "unavailable"}, 503
 
 
-@app.route("/manifest.json")
+@app.route("/manifest.json", methods=["GET"])
 def manifest():
     """Serve the PWA web app manifest with correct icon URLs."""
     data = {

@@ -27,7 +27,7 @@ pytest -n auto -x -q "$@"
 
 EXIT_CODE=$?
 
-if [ $EXIT_CODE -eq 0 ]; then
+if [[ $EXIT_CODE -eq 0 ]]; then
     echo -e "\n${GREEN}✓ Fast tests passed!${NC}"
 else
     echo -e "\n${RED}✗ Fast tests failed${NC}"

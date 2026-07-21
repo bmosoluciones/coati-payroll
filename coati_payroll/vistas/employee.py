@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import cast
 
@@ -14,7 +14,7 @@ from sqlalchemy import false, true
 
 from coati_payroll.forms import EmployeeForm, SalaryChangeForm
 from coati_payroll.i18n import _
-from coati_payroll.model import CampoPersonalizado, Empleado, HistorialSalario, Moneda, db
+from coati_payroll.model import CampoPersonalizado, Empleado, HistorialSalario, Moneda, db, utc_now
 from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO, PER_PAGE
 
@@ -373,7 +373,7 @@ def _requires_different_approver(employee: Empleado) -> bool:
     return (company_employee_count or 0) >= 50
 
 
-@employee_bp.route("/salary-changes")
+@employee_bp.route("/salary-changes", methods=["GET"])
 @require_read_access()
 def salary_changes_index():
     """List salary changes with filters for auditability."""
@@ -472,7 +472,7 @@ def salary_change_approve(change_id: str):
 
     salary_change.estado = "approved"
     salary_change.autorizado_por = current_user.usuario
-    salary_change.aprobado_en = datetime.utcnow()
+    salary_change.aprobado_en = utc_now()
     db.session.commit()
 
     flash(_("Cambio salarial aprobado."), "success")
@@ -501,7 +501,7 @@ def salary_change_apply(change_id: str):
     if salary_change.moneda_nueva_id:
         empleado.moneda_id = salary_change.moneda_nueva_id
     salary_change.aplicado_por = current_user.usuario
-    salary_change.aplicado_en = datetime.utcnow()
+    salary_change.aplicado_en = utc_now()
     salary_change.estado = "applied"
     db.session.commit()
 

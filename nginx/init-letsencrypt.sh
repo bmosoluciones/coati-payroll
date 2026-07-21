@@ -63,7 +63,7 @@ server {
 NGINX_CONF
 
 # Backup original nginx.conf
-if [ -f nginx/nginx.conf ]; then
+if [[ -f nginx/nginx.conf ]]; then
     echo "Backing up original nginx.conf..."
     cp nginx/nginx.conf nginx/nginx.conf.backup
 fi
@@ -92,7 +92,7 @@ docker-compose run --rm certbot certonly \
     --no-eff-email \
     -d "$DOMAIN"
 
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
     echo ""
     echo "SUCCESS! Certificate obtained successfully."
     echo ""
@@ -109,7 +109,7 @@ if [ $? -eq 0 ]; then
     echo ""
     
     # Restore original configuration
-    if [ -f nginx/nginx.conf.backup ]; then
+    if [[ -f nginx/nginx.conf.backup ]]; then
         echo "Restoring original nginx.conf..."
         mv nginx/nginx.conf.backup nginx/nginx.conf
     fi
@@ -130,7 +130,7 @@ else
     echo "" >&2
     
     # Restore original configuration
-    if [ -f nginx/nginx.conf.backup ]; then
+    if [[ -f nginx/nginx.conf.backup ]]; then
         echo "Restoring original nginx.conf..."
         mv nginx/nginx.conf.backup nginx/nginx.conf
     fi

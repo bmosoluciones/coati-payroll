@@ -15,7 +15,7 @@ from coati_payroll.vistas.implementation_helpers import import_accounting_config
 implementation_bp = Blueprint("implementation", __name__, url_prefix="/settings/helpers")
 
 
-@implementation_bp.route("/")
+@implementation_bp.route("/", methods=["GET"])
 @require_role(TipoUsuario.ADMIN)
 def index():
     """Display the initial implementation helpers menu."""

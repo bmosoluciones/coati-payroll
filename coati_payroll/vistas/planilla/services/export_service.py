@@ -25,6 +25,14 @@ from coati_payroll.nomina_engine.services.accounting_voucher_service import Acco
 
 # Constants
 ERROR_OPENPYXL_NOT_AVAILABLE = "openpyxl no está disponible"
+TITLE_MERGE_RANGE = "A1:F1"
+LABEL_PLANILLA_ID = "ID Planilla:"
+LABEL_PLANILLA_STATUS = "Status Planilla:"
+LABEL_APPLIED_BY = "Aplicado por:"
+LABEL_CONCEPT = "Concepto:"
+LABEL_CALCULATION_DATE = "Fecha de Cálculo:"
+DATE_FORMAT = "%d/%m/%Y"
+DATETIME_FORMAT = "%d/%m/%Y %H:%M"
 
 
 class ExportService:
@@ -33,24 +41,24 @@ class ExportService:
     @staticmethod
     def _create_styles(openpyxl_classes):
         """Create common Excel styles from openpyxl classes."""
-        _, Font, _, PatternFill, Border, Side = openpyxl_classes
+        _, font_class, _, pattern_fill_class, border_class, side_class = openpyxl_classes
         return {
-            "header_font": Font(bold=True, size=14, color="FFFFFF"),
-            "header_fill": PatternFill(start_color="366092", end_color="366092", fill_type="solid"),
-            "subheader_font": Font(bold=True, size=11),
-            "subheader_fill": PatternFill(start_color="B8CCE4", end_color="B8CCE4", fill_type="solid"),
-            "total_font": Font(bold=True, size=11),
-            "total_fill": PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid"),
-            "border": Border(
-                left=Side(style="thin"),
-                right=Side(style="thin"),
-                top=Side(style="thin"),
-                bottom=Side(style="thin"),
+            "header_font": font_class(bold=True, size=14, color="FFFFFF"),
+            "header_fill": pattern_fill_class(start_color="366092", end_color="366092", fill_type="solid"),
+            "subheader_font": font_class(bold=True, size=11),
+            "subheader_fill": pattern_fill_class(start_color="B8CCE4", end_color="B8CCE4", fill_type="solid"),
+            "total_font": font_class(bold=True, size=11),
+            "total_fill": pattern_fill_class(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid"),
+            "border": border_class(
+                left=side_class(style="thin"),
+                right=side_class(style="thin"),
+                top=side_class(style="thin"),
+                bottom=side_class(style="thin"),
             ),
         }
 
     @staticmethod
-    def _write_title(ws, title: str, styles: dict, merge_range: str = "A1:F1"):
+    def _write_title(ws, title: str, styles: dict, merge_range: str = TITLE_MERGE_RANGE):
         """Write a styled title to the worksheet."""
         from openpyxl.styles import Alignment
         ws.merge_cells(merge_range)
@@ -79,10 +87,10 @@ class ExportService:
             ws[f"A{row}"] = "Período:"
             ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
             row += 1
-            ws[f"A{row}"] = "ID Planilla:"
+            ws[f"A{row}"] = LABEL_PLANILLA_ID
             ws[f"B{row}"] = planilla.id
             row += 1
-            ws[f"A{row}"] = "Status Planilla:"
+            ws[f"A{row}"] = LABEL_PLANILLA_STATUS
             ws[f"B{row}"] = planilla.estado_aprobacion or ""
             row += 1
             ws[f"A{row}"] = "Estado Nomina:"
@@ -96,21 +104,21 @@ class ExportService:
                 ws[f"B{row}"] = nomina.aprobado_por
                 row += 1
             if getattr(nomina, "aplicado_por", None):
-                ws[f"A{row}"] = "Aplicado por:"
+                ws[f"A{row}"] = LABEL_APPLIED_BY
                 ws[f"B{row}"] = nomina.aplicado_por
                 row += 1
 
         if comprobante:
-            ws[f"A{row}"] = "Concepto:"
+            ws[f"A{row}"] = LABEL_CONCEPT
             ws[f"B{row}"] = comprobante.concepto or ""
             row += 1
-            ws[f"A{row}"] = "Fecha de Cálculo:"
-            ws[f"B{row}"] = comprobante.fecha_calculo.strftime("%d/%m/%Y")
+            ws[f"A{row}"] = LABEL_CALCULATION_DATE
+            ws[f"B{row}"] = comprobante.fecha_calculo.strftime(DATE_FORMAT)
             row += 1
-            ws[f"A{row}"] = "ID Planilla:"
+            ws[f"A{row}"] = LABEL_PLANILLA_ID
             ws[f"B{row}"] = planilla.id
             row += 1
-            ws[f"A{row}"] = "Status Planilla:"
+            ws[f"A{row}"] = LABEL_PLANILLA_STATUS
             ws[f"B{row}"] = planilla.estado_aprobacion or ""
             row += 1
             if comprobante.moneda:
@@ -118,12 +126,12 @@ class ExportService:
                 ws[f"B{row}"] = f"{comprobante.moneda.codigo} - {comprobante.moneda.nombre}"
                 row += 1
             if comprobante.aplicado_por:
-                ws[f"A{row}"] = "Aplicado por:"
+                ws[f"A{row}"] = LABEL_APPLIED_BY
                 ws[f"B{row}"] = comprobante.aplicado_por
                 row += 1
             if comprobante.fecha_aplicacion:
                 ws[f"A{row}"] = "Fecha aplicación:"
-                ws[f"B{row}"] = comprobante.fecha_aplicacion.strftime("%d/%m/%Y %H:%M")
+                ws[f"B{row}"] = comprobante.fecha_aplicacion.strftime(DATETIME_FORMAT)
                 row += 1
             if comprobante.veces_modificado > 0:
                 ws[f"A{row}"] = "Modificado:"
@@ -135,7 +143,7 @@ class ExportService:
                     row += 1
                 if comprobante.fecha_modificacion:
                     ws[f"A{row}"] = "Fecha última modificación:"
-                    ws[f"B{row}"] = comprobante.fecha_modificacion.strftime("%d/%m/%Y %H:%M")
+                    ws[f"B{row}"] = comprobante.fecha_modificacion.strftime(DATETIME_FORMAT)
                     row += 1
 
         return row
@@ -209,7 +217,7 @@ class ExportService:
         ws[f"B{row}"] = nomina.aprobado_por or "N/A"
         row += 1
 
-        ws[f"A{row}"] = "Aplicado por:"
+        ws[f"A{row}"] = LABEL_APPLIED_BY
         ws[f"B{row}"] = nomina.aplicado_por or "N/A"
         return row + 1
 
@@ -499,11 +507,11 @@ class ExportService:
         ws[f"B{row}"] = planilla.empresa_id or "N/A"
         row += 1
 
-        ws[f"A{row}"] = "ID Planilla:"
+        ws[f"A{row}"] = LABEL_PLANILLA_ID
         ws[f"B{row}"] = planilla.id or "N/A"
         row += 1
 
-        ws[f"A{row}"] = "Status Planilla:"
+        ws[f"A{row}"] = LABEL_PLANILLA_STATUS
         ws[f"B{row}"] = planilla.estado_aprobacion or "N/A"
         row += 1
 
@@ -691,7 +699,7 @@ class ExportService:
         )
 
         # Title
-        ws.merge_cells("A1:F1")
+        ws.merge_cells(TITLE_MERGE_RANGE)
         title_cell = ws["A1"]
         title_cell.value = f"PRESTACIONES LABORALES - {planilla.nombre}"
         title_cell.font = header_font
@@ -838,7 +846,7 @@ class ExportService:
             bottom=Side(style="thin"),
         )
 
-        ws.merge_cells("A1:F1")
+        ws.merge_cells(TITLE_MERGE_RANGE)
         title_cell = ws["A1"]
         title_cell.value = "LIQUIDACIÓN"
         title_cell.font = header_font
@@ -981,7 +989,7 @@ class ExportService:
         )
 
         # Title
-        ws.merge_cells("A1:F1")
+        ws.merge_cells(TITLE_MERGE_RANGE)
         title_cell = ws["A1"]
         title_cell.value = f"COMPROBANTE CONTABLE - {planilla.nombre}"
         title_cell.font = header_font
@@ -995,19 +1003,19 @@ class ExportService:
             ws[f"B{row}"] = planilla.empresa.razon_social
             row += 1
 
-        ws[f"A{row}"] = "Concepto:"
+        ws[f"A{row}"] = LABEL_CONCEPT
         ws[f"B{row}"] = comprobante.concepto or ""
         row += 1
 
-        ws[f"A{row}"] = "Fecha de Cálculo:"
-        ws[f"B{row}"] = comprobante.fecha_calculo.strftime("%d/%m/%Y")
+        ws[f"A{row}"] = LABEL_CALCULATION_DATE
+        ws[f"B{row}"] = comprobante.fecha_calculo.strftime(DATE_FORMAT)
         row += 1
 
         ws[f"A{row}"] = "Período:"
         ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
         row += 1
 
-        ws[f"A{row}"] = "ID Planilla:"
+        ws[f"A{row}"] = LABEL_PLANILLA_ID
         ws[f"B{row}"] = planilla.id
         row += 1
 
@@ -1022,13 +1030,13 @@ class ExportService:
 
         # Audit trail information
         if comprobante.aplicado_por:
-            ws[f"A{row}"] = "Aplicado por:"
+            ws[f"A{row}"] = LABEL_APPLIED_BY
             ws[f"B{row}"] = comprobante.aplicado_por
             row += 1
 
         if comprobante.fecha_aplicacion:
             ws[f"A{row}"] = "Fecha aplicación:"
-            ws[f"B{row}"] = comprobante.fecha_aplicacion.strftime("%d/%m/%Y %H:%M")
+            ws[f"B{row}"] = comprobante.fecha_aplicacion.strftime(DATETIME_FORMAT)
             row += 1
 
         if comprobante.veces_modificado > 0:
@@ -1043,7 +1051,7 @@ class ExportService:
 
             if comprobante.fecha_modificacion:
                 ws[f"A{row}"] = "Fecha última modificación:"
-                ws[f"B{row}"] = comprobante.fecha_modificacion.strftime("%d/%m/%Y %H:%M")
+                ws[f"B{row}"] = comprobante.fecha_modificacion.strftime(DATETIME_FORMAT)
                 row += 1
 
         row += 1
@@ -1186,19 +1194,19 @@ class ExportService:
             ws[f"B{row}"] = planilla.empresa.razon_social
             row += 1
 
-        ws[f"A{row}"] = "Concepto:"
+        ws[f"A{row}"] = LABEL_CONCEPT
         ws[f"B{row}"] = comprobante.concepto or ""
         row += 1
 
-        ws[f"A{row}"] = "Fecha de Cálculo:"
-        ws[f"B{row}"] = comprobante.fecha_calculo.strftime("%d/%m/%Y")
+        ws[f"A{row}"] = LABEL_CALCULATION_DATE
+        ws[f"B{row}"] = comprobante.fecha_calculo.strftime(DATE_FORMAT)
         row += 1
 
         ws[f"A{row}"] = "Período:"
         ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
         row += 1
 
-        ws[f"A{row}"] = "ID Planilla:"
+        ws[f"A{row}"] = LABEL_PLANILLA_ID
         ws[f"B{row}"] = planilla.id
         row += 1
 
