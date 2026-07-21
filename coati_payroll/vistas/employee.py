@@ -120,6 +120,60 @@ def process_last_three_salaries(form):
     return ultimos_salarios if ultimos_salarios else None
 
 
+def _update_employee_from_form(employee, form, custom_fields, *, is_new: bool) -> Decimal:
+    """Apply form values to an employee and return the previous base salary."""
+    salario_actual = employee.salario_base or Decimal("0.00")
+    if form.codigo_empleado.data and form.codigo_empleado.data.strip():
+        employee.codigo_empleado = form.codigo_empleado.data.strip()
+
+    fields = (
+        "primer_nombre",
+        "segundo_nombre",
+        "primer_apellido",
+        "segundo_apellido",
+        "nacionalidad",
+        "identificacion_personal",
+        "fecha_nacimiento",
+        "fecha_alta",
+        "fecha_baja",
+        "activo",
+        "cargo",
+        "area",
+        "centro_costos",
+        "correo",
+        "telefono",
+        "direccion",
+        "banco",
+        "numero_cuenta_bancaria",
+    )
+    optional_fields = (
+        "genero",
+        "tipo_identificacion",
+        "id_seguridad_social",
+        "id_fiscal",
+        "tipo_sangre",
+        "estado_civil",
+        "tipo_contrato",
+        "moneda_id",
+        "empresa_id",
+    )
+    for field_name in fields:
+        setattr(employee, field_name, getattr(form, field_name).data)
+    for field_name in optional_fields:
+        setattr(employee, field_name, getattr(form, field_name).data or None)
+
+    employee.salario_base = form.salario_base.data or Decimal("0.00")
+    employee.salario_acumulado = form.salario_acumulado.data or Decimal("0.00")
+    employee.impuesto_acumulado = form.impuesto_acumulado.data or Decimal("0.00")
+    employee.ultimos_tres_salarios = process_last_three_salaries(form)
+    employee.datos_adicionales = process_custom_fields_from_request(custom_fields)
+    if is_new:
+        employee.creado_por = current_user.usuario
+    else:
+        employee.modificado_por = current_user.usuario
+    return salario_actual
+
+
 @employee_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
@@ -190,48 +244,7 @@ def new():
 
     if form.validate_on_submit():
         employee = Empleado()
-        # Set codigo_empleado only if provided (otherwise default will be used)
-        if form.codigo_empleado.data and form.codigo_empleado.data.strip():
-            employee.codigo_empleado = form.codigo_empleado.data.strip()
-        employee.primer_nombre = form.primer_nombre.data
-        employee.segundo_nombre = form.segundo_nombre.data
-        employee.primer_apellido = form.primer_apellido.data
-        employee.segundo_apellido = form.segundo_apellido.data
-        employee.genero = form.genero.data or None
-        employee.nacionalidad = form.nacionalidad.data
-        employee.tipo_identificacion = form.tipo_identificacion.data or None
-        employee.identificacion_personal = form.identificacion_personal.data
-        employee.id_seguridad_social = form.id_seguridad_social.data or None
-        employee.id_fiscal = form.id_fiscal.data or None
-        employee.tipo_sangre = form.tipo_sangre.data or None
-        employee.fecha_nacimiento = form.fecha_nacimiento.data
-        employee.fecha_alta = form.fecha_alta.data
-        employee.fecha_baja = form.fecha_baja.data
-        employee.activo = form.activo.data
-        employee.cargo = form.cargo.data
-        employee.area = form.area.data
-        employee.centro_costos = form.centro_costos.data
-        employee.salario_base = form.salario_base.data or Decimal("0.00")
-        employee.moneda_id = form.moneda_id.data or None
-        employee.empresa_id = form.empresa_id.data or None
-        employee.correo = form.correo.data
-        employee.telefono = form.telefono.data
-        employee.direccion = form.direccion.data
-        employee.estado_civil = form.estado_civil.data or None
-        employee.banco = form.banco.data
-        employee.numero_cuenta_bancaria = form.numero_cuenta_bancaria.data
-        employee.tipo_contrato = form.tipo_contrato.data or None
-        employee.creado_por = current_user.usuario
-
-        # Initial implementation data
-        employee.salario_acumulado = form.salario_acumulado.data or Decimal("0.00")
-        employee.impuesto_acumulado = form.impuesto_acumulado.data or Decimal("0.00")
-
-        # Store last three salaries in JSON format using helper function
-        employee.ultimos_tres_salarios = process_last_three_salaries(form)
-
-        # Process custom fields
-        employee.datos_adicionales = process_custom_fields_from_request(custom_fields)
+        _update_employee_from_form(employee, form, custom_fields, is_new=True)
 
         db.session.add(employee)
         db.session.commit()
@@ -268,49 +281,9 @@ def edit(id_: str):
     custom_fields = get_custom_fields()
 
     if form.validate_on_submit():
-        # Update codigo_empleado only if provided
-        if form.codigo_empleado.data and form.codigo_empleado.data.strip():
-            employee.codigo_empleado = form.codigo_empleado.data.strip()
-        employee.primer_nombre = form.primer_nombre.data
-        employee.segundo_nombre = form.segundo_nombre.data
-        employee.primer_apellido = form.primer_apellido.data
-        employee.segundo_apellido = form.segundo_apellido.data
-        employee.genero = form.genero.data or None
-        employee.nacionalidad = form.nacionalidad.data
-        employee.tipo_identificacion = form.tipo_identificacion.data or None
-        employee.identificacion_personal = form.identificacion_personal.data
-        employee.id_seguridad_social = form.id_seguridad_social.data or None
-        employee.id_fiscal = form.id_fiscal.data or None
-        employee.tipo_sangre = form.tipo_sangre.data or None
-        employee.fecha_nacimiento = form.fecha_nacimiento.data
-        employee.fecha_alta = form.fecha_alta.data
-        employee.fecha_baja = form.fecha_baja.data
-        employee.activo = form.activo.data
-        employee.cargo = form.cargo.data
-        employee.area = form.area.data
-        employee.centro_costos = form.centro_costos.data
         salario_actual = employee.salario_base or Decimal("0.00")
         salario_propuesto = form.salario_base.data or Decimal("0.00")
-        employee.moneda_id = form.moneda_id.data or None
-        employee.empresa_id = form.empresa_id.data or None
-        employee.correo = form.correo.data
-        employee.telefono = form.telefono.data
-        employee.direccion = form.direccion.data
-        employee.estado_civil = form.estado_civil.data or None
-        employee.banco = form.banco.data
-        employee.numero_cuenta_bancaria = form.numero_cuenta_bancaria.data
-        employee.tipo_contrato = form.tipo_contrato.data or None
-        employee.modificado_por = current_user.usuario
-
-        # Initial implementation data
-        employee.salario_acumulado = form.salario_acumulado.data or Decimal("0.00")
-        employee.impuesto_acumulado = form.impuesto_acumulado.data or Decimal("0.00")
-
-        # Store last three salaries in JSON format using helper function
-        employee.ultimos_tres_salarios = process_last_three_salaries(form)
-
-        # Process custom fields
-        employee.datos_adicionales = process_custom_fields_from_request(custom_fields)
+        _update_employee_from_form(employee, form, custom_fields, is_new=False)
 
         db.session.commit()
 
