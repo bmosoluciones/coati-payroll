@@ -435,50 +435,8 @@ class VacationService:
 
         policy = cast("VacationPolicy", account.policy)
         self._validar_policy(policy)
-        if policy.unit_type not in ("days", "hours"):
-            raise ValidationError(f"Tipo de unidad inválida en policy {policy.codigo}: {policy.unit_type}.")
-
-        if not policy.accrue_during_leave and self._empleado_tiene_vacaciones_en_periodo(empleado):
-            log.info(
-                "Skipping accrual for employee %s due to vacation leave in period (policy=%s).",
-                empleado.codigo_empleado,
-                policy.codigo,
-            )
+        if not self._eligible_for_accrual(empleado, nomina_empleado, account, policy):
             return Decimal("0.00")
-
-        existing_entry = (
-            db.session.execute(
-                db.select(VacationLedger).filter(
-                    VacationLedger.entry_type == VacationLedgerType.ACCRUAL,
-                    VacationLedger.source == "payroll",
-                    VacationLedger.reference_type == "nomina_empleado",
-                    VacationLedger.reference_id == nomina_empleado.id,
-                    VacationLedger.account_id == account.id,
-                )
-            )
-            .scalars()
-            .first()
-        )
-        if existing_entry:
-            log.info(
-                "Accrual already applied for employee %s on nomina %s (ledger=%s).",
-                empleado.codigo_empleado,
-                nomina_empleado.id,
-                existing_entry.id,
-            )
-            return Decimal("0.00")
-
-        # Check if employee meets minimum service requirement
-        if empleado.fecha_alta:
-            dias_servicio = (self.periodo_fin - empleado.fecha_alta).days
-            if dias_servicio < policy.min_service_days:
-                log.debug(
-                    "Employee %s has not met minimum service days (%s < %s)",
-                    empleado.codigo_empleado,
-                    dias_servicio,
-                    policy.min_service_days,
-                )
-                return Decimal("0.00")
 
         # Calculate accrual amount based on policy
         accrual_amount = self._calcular_acumulacion(empleado, account, nomina_empleado)
@@ -494,27 +452,11 @@ class VacationService:
         else:
             balance_before = self._obtener_balance(account)
 
-        # Check max balance limit
-        if policy.max_balance:
-            max_balance = self._quantize_amount(Decimal(str(policy.max_balance)))
-            if balance_before + accrual_amount > max_balance:
-                # Cap at max balance
-                accrual_amount = max_balance - balance_before
-                if accrual_amount <= 0:
-                    log.debug(
-                        "Employee %s has reached max vacation balance (%s >= %s)",
-                        empleado.codigo_empleado,
-                        balance_before,
-                        max_balance,
-                    )
-                    return Decimal("0.00")
-
-        accrual_amount = self._quantize_amount(accrual_amount)
-        if not policy.partial_units_allowed:
-            rounding = self.ROUNDING_RULES.get(policy.rounding_rule, ROUND_HALF_UP)
-            accrual_amount = accrual_amount.quantize(Decimal("1"), rounding=rounding)
-            if accrual_amount <= 0:
-                return Decimal("0.00")
+        accrual_amount = self._normalize_accrual_amount(
+            accrual_amount, balance_before, policy, empleado.codigo_empleado
+        )
+        if accrual_amount <= 0:
+            return Decimal("0.00")
 
         if not self.apply_side_effects:
             log.trace(
@@ -562,6 +504,72 @@ class VacationService:
         )
 
         return accrual_amount
+
+    def _eligible_for_accrual(self, empleado, nomina_empleado, account, policy) -> bool:
+        """Check policy, leave, idempotency, and seniority prerequisites."""
+        from coati_payroll.model import db, VacationLedger
+
+        if policy.unit_type not in ("days", "hours"):
+            raise ValidationError(f"Tipo de unidad inválida en policy {policy.codigo}: {policy.unit_type}.")
+        if not policy.accrue_during_leave and self._empleado_tiene_vacaciones_en_periodo(empleado):
+            log.info(
+                "Skipping accrual for employee %s due to vacation leave in period (policy=%s).",
+                empleado.codigo_empleado,
+                policy.codigo,
+            )
+            return False
+        existing_entry = (
+            db.session.execute(
+                db.select(VacationLedger).filter(
+                    VacationLedger.entry_type == VacationLedgerType.ACCRUAL,
+                    VacationLedger.source == "payroll",
+                    VacationLedger.reference_type == "nomina_empleado",
+                    VacationLedger.reference_id == nomina_empleado.id,
+                    VacationLedger.account_id == account.id,
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if existing_entry:
+            log.info(
+                "Accrual already applied for employee %s on nomina %s (ledger=%s).",
+                empleado.codigo_empleado,
+                nomina_empleado.id,
+                existing_entry.id,
+            )
+            return False
+        if empleado.fecha_alta:
+            dias_servicio = (self.periodo_fin - empleado.fecha_alta).days
+            if dias_servicio < policy.min_service_days:
+                log.debug(
+                    "Employee %s has not met minimum service days (%s < %s)",
+                    empleado.codigo_empleado,
+                    dias_servicio,
+                    policy.min_service_days,
+                )
+                return False
+        return True
+
+    def _normalize_accrual_amount(self, amount, balance_before, policy, employee_code) -> Decimal:
+        """Apply vacation balance caps and unit rounding."""
+        if policy.max_balance:
+            max_balance = self._quantize_amount(Decimal(str(policy.max_balance)))
+            if balance_before + amount > max_balance:
+                amount = max_balance - balance_before
+                if amount <= 0:
+                    log.debug(
+                        "Employee %s has reached max vacation balance (%s >= %s)",
+                        employee_code,
+                        balance_before,
+                        max_balance,
+                    )
+                    return Decimal("0.00")
+        amount = self._quantize_amount(amount)
+        if not policy.partial_units_allowed:
+            rounding = self.ROUNDING_RULES.get(policy.rounding_rule, ROUND_HALF_UP)
+            amount = amount.quantize(Decimal("1"), rounding=rounding)
+        return amount
 
     def _calcular_acumulacion(
         self, empleado: Empleado, account: VacationAccount, nomina_empleado: NominaEmpleado
