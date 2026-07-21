@@ -13,6 +13,7 @@ from coati_payroll.vistas.planilla.helpers import check_openpyxl_available
 from coati_payroll.vistas.implementation_helpers import import_accounting_configuration_rows
 
 implementation_bp = Blueprint("implementation", __name__, url_prefix="/settings/helpers")
+IMPLEMENTATION_INDEX_ENDPOINT = "implementation.index"
 
 
 @implementation_bp.route("/", methods=["GET"])
@@ -28,12 +29,12 @@ def import_accounting_configuration():
     """Import accounting account configuration from an Excel template."""
     if not check_openpyxl_available():
         flash(_("Carga no disponible. Instale openpyxl."), "warning")
-        return redirect(url_for("implementation.index"))
+        return redirect(url_for(IMPLEMENTATION_INDEX_ENDPOINT))
 
     uploaded_file = request.files.get("accounting_file")
     if uploaded_file is None or not uploaded_file.filename:
         flash(_("Debe seleccionar un archivo Excel para importar."), "error")
-        return redirect(url_for("implementation.index"))
+        return redirect(url_for(IMPLEMENTATION_INDEX_ENDPOINT))
 
     try:
         from openpyxl import load_workbook
@@ -55,4 +56,4 @@ def import_accounting_configuration():
     except Exception as exc:  # pragma: no cover - defensive fallback
         flash(_("No se pudo procesar el archivo: {}").format(str(exc)), "error")
 
-    return redirect(url_for("implementation.index"))
+    return redirect(url_for(IMPLEMENTATION_INDEX_ENDPOINT))

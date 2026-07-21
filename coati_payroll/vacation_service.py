@@ -551,7 +551,7 @@ class VacationService:
         ledger_entry.balance_after = balance_after
 
         log.info(
-            "Accrued %s %s vacation for employee %s policy=%s scope=%s " "balance_before=%s balance_after=%s",
+            "Accrued %s %s vacation for employee %s policy=%s scope=%s balance_before=%s balance_after=%s",
             accrual_amount,
             policy.unit_type,
             empleado.codigo_empleado,
