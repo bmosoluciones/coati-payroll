@@ -317,11 +317,11 @@ def _process_vacation_application(planilla, nomina, vacaciones_pendientes, perce
     percepcion_id = request.form.get("percepcion_id") if tipo_concepto == "income" else None
     deduccion_id = request.form.get("deduccion_id") if tipo_concepto == "deduction" else None
 
-    template_ctx = dict(
-        planilla=planilla, nomina=nomina, vacaciones=vacaciones_pendientes,
-        percepciones=percepciones, deducciones=deducciones,
-        tipo_concepto=tipo_concepto, percepcion_id=percepcion_id, deduccion_id=deduccion_id,
-    )
+    template_ctx = {
+        "planilla": planilla, "nomina": nomina, "vacaciones": vacaciones_pendientes,
+        "percepciones": percepciones, "deducciones": deducciones,
+        "tipo_concepto": tipo_concepto, "percepcion_id": percepcion_id, "deduccion_id": deduccion_id,
+    }
 
     if not seleccionadas:
         flash(_("Debe seleccionar al menos una solicitud de vacaciones."), "warning")
@@ -350,7 +350,7 @@ def _resolve_vacation_concept(tipo_concepto, percepcion_id, deduccion_id):
     """Resolve the concept entity for vacation application."""
     if tipo_concepto == "income":
         return db.session.get(Percepcion, percepcion_id) if percepcion_id else None
-    elif tipo_concepto == "deduction":
+    if tipo_concepto == "deduction":
         return db.session.get(Deduccion, deduccion_id) if deduccion_id else None
     return None
 

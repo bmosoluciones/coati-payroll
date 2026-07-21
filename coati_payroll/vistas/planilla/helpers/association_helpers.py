@@ -61,31 +61,31 @@ _COMPONENT_REGISTRY = {
     "income": {
         "model": PlanillaIngreso,
         "fk_field": "percepcion_id",
-        "create_fields": lambda cid, extra, user: dict(
-            percepcion_id=cid, orden=extra.get("orden", 0), editable=True, activo=True, creado_por=user,
-        ),
+        "create_fields": lambda cid, extra, user: {
+            "percepcion_id": cid, "orden": extra.get("orden", 0), "editable": True, "activo": True, "creado_por": user,
+        },
     },
     "deduction": {
         "model": PlanillaDeduccion,
         "fk_field": "deduccion_id",
-        "create_fields": lambda cid, extra, user: dict(
-            deduccion_id=cid, prioridad=extra.get("prioridad", 100),
-            es_obligatoria=extra.get("es_obligatoria", False), editable=True, activo=True, creado_por=user,
-        ),
+        "create_fields": lambda cid, extra, user: {
+            "deduccion_id": cid, "prioridad": extra.get("prioridad", 100),
+            "es_obligatoria": extra.get("es_obligatoria", False), "editable": True, "activo": True, "creado_por": user,
+        },
     },
     "benefit": {
         "model": PlanillaPrestacion,
         "fk_field": "prestacion_id",
-        "create_fields": lambda cid, extra, user: dict(
-            prestacion_id=cid, orden=extra.get("orden", 0), editable=True, activo=True, creado_por=user,
-        ),
+        "create_fields": lambda cid, extra, user: {
+            "prestacion_id": cid, "orden": extra.get("orden", 0), "editable": True, "activo": True, "creado_por": user,
+        },
     },
     "regla": {
         "model": PlanillaReglaCalculo,
         "fk_field": "regla_calculo_id",
-        "create_fields": lambda cid, extra, user: dict(
-            regla_calculo_id=cid, orden=extra.get("orden", 0), activo=True, creado_por=user,
-        ),
+        "create_fields": lambda cid, extra, user: {
+            "regla_calculo_id": cid, "orden": extra.get("orden", 0), "activo": True, "creado_por": user,
+        },
     },
 }
 

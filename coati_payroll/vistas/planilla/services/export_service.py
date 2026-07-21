@@ -28,7 +28,7 @@ class ExportService:
     @staticmethod
     def _create_styles(openpyxl_classes):
         """Create common Excel styles from openpyxl classes."""
-        Workbook, Font, Alignment, PatternFill, Border, Side = openpyxl_classes
+        _, Font, _, PatternFill, Border, Side = openpyxl_classes
         return {
             "header_font": Font(bold=True, size=14, color="FFFFFF"),
             "header_fill": PatternFill(start_color="366092", end_color="366092", fill_type="solid"),
@@ -206,7 +206,7 @@ class ExportService:
         if not openpyxl_classes:
             raise ImportError(ERROR_OPENPYXL_NOT_AVAILABLE)
 
-        Workbook, Font, Alignment, PatternFill, Border, Side = openpyxl_classes
+        Workbook, *_ = openpyxl_classes
 
         nomina_empleados = db.session.execute(db.select(NominaEmpleado).filter_by(nomina_id=nomina.id)).scalars().all()
 

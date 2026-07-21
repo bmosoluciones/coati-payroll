@@ -804,7 +804,6 @@ class VacationService:
         """Process a single vacation usage entry."""
         from coati_payroll.enums import VacacionEstado
         from coati_payroll.model import db, VacationAccount, VacationLedger
-        from coati_payroll.enums import VacationLedgerType
 
         account = vac_novelty.account
         existing_usage = (
