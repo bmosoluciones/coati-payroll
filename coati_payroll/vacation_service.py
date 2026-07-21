@@ -779,8 +779,6 @@ class VacationService:
 
     def _validate_vacation_novelty(self, vac_novelty, empleado, policy):
         """Validate vacation novelty data."""
-        from coati_payroll.enums import VacacionEstado
-
         if vac_novelty.start_date > vac_novelty.end_date:
             raise ValidationError(
                 f"Vacaciones inválidas para empleado {empleado.codigo_empleado}: fecha inicio mayor a fin."
@@ -875,8 +873,6 @@ class VacationService:
         self, empleado: Empleado, novedades: dict | list, usuario: str | None = None
     ) -> Decimal:
         """Process vacation novelties (leave taken) during payroll execution."""
-        from coati_payroll.model import db, VacationNovelty
-
         total_usado = Decimal("0.00")
         self._validar_empleado_en_planilla(empleado)
 

@@ -47,6 +47,7 @@ class ExportService:
     @staticmethod
     def _write_title(ws, title: str, styles: dict, merge_range: str = "A1:F1"):
         """Write a styled title to the worksheet."""
+        from openpyxl.styles import Alignment
         ws.merge_cells(merge_range)
         cell = ws["A1"]
         cell.value = title
@@ -57,8 +58,6 @@ class ExportService:
     @staticmethod
     def _write_info_block(ws, row: int, planilla, nomina=None, comprobante=None) -> int:
         """Write common metadata info block. Returns next available row."""
-        Alignment = None  # noqa: N806
-
         if planilla.empresa_id and planilla.empresa:
             ws[f"A{row}"] = "Empresa:"
             ws[f"B{row}"] = planilla.empresa.razon_social
@@ -122,6 +121,7 @@ class ExportService:
     @staticmethod
     def _write_table_headers(ws, row: int, headers: list[str], styles: dict):
         """Write styled table headers."""
+        from openpyxl.styles import Alignment
         for col, header in enumerate(headers, start=1):
             cell = ws.cell(row=row, column=col, value=header)
             cell.font = styles["subheader_font"]
@@ -152,6 +152,7 @@ class ExportService:
     @staticmethod
     def _write_warnings(ws, row: int, warnings: list[str]):
         """Write warning messages."""
+        from openpyxl.styles import Font
         if not warnings:
             return row
         ws[f"A{row}"] = "ADVERTENCIAS:"
@@ -233,8 +234,10 @@ class ExportService:
             ws.cell(row=row, column=2, value=emp.identificacion_personal).border = styles["border"]
             ws.cell(row=row, column=3, value=emp.id_seguridad_social or "").border = styles["border"]
             ws.cell(row=row, column=4, value=emp.id_fiscal or "").border = styles["border"]
-            ws.cell(row=row, column=5, value=f"{emp.primer_nombre} {emp.segundo_nombre or ''}".strip()).border = styles["border"]
-            ws.cell(row=row, column=6, value=f"{emp.primer_apellido} {emp.segundo_apellido or ''}".strip()).border = styles["border"]
+            name = f"{emp.primer_nombre} {emp.segundo_nombre or ''}".strip()
+            ws.cell(row=row, column=5, value=name).border = styles["border"]
+            last_name = f"{emp.primer_apellido} {emp.segundo_apellido or ''}".strip()
+            ws.cell(row=row, column=6, value=last_name).border = styles["border"]
             ws.cell(row=row, column=7, value=ne.cargo_snapshot or emp.cargo or "").border = styles["border"]
             ws.cell(row=row, column=8, value=float(ne.sueldo_base_historico)).border = styles["border"]
             ws.cell(row=row, column=9, value=float(ne.total_ingresos)).border = styles["border"]

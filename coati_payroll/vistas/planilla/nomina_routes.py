@@ -369,7 +369,8 @@ def _apply_vacation_novelties(seleccionadas, nomina, codigo_concepto, percepcion
         if existing_bridge:
             continue
 
-        tipo_valor = "horas" if (vacation.account and vacation.account.policy and vacation.account.policy.unit_type == "hours") else "dias"
+        is_hours = vacation.account and vacation.account.policy and vacation.account.policy.unit_type == "hours"
+        tipo_valor = "horas" if is_hours else "dias"
         fecha_novedad = max(vacation.start_date, nomina.periodo_inicio)
         es_inasistencia, descontar_pago_inasistencia = NovedadService.resolve_absence_flags(
             percepcion_id=percepcion_id, deduccion_id=deduccion_id,

@@ -62,7 +62,7 @@ def output_result(ctx, message, data=None, success=True):
         click.echo(f"{symbol} {message}")
 
 
-def _run_plugin_hook(module, hook_name, plugin_name, aliases=None):
+def _run_plugin_hook(ctx, module, hook_name, plugin_name, aliases=None):
     """Run a plugin hook function with standard error handling."""
     fn = getattr(module, hook_name, None)
     if fn is None and aliases:
@@ -175,14 +175,14 @@ class PluginsCommand(click.Group):
         @pass_context
         def plugin_init(ctx):
             module = _load_module_or_fail()
-            _run_plugin_hook(module, "init", name)
+            _run_plugin_hook(ctx, module, "init", name)
 
         @plugin_group.command("update")
         @with_appcontext
         @pass_context
         def plugin_update(ctx):
             module = _load_module_or_fail()
-            _run_plugin_hook(module, "update", name)
+            _run_plugin_hook(ctx, module, "update", name)
 
         @plugin_group.command("demo_data")
         @with_appcontext
@@ -190,7 +190,7 @@ class PluginsCommand(click.Group):
         def plugin_demo_data(ctx):
             """Carga datos de demostración para pruebas automáticas."""
             module = _load_module_or_fail()
-            _run_plugin_hook(module, "demo_data", name, aliases=["load_demo_data"])
+            _run_plugin_hook(ctx, module, "demo_data", name, aliases=["load_demo_data"])
 
         @plugin_group.command("enable")
         @with_appcontext
@@ -247,7 +247,8 @@ class PluginsCommand(click.Group):
                 output_result(ctx, f"Información del plugin '{name}'", meta, True)
             else:
                 click.echo(f"Info del plugin '{name}':")
-                for key, label in [("description", "Description"), ("distribution_name", "Package"), ("version", "Version")]:
+                info_keys = [("description", "Description"), ("distribution_name", "Package"), ("version", "Version")]
+                for key, label in info_keys:
                     if meta.get(key):
                         click.echo(f"  {label}: {meta[key]}")
                 click.echo(f"  Installed: {meta.get('installed', False)}")

@@ -262,8 +262,11 @@ class AccountingVoucherService:
         linea_debe = self._create_line(
             comprobante.id, ne, empleado, empleado_nombre, centro_costos,
             planilla.codigo_cuenta_haber_salario,
-            (planilla.descripcion_cuenta_haber_salario or "Salario por Pagar") if planilla.codigo_cuenta_haber_salario else None,
-            "debito", detalle_monto, detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO, "loan", detalle.codigo, orden,
+            (
+                planilla.descripcion_cuenta_haber_salario or "Salario por Pagar"
+            ) if planilla.codigo_cuenta_haber_salario else None,
+            "debito", detalle_monto, detalle.descripcion or CONCEPTO_PRESTAMO_ADELANTO,
+            "loan", detalle.codigo, orden,
         )
         self.session.add(linea_debe)
         total_debitos += detalle_monto
@@ -597,8 +600,12 @@ class AccountingVoucherService:
             linea_debe = self._create_line(
                 comprobante.id, ne, empleado, empleado_nombre_completo, centro_costos,
                 planilla.codigo_cuenta_debe_salario,
-                planilla.descripcion_cuenta_debe_salario or ("Gasto por Salario" if planilla.codigo_cuenta_debe_salario else None),
-                "debito", salario_base, CONCEPTO_SALARIO_BASE_DESC, "salario_base", CONCEPTO_SALARIO_BASE, orden,
+                (
+                    planilla.descripcion_cuenta_debe_salario
+                    or ("Gasto por Salario" if planilla.codigo_cuenta_debe_salario else None)
+                ),
+                "debito", salario_base, CONCEPTO_SALARIO_BASE_DESC,
+                "salario_base", CONCEPTO_SALARIO_BASE, orden,
             )
             self.session.add(linea_debe)
             total_debitos += salario_base
@@ -610,8 +617,12 @@ class AccountingVoucherService:
             linea_haber = self._create_line(
                 comprobante.id, ne, empleado, empleado_nombre_completo, centro_costos,
                 planilla.codigo_cuenta_haber_salario,
-                planilla.descripcion_cuenta_haber_salario or ("Salario por Pagar" if planilla.codigo_cuenta_haber_salario else None),
-                "credito", salario_base, CONCEPTO_SALARIO_BASE_DESC, "salario_base", CONCEPTO_SALARIO_BASE, orden,
+                (
+                    planilla.descripcion_cuenta_haber_salario
+                    or ("Salario por Pagar" if planilla.codigo_cuenta_haber_salario else None)
+                ),
+                "credito", salario_base, CONCEPTO_SALARIO_BASE_DESC,
+                "salario_base", CONCEPTO_SALARIO_BASE, orden,
             )
             self.session.add(linea_haber)
             total_creditos += salario_base
