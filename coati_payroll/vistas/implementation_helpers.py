@@ -82,6 +82,35 @@ ENTITY_LOOKUPS = {
 }
 
 
+def _process_accounting_row(row: list[object], result: BulkAccountingImportResult) -> None:
+    """Apply one normalized accounting import row to its target entity."""
+    normalized_row = [_normalize(cell) for cell in row]
+    if len(normalized_row) < 6:
+        normalized_row.extend([""] * (6 - len(normalized_row)))
+
+    row_type, visible_id, *_ = normalized_row[:6]
+    if not any(normalized_row):
+        return
+    if not row_type or not visible_id:
+        result.skipped_rows += 1
+        return
+
+    row_type = row_type.lower()
+    lookup = ENTITY_LOOKUPS.get(row_type)
+    fields = ACCOUNT_FIELDS.get(row_type)
+    if lookup is None or fields is None:
+        result.skipped_rows += 1
+        return
+
+    entity = lookup(visible_id)
+    if not entity:
+        result.skipped_rows += 1
+        return
+    for field, value in zip(fields, normalized_row[2:6]):
+        setattr(entity, field, value)
+    result.updated_rows += 1
+
+
 def _validate_headers(header_row: list[str]) -> None:
     normalized_headers = [_normalize(value).lower() for value in header_row]
     if normalized_headers != EXPECTED_HEADERS:
@@ -98,34 +127,7 @@ def import_accounting_configuration_rows(rows: list[list[object]]) -> BulkAccoun
     result = BulkAccountingImportResult()
 
     for row in rows[1:]:
-        normalized_row = [_normalize(cell) for cell in row]
-        if len(normalized_row) < 6:
-            normalized_row.extend([""] * (6 - len(normalized_row)))
-
-        row_type, visible_id, *_ = normalized_row[:6]
-
-        if not any(normalized_row):
-            continue
-
-        if not row_type or not visible_id:
-            result.skipped_rows += 1
-            continue
-
-        row_type = row_type.lower()
-        lookup = ENTITY_LOOKUPS.get(row_type)
-        fields = ACCOUNT_FIELDS.get(row_type)
-        if lookup is None or fields is None:
-            result.skipped_rows += 1
-            continue
-
-        entity = lookup(visible_id)
-        if not entity:
-            result.skipped_rows += 1
-            continue
-        for field, value in zip(fields, normalized_row[2:6]):
-            setattr(entity, field, value)
-
-        result.updated_rows += 1
+        _process_accounting_row(row, result)
 
     db.session.commit()
     return result
