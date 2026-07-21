@@ -61,6 +61,7 @@ class ExportService:
     def _write_title(ws, title: str, styles: dict, merge_range: str = TITLE_MERGE_RANGE):
         """Write a styled title to the worksheet."""
         from openpyxl.styles import Alignment
+
         ws.merge_cells(merge_range)
         cell = ws["A1"]
         cell.value = title
@@ -152,6 +153,7 @@ class ExportService:
     def _write_table_headers(ws, row: int, headers: list[str], styles: dict):
         """Write styled table headers."""
         from openpyxl.styles import Alignment
+
         for col, header in enumerate(headers, start=1):
             cell = ws.cell(row=row, column=col, value=header)
             cell.font = styles["subheader_font"]
@@ -183,6 +185,7 @@ class ExportService:
     def _write_warnings(ws, row: int, warnings: list[str]):
         """Write warning messages."""
         from openpyxl.styles import Font
+
         if not warnings:
             return row
         ws[f"A{row}"] = "ADVERTENCIAS:"
@@ -249,43 +252,45 @@ class ExportService:
         if not openpyxl_classes:
             raise ImportError(ERROR_OPENPYXL_NOT_AVAILABLE)
 
-        Workbook, Font, Alignment, PatternFill, Border, Side = openpyxl_classes
+        workbook_class, font_class, alignment_class, pattern_fill_class, border_class, side_class = openpyxl_classes
 
-        nomina_empleados = db.session.execute(
-            db.select(NominaEmpleado).filter_by(nomina_id=nomina.id)
-        ).scalars().all()
+        nomina_empleados = db.session.execute(db.select(NominaEmpleado).filter_by(nomina_id=nomina.id)).scalars().all()
         nomina_empleado_ids = [ne.id for ne in nomina_empleados if ne.id]
 
         detalles: list[NominaDetalle] = []
         if nomina_empleado_ids:
             detalles = list(
                 db.session.execute(
-                    db.select(NominaDetalle).where(
-                        NominaDetalle.nomina_empleado_id.in_(nomina_empleado_ids)
-                    )
-                ).scalars().all()
+                    db.select(NominaDetalle).where(NominaDetalle.nomina_empleado_id.in_(nomina_empleado_ids))
+                )
+                .scalars()
+                .all()
             )
 
         ingresos_asociados = sorted(
             [
-                assoc for assoc in cast(list[PlanillaIngreso], planilla.planilla_percepciones)
+                assoc
+                for assoc in cast(list[PlanillaIngreso], planilla.planilla_percepciones)
                 if assoc.activo and assoc.percepcion
             ],
             key=lambda assoc: (assoc.orden or 0, assoc.percepcion.nombre or assoc.percepcion.codigo or ""),
         )
         deducciones_asociadas = sorted(
             [
-                assoc for assoc in cast(list[PlanillaDeduccion], planilla.planilla_deducciones)
+                assoc
+                for assoc in cast(list[PlanillaDeduccion], planilla.planilla_deducciones)
                 if assoc.activo and assoc.deduccion
             ],
             key=lambda assoc: (
-                assoc.prioridad or 0, assoc.orden or 0,
+                assoc.prioridad or 0,
+                assoc.orden or 0,
                 assoc.deduccion.nombre or assoc.deduccion.codigo or "",
             ),
         )
         prestaciones_asociadas = sorted(
             [
-                assoc for assoc in cast(list[PlanillaPrestacion], planilla.planilla_prestaciones)
+                assoc
+                for assoc in cast(list[PlanillaPrestacion], planilla.planilla_prestaciones)
                 if assoc.activo and assoc.prestacion
             ],
             key=lambda assoc: (assoc.orden or 0, assoc.prestacion.nombre or assoc.prestacion.codigo or ""),
@@ -315,8 +320,7 @@ class ExportService:
                     bucket[detalle.percepcion_id] = bucket.get(detalle.percepcion_id, 0.0) + monto
                 else:
                     extra_key = (
-                        f"income:{detalle.percepcion_id or ''}:"
-                        f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
+                        f"income:{detalle.percepcion_id or ''}:" f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
                     )
                     bucket = ingresos_extra_by_ne.setdefault(ne_id, {})
                     bucket[extra_key] = bucket.get(extra_key, 0.0) + monto
@@ -327,8 +331,7 @@ class ExportService:
                     bucket[detalle.deduccion_id] = bucket.get(detalle.deduccion_id, 0.0) + monto
                 else:
                     extra_key = (
-                        f"deduction:{detalle.deduccion_id or ''}:"
-                        f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
+                        f"deduction:{detalle.deduccion_id or ''}:" f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
                     )
                     bucket = deducciones_extra_by_ne.setdefault(ne_id, {})
                     bucket[extra_key] = bucket.get(extra_key, 0.0) + monto
@@ -339,8 +342,7 @@ class ExportService:
                     bucket[detalle.prestacion_id] = bucket.get(detalle.prestacion_id, 0.0) + monto
                 else:
                     extra_key = (
-                        f"benefit:{detalle.prestacion_id or ''}:"
-                        f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
+                        f"benefit:{detalle.prestacion_id or ''}:" f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
                     )
                     bucket = prestaciones_extra_by_ne.setdefault(ne_id, {})
                     bucket[extra_key] = bucket.get(extra_key, 0.0) + monto
@@ -359,9 +361,7 @@ class ExportService:
             concept = assoc.percepcion
             if not concept:
                 continue
-            label = ExportService._unique_label(
-                ingreso_headers_seen, concept.nombre, concept.codigo, "Ingreso"
-            )
+            label = ExportService._unique_label(ingreso_headers_seen, concept.nombre, concept.codigo, "Ingreso")
             ingresos_cols.append({"type": "income_catalog", "id": concept.id, "header": label})
             if not concept.mostrar_como_ingreso_reportes:
                 reclasificacion_ids.add(concept.id)
@@ -377,9 +377,7 @@ class ExportService:
             concept = assoc.deduccion
             if not concept:
                 continue
-            label = ExportService._unique_label(
-                deduccion_headers_seen, concept.nombre, concept.codigo, "Deduccion"
-            )
+            label = ExportService._unique_label(deduccion_headers_seen, concept.nombre, concept.codigo, "Deduccion")
             deducciones_cols.append({"type": "deduction_catalog", "id": concept.id, "header": label})
 
         for key, (desc, code) in sorted(
@@ -393,9 +391,7 @@ class ExportService:
             concept = assoc.prestacion
             if not concept:
                 continue
-            label = ExportService._unique_label(
-                prestacion_headers_seen, concept.nombre, concept.codigo, "Prestacion"
-            )
+            label = ExportService._unique_label(prestacion_headers_seen, concept.nombre, concept.codigo, "Prestacion")
             prestaciones_cols.append({"type": "benefit_catalog", "id": concept.id, "header": label})
 
         for key, (desc, code) in sorted(
@@ -407,9 +403,7 @@ class ExportService:
 
         vacation_liability_by_ne: dict[str, float] = {}
         show_vacation_liability = bool(
-            planilla.vacation_policy_id
-            and planilla.vacation_policy
-            and planilla.vacation_policy.son_vacaciones_pagadas
+            planilla.vacation_policy_id and planilla.vacation_policy and planilla.vacation_policy.son_vacaciones_pagadas
         )
 
         comprobante = db.session.execute(
@@ -423,7 +417,9 @@ class ExportService:
                         tipo_concepto="vacation_liability",
                         tipo_debito_credito="credito",
                     )
-                ).scalars().all()
+                )
+                .scalars()
+                .all()
             )
             if vac_lines:
                 show_vacation_liability = True
@@ -472,22 +468,22 @@ class ExportService:
             if index < len(section_specs) - 1:
                 table_columns.append({"type": "separator", "header": ""})
 
-        wb = Workbook()
+        wb = workbook_class()
         ws = wb.active
         ws.title = "Nomina"
 
-        title_font = Font(bold=True, size=14, color="FFFFFF")
-        title_fill = PatternFill(start_color="2F5F93", end_color="2F5F93", fill_type="solid")
-        section_font = Font(bold=True, size=11, color="FFFFFF")
-        section_fill = PatternFill(start_color="305496", end_color="305496", fill_type="solid")
-        subheader_font = Font(bold=True, size=10)
-        subheader_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
-        separator_fill = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
-        border = Border(
-            left=Side(style="thin"),
-            right=Side(style="thin"),
-            top=Side(style="thin"),
-            bottom=Side(style="thin"),
+        title_font = font_class(bold=True, size=14, color="FFFFFF")
+        title_fill = pattern_fill_class(start_color="2F5F93", end_color="2F5F93", fill_type="solid")
+        section_font = font_class(bold=True, size=11, color="FFFFFF")
+        section_fill = pattern_fill_class(start_color="305496", end_color="305496", fill_type="solid")
+        subheader_font = font_class(bold=True, size=10)
+        subheader_fill = pattern_fill_class(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
+        separator_fill = pattern_fill_class(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+        border = border_class(
+            left=side_class(style="thin"),
+            right=side_class(style="thin"),
+            top=side_class(style="thin"),
+            bottom=side_class(style="thin"),
         )
 
         total_columns = len(table_columns) if table_columns else 1
@@ -496,7 +492,7 @@ class ExportService:
         title_cell.value = f"NOMINA - {planilla.nombre}"
         title_cell.font = title_font
         title_cell.fill = title_fill
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        title_cell.alignment = alignment_class(horizontal="center", vertical="center")
 
         row = 3
         ws[f"A{row}"] = "Empresa:"
@@ -516,10 +512,7 @@ class ExportService:
         row += 1
 
         ws[f"A{row}"] = "Periodo:"
-        ws[f"B{row}"] = (
-            f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - "
-            f"{nomina.periodo_fin.strftime('%d/%m/%Y')}"
-        )
+        ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - " f"{nomina.periodo_fin.strftime('%d/%m/%Y')}"
         row += 1
 
         ws[f"A{row}"] = "Estado Nomina:"
@@ -536,13 +529,15 @@ class ExportService:
         for section_name, start_col, end_col in section_ranges:
             if start_col < end_col:
                 ws.merge_cells(
-                    start_row=section_row, start_column=start_col,
-                    end_row=section_row, end_column=end_col,
+                    start_row=section_row,
+                    start_column=start_col,
+                    end_row=section_row,
+                    end_column=end_col,
                 )
             section_cell = ws.cell(row=section_row, column=start_col, value=section_name)
             section_cell.font = section_font
             section_cell.fill = section_fill
-            section_cell.alignment = Alignment(horizontal="center", vertical="center")
+            section_cell.alignment = alignment_class(horizontal="center", vertical="center")
             section_cell.border = border
             if start_col < end_col:
                 for col_idx in range(start_col + 1, end_col + 1):
@@ -563,8 +558,10 @@ class ExportService:
             header_cell = ws.cell(row=header_row, column=col_idx, value=column["header"])
             header_cell.font = subheader_font
             header_cell.fill = subheader_fill
-            header_cell.alignment = Alignment(
-                horizontal="center", vertical="center", wrap_text=True,
+            header_cell.alignment = alignment_class(
+                horizontal="center",
+                vertical="center",
+                wrap_text=True,
             )
             header_cell.border = border
 
@@ -573,8 +570,7 @@ class ExportService:
             empleado = ne.empleado
 
             reclasificacion_total = sum(
-                ingresos_catalogo_by_ne.get(ne.id, {}).get(concept_id, 0.0)
-                for concept_id in reclasificacion_ids
+                ingresos_catalogo_by_ne.get(ne.id, {}).get(concept_id, 0.0) for concept_id in reclasificacion_ids
             )
             salario_bruto_visual = float(ne.salario_bruto or 0) - reclasificacion_total
 
@@ -654,11 +650,7 @@ class ExportService:
         wb.save(output)
         output.seek(0)
 
-        filename = (
-            f"nomina_{planilla.nombre}_"
-            f"{nomina.periodo_inicio.strftime('%Y%m%d')}_"
-            f"{nomina.id[:8]}.xlsx"
-        )
+        filename = f"nomina_{planilla.nombre}_" f"{nomina.periodo_inicio.strftime('%Y%m%d')}_" f"{nomina.id[:8]}.xlsx"
         return output, filename
 
     @staticmethod
@@ -730,9 +722,7 @@ class ExportService:
         headers.extend([p[1] or p[0] for p in prestaciones_list])
 
         show_vacation_liability = bool(
-            planilla.vacation_policy_id
-            and planilla.vacation_policy
-            and planilla.vacation_policy.son_vacaciones_pagadas
+            planilla.vacation_policy_id and planilla.vacation_policy and planilla.vacation_policy.son_vacaciones_pagadas
         )
         vacation_liability_by_ne: dict[str, float] = {}
         comprobante = db.session.execute(
@@ -746,7 +736,9 @@ class ExportService:
                         tipo_concepto="vacation_liability",
                         tipo_debito_credito="credito",
                     )
-                ).scalars().all()
+                )
+                .scalars()
+                .all()
             )
             if liability_lines:
                 show_vacation_liability = True
