@@ -272,6 +272,60 @@ def calcular_cuota_frances(
     return cuota.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
+def _generar_cuotas_amortizacion(
+    principal: Decimal,
+    tasa_anual: Decimal,
+    num_cuotas: int,
+    fecha_inicio: date,
+    fecha_prev: date,
+    metodo: MetodoAmortizacion,
+    tipo_interes: TipoInteres,
+    config: "ConfiguracionCalculos",
+    cuota_constante: Decimal | None,
+) -> list[CuotaPrestamo]:
+    """Generate installments for either supported amortization method."""
+    tabla: list[CuotaPrestamo] = []
+    saldo = principal
+    capital_constante = (principal / Decimal(num_cuotas)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    for i in range(num_cuotas):
+        numero = i + 1
+        fecha_estimada = fecha_inicio + relativedelta(months=numero - 1)
+        dias = max((fecha_estimada - fecha_prev).days, 0)
+        interes = (
+            calcular_interes_compuesto(saldo, tasa_anual, dias, config=config)
+            if tipo_interes == TipoInteres.COMPUESTO
+            else calcular_interes_simple(saldo, tasa_anual, dias, config=config)
+        )
+        interes_q = interes.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        if numero == num_cuotas:
+            capital = saldo
+        elif metodo == MetodoAmortizacion.FRANCES:
+            if cuota_constante is not None and cuota_constante <= interes_q:
+                raise ValueError("La cuota constante no cubre el interés; la amortización sería negativa.")
+            capital = cuota_constante - interes_q
+        else:
+            capital = capital_constante
+
+        capital_q = capital.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        cuota_total_q = (capital_q + interes_q).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        saldo_q = max(saldo - capital_q, Decimal("0.00")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        tabla.append(
+            CuotaPrestamo(
+                numero=numero,
+                fecha_estimada=fecha_estimada,
+                cuota_total=cuota_total_q,
+                interes=interes_q,
+                capital=capital_q,
+                saldo=saldo_q,
+            )
+        )
+        saldo = saldo_q
+        fecha_prev = fecha_estimada
+    return tabla
+
+
 def generar_tabla_amortizacion(
     principal: Decimal,
     tasa_anual: Decimal,
@@ -307,103 +361,20 @@ def generar_tabla_amortizacion(
     if principal <= 0 or num_cuotas <= 0:
         return []
 
-    tabla: list[CuotaPrestamo] = []
-    saldo = principal
     # Get configuration for interest calculations.
     # Note: This function doesn't have empresa_id, so we use defaults.
     config = _obtener_config_default(None)
     fecha_prev = fecha_desembolso or (fecha_inicio - relativedelta(months=1))
 
-    # Calculate based on method
     if metodo == MetodoAmortizacion.FRANCES:
-        # French method: constant payment
         cuota_constante = calcular_cuota_frances(principal, tasa_anual, num_cuotas, config=config)
-
-        for i in range(num_cuotas):
-            numero = i + 1
-            fecha_estimada = fecha_inicio + relativedelta(months=numero - 1)
-            dias = max((fecha_estimada - fecha_prev).days, 0)
-
-            # Calculate interest for this period
-            if tipo_interes == TipoInteres.COMPUESTO:
-                interes = calcular_interes_compuesto(saldo, tasa_anual, dias, config=config)
-            else:
-                interes = calcular_interes_simple(saldo, tasa_anual, dias, config=config)
-            interes_q = interes.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-            if cuota_constante <= interes_q and numero != num_cuotas:
-                raise ValueError("La cuota constante no cubre el interés; la amortización sería negativa.")
-
-            # For last payment, adjust to clear remaining balance
-            if numero == num_cuotas:
-                capital = saldo
-                cuota_total = capital + interes_q
-            else:
-                capital = cuota_constante - interes_q
-                cuota_total = capital + interes_q
-
-            capital_q = capital.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            cuota_total_q = cuota_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            saldo_nuevo = saldo - capital_q
-            saldo_q = max(saldo_nuevo, Decimal("0.00")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-            tabla.append(
-                CuotaPrestamo(
-                    numero=numero,
-                    fecha_estimada=fecha_estimada,
-                    cuota_total=cuota_total_q,
-                    interes=interes_q,
-                    capital=capital_q,
-                    saldo=saldo_q,
-                )
-            )
-
-            saldo = saldo_q
-            fecha_prev = fecha_estimada
-
     elif metodo == MetodoAmortizacion.ALEMAN:
-        # German method: constant principal amortization
-        capital_constante = (principal / Decimal(num_cuotas)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-        for i in range(num_cuotas):
-            numero = i + 1
-            fecha_estimada = fecha_inicio + relativedelta(months=numero - 1)
-            dias = max((fecha_estimada - fecha_prev).days, 0)
-
-            # Calculate interest for this period
-            if tipo_interes == TipoInteres.COMPUESTO:
-                interes = calcular_interes_compuesto(saldo, tasa_anual, dias, config=config)
-            else:
-                interes = calcular_interes_simple(saldo, tasa_anual, dias, config=config)
-            interes_q = interes.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-            # For last payment, adjust to clear remaining balance
-            if numero == num_cuotas:
-                capital = saldo
-            else:
-                capital = capital_constante
-
-            capital_q = capital.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            cuota_total = capital_q + interes_q
-            cuota_total_q = cuota_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            saldo_nuevo = saldo - capital_q
-            saldo_q = max(saldo_nuevo, Decimal("0.00")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-            tabla.append(
-                CuotaPrestamo(
-                    numero=numero,
-                    fecha_estimada=fecha_estimada,
-                    cuota_total=cuota_total_q,
-                    interes=interes_q,
-                    capital=capital_q,
-                    saldo=saldo_q,
-                )
-            )
-
-            saldo = saldo_q
-            fecha_prev = fecha_estimada
-
-    return tabla
+        cuota_constante = None
+    else:
+        return []
+    return _generar_cuotas_amortizacion(
+        principal, tasa_anual, num_cuotas, fecha_inicio, fecha_prev, metodo, tipo_interes, config, cuota_constante
+    )
 
 
 def calcular_interes_periodo(
