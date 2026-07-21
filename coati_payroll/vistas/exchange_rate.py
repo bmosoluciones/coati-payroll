@@ -26,7 +26,7 @@ def get_currency_choices():
     return [(c.id, f"{c.codigo} - {c.nombre}") for c in currencies]
 
 
-@exchange_rate_bp.route("/")
+@exchange_rate_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all exchange rates with pagination and filters."""

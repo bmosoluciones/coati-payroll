@@ -28,7 +28,7 @@ from coati_payroll.vistas.constants import PER_PAGE
 carga_inicial_prestacion_bp = Blueprint("carga_inicial_prestacion", __name__, url_prefix="/carga-inicial-prestaciones")
 
 
-@carga_inicial_prestacion_bp.route("/")
+@carga_inicial_prestacion_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all initial benefit balance loads."""
@@ -244,7 +244,7 @@ def eliminar(carga_id):
     return redirect(url_for("carga_inicial_prestacion.index"))
 
 
-@carga_inicial_prestacion_bp.route("/reporte")
+@carga_inicial_prestacion_bp.route("/reporte", methods=["GET"])
 @require_read_access()
 def reporte():
     """Generate accumulated benefits report."""
@@ -290,7 +290,7 @@ def reporte():
     )
 
 
-@carga_inicial_prestacion_bp.route("/reporte/excel")
+@carga_inicial_prestacion_bp.route("/reporte/excel", methods=["GET"])
 @require_read_access()
 def reporte_excel():
     """Export accumulated benefits report to Excel."""

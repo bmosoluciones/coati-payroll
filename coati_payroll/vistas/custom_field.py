@@ -16,7 +16,7 @@ from coati_payroll.vistas.constants import PER_PAGE
 custom_field_bp = Blueprint("custom_field", __name__, url_prefix="/custom_field")
 
 
-@custom_field_bp.route("/")
+@custom_field_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all custom fields with pagination."""

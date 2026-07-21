@@ -38,7 +38,7 @@ prestacion_management_bp = Blueprint("prestacion_management", __name__, url_pref
 # ============================================================================
 
 
-@prestacion_management_bp.route("/")
+@prestacion_management_bp.route("/", methods=["GET"])
 @login_required
 def dashboard():
     """Prestacion management dashboard."""

@@ -352,7 +352,7 @@ def populate_concept_from_form(concept, form):
 # ============================================================================
 
 
-@percepcion_bp.route("/")
+@percepcion_bp.route("/", methods=["GET"])
 @require_read_access()
 def percepcion_index():
     """List all perceptions."""
@@ -385,7 +385,7 @@ def percepcion_delete(concept_id: str):
 # ============================================================================
 
 
-@deduccion_bp.route("/")
+@deduccion_bp.route("/", methods=["GET"])
 @require_read_access()
 def deduccion_index():
     """List all deductions."""
@@ -418,7 +418,7 @@ def deduccion_delete(concept_id: str):
 # ============================================================================
 
 
-@prestacion_bp.route("/")
+@prestacion_bp.route("/", methods=["GET"])
 @require_read_access()
 def prestacion_index():
     """List all benefits."""
@@ -538,7 +538,7 @@ def percepcion_reject(concept_id: str):
     return reject_concept_route("percepcion", concept_id)
 
 
-@percepcion_bp.route("/audit/<string:concept_id>")
+@percepcion_bp.route("/audit/<string:concept_id>", methods=["GET"])
 @require_read_access()
 def percepcion_audit(concept_id: str):
     """View audit log for a perception."""
@@ -560,7 +560,7 @@ def deduccion_reject(concept_id: str):
     return reject_concept_route("deduccion", concept_id)
 
 
-@deduccion_bp.route("/audit/<string:concept_id>")
+@deduccion_bp.route("/audit/<string:concept_id>", methods=["GET"])
 @require_read_access()
 def deduccion_audit(concept_id: str):
     """View audit log for a deduction."""
@@ -582,7 +582,7 @@ def prestacion_reject(concept_id: str):
     return reject_concept_route("prestacion", concept_id)
 
 
-@prestacion_bp.route("/audit/<string:concept_id>")
+@prestacion_bp.route("/audit/<string:concept_id>", methods=["GET"])
 @require_read_access()
 def prestacion_audit(concept_id: str):
     """View audit log for a benefit."""

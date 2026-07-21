@@ -24,7 +24,7 @@ from coati_payroll.model import db, Empleado, Empresa, Planilla, Nomina
 app = Blueprint("app", __name__)
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 @login_required
 def index():
     # Get statistics for dashboard
@@ -48,7 +48,7 @@ def index():
     )
 
 
-@app.route("/health")
+@app.route("/health", methods=["GET"])
 def health():
     """Health check endpoint for container orchestration.
 
@@ -58,7 +58,7 @@ def health():
     return {"status": "ok"}, 200
 
 
-@app.route("/ready")
+@app.route("/ready", methods=["GET"])
 def ready():
     """Readiness check endpoint for container orchestration.
 

@@ -20,7 +20,7 @@ ERROR_NOMINA_NO_PERTENECE = "La nómina no pertenece a esta planilla."
 TEMPLATE_NOVEDAD_FORM = "modules/planilla/novedades/form.html"
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/novedades")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/novedades", methods=["GET"])
 @require_read_access()
 def listar_novedades(planilla_id: str, nomina_id: str):
     """List all novedades (novelties) for a specific nomina."""

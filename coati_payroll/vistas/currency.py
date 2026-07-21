@@ -17,7 +17,7 @@ from coati_payroll.vistas.constants import PER_PAGE
 currency_bp = Blueprint("currency", __name__, url_prefix="/currency")
 
 
-@currency_bp.route("/")
+@currency_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all currencies with pagination and filters."""

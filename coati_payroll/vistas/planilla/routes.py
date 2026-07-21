@@ -22,7 +22,7 @@ from coati_payroll.vistas.constants import TEMPLATE_PLANILLA_FORM
 from coati_payroll.vistas.planilla import planilla_bp
 
 
-@planilla_bp.route("/")
+@planilla_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all planillas with pagination and filters."""
@@ -199,7 +199,7 @@ def edit(planilla_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/config")
+@planilla_bp.route("/<planilla_id>/config", methods=["GET"])
 @require_read_access()
 def config(planilla_id: str):
     """Configuration overview page for a planilla."""

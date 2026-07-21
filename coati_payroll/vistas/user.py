@@ -18,7 +18,7 @@ from coati_payroll.vistas.constants import PER_PAGE
 user_bp = Blueprint("user", __name__, url_prefix="/user")
 
 
-@user_bp.route("/")
+@user_bp.route("/", methods=["GET"])
 @require_role(TipoUsuario.ADMIN)
 def index():
     """List all users with pagination. Only administrators can manage users."""

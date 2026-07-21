@@ -50,7 +50,7 @@ from coati_payroll.rbac import require_read_access, require_write_access
 prestamo_bp = Blueprint("prestamo", __name__, url_prefix="/prestamo")
 
 
-@prestamo_bp.route("/")
+@prestamo_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all loans and advances with filtering options."""
@@ -158,7 +158,7 @@ def new():
     return render_template("modules/prestamo/form.html", form=form, prestamo=None)
 
 
-@prestamo_bp.route("/<prestamo_id>")
+@prestamo_bp.route("/<prestamo_id>", methods=["GET"])
 @require_read_access()
 def detail(prestamo_id):
     """View loan details including payment schedule."""
@@ -609,7 +609,7 @@ def condonacion(prestamo_id):
     )
 
 
-@prestamo_bp.route("/<prestamo_id>/tabla-pago/excel")
+@prestamo_bp.route("/<prestamo_id>/tabla-pago/excel", methods=["GET"])
 @require_read_access()
 def export_excel(prestamo_id):
     """Export payment schedule to Excel."""
@@ -690,7 +690,7 @@ def export_excel(prestamo_id):
     )
 
 
-@prestamo_bp.route("/<prestamo_id>/tabla-pago/pdf")
+@prestamo_bp.route("/<prestamo_id>/tabla-pago/pdf", methods=["GET"])
 @require_read_access()
 def export_pdf(prestamo_id):
     """Export payment schedule to PDF."""

@@ -119,7 +119,7 @@ def process_last_three_salaries(form):
     return ultimos_salarios if ultimos_salarios else None
 
 
-@employee_bp.route("/")
+@employee_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all employees with pagination and filters."""

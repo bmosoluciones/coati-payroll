@@ -13,7 +13,7 @@ from coati_payroll.vistas.constants import PER_PAGE
 nomina_bp = Blueprint("nomina", __name__, url_prefix="/nominas")
 
 
-@nomina_bp.route("/")
+@nomina_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all nominas (payruns) with pagination and filters."""

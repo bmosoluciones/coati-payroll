@@ -16,7 +16,7 @@ from coati_payroll.vistas.constants import PER_PAGE
 tipo_planilla_bp = Blueprint("tipo_planilla", __name__, url_prefix="/tipo-planilla")
 
 
-@tipo_planilla_bp.route("/")
+@tipo_planilla_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all payroll types with pagination."""

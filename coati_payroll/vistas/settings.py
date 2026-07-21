@@ -11,7 +11,7 @@ from coati_payroll.rbac import require_write_access
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
 
-@settings_bp.route("/")
+@settings_bp.route("/", methods=["GET"])
 @require_write_access()
 def index():
     """Display settings page with links to all configuration options."""

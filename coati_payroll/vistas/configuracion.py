@@ -27,7 +27,7 @@ from coati_payroll.locale_config import (
 configuracion_bp = Blueprint("configuracion", __name__, url_prefix="/configuracion")
 
 
-@configuracion_bp.route("/")
+@configuracion_bp.route("/", methods=["GET"])
 @require_write_access()
 def index():
     """Display global configuration page."""

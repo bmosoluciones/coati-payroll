@@ -20,7 +20,7 @@ ROUTE_LISTAR_NOMINAS = "planilla.listar_nominas"
 MIMETYPE_EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-excel")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-excel", methods=["GET"])
 @login_required
 @require_read_access()
 def exportar_nomina_excel(planilla_id: str, nomina_id: str):
@@ -49,7 +49,7 @@ def exportar_nomina_excel(planilla_id: str, nomina_id: str):
         return redirect(url_for(ROUTE_VER_NOMINA, planilla_id=planilla_id, nomina_id=nomina_id))
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-prestaciones-excel")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-prestaciones-excel", methods=["GET"])
 @login_required
 @require_read_access()
 def exportar_prestaciones_excel(planilla_id: str, nomina_id: str):
@@ -78,7 +78,7 @@ def exportar_prestaciones_excel(planilla_id: str, nomina_id: str):
         return redirect(url_for(ROUTE_VER_NOMINA, planilla_id=planilla_id, nomina_id=nomina_id))
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-comprobante-excel")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-comprobante-excel", methods=["GET"])
 @login_required
 @require_read_access()
 def exportar_comprobante_excel(planilla_id: str, nomina_id: str):
@@ -123,7 +123,7 @@ def exportar_comprobante_excel(planilla_id: str, nomina_id: str):
         return redirect(url_for(ROUTE_VER_NOMINA, planilla_id=planilla_id, nomina_id=nomina_id))
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-comprobante-detallado-excel")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/exportar-comprobante-detallado-excel", methods=["GET"])
 @login_required
 @require_read_access()
 def exportar_comprobante_detallado_excel(planilla_id: str, nomina_id: str):

@@ -26,7 +26,7 @@ liquidacion_bp = Blueprint("liquidacion", __name__, url_prefix="/liquidaciones")
 ROUTE_LIQUIDACION_VER = "liquidacion.ver"
 
 
-@liquidacion_bp.route("/")
+@liquidacion_bp.route("/", methods=["GET"])
 @login_required
 @require_read_access()
 def index():
@@ -135,7 +135,7 @@ def nueva():
     )
 
 
-@liquidacion_bp.route("/<liquidacion_id>")
+@liquidacion_bp.route("/<liquidacion_id>", methods=["GET"])
 @login_required
 @require_read_access()
 def ver(liquidacion_id: str):
@@ -222,7 +222,7 @@ def pagar(liquidacion_id: str):
     return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
 
 
-@liquidacion_bp.route("/<liquidacion_id>/exportar-excel")
+@liquidacion_bp.route("/<liquidacion_id>/exportar-excel", methods=["GET"])
 @login_required
 @require_read_access()
 def exportar_excel(liquidacion_id: str):

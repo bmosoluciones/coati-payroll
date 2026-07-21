@@ -27,7 +27,7 @@ calculation_rule_bp = Blueprint("calculation_rule", __name__, url_prefix="/calcu
 ERROR_RULE_NOT_FOUND = "Regla no encontrada"
 
 
-@calculation_rule_bp.route("/")
+@calculation_rule_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all calculation rules with pagination."""

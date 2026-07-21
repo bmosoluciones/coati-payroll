@@ -34,7 +34,7 @@ report_bp = Blueprint("report", __name__, url_prefix="/report")
 # ============================================================================
 
 
-@report_bp.route("/")
+@report_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all available reports.
@@ -91,7 +91,7 @@ def index():
     )
 
 
-@report_bp.route("/admin")
+@report_bp.route("/admin", methods=["GET"])
 @require_role(TipoUsuario.ADMIN)
 def admin_index():
     """Administrative report list.
@@ -145,7 +145,7 @@ def admin_index():
 # ============================================================================
 
 
-@report_bp.route("/<report_id>/execute")
+@report_bp.route("/<report_id>/execute", methods=["GET"])
 @require_read_access()
 def execute_form(report_id: str):
     """Show report execution form.
@@ -312,7 +312,7 @@ def toggle_status(report_id: str):
     return redirect(url_for("report.admin_index"))
 
 
-@report_bp.route("/<report_id>/permissions")
+@report_bp.route("/<report_id>/permissions", methods=["GET"])
 @require_role(TipoUsuario.ADMIN)
 def permissions_form(report_id: str):
     """Show report permissions form.
@@ -385,7 +385,7 @@ def update_permissions(report_id: str):
 # ============================================================================
 
 
-@report_bp.route("/<report_id>")
+@report_bp.route("/<report_id>", methods=["GET"])
 @require_read_access()
 def detail(report_id: str):
     """Show report details.

@@ -122,7 +122,7 @@ def ejecutar_nomina(planilla_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/nominas")
+@planilla_bp.route("/<planilla_id>/nominas", methods=["GET"])
 @require_read_access()
 def listar_nominas(planilla_id: str):
     """List all nominas for a planilla."""
@@ -141,7 +141,7 @@ def listar_nominas(planilla_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>", methods=["GET"])
 @require_read_access()
 def ver_nomina(planilla_id: str, nomina_id: str):
     """View details of a specific nomina."""
@@ -331,7 +331,7 @@ def aplicar_vacaciones_nomina(planilla_id: str, nomina_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/empleado/<nomina_empleado_id>")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/empleado/<nomina_empleado_id>", methods=["GET"])
 @require_read_access()
 def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: str):
     """View details of an employee's payroll."""
@@ -367,7 +367,7 @@ def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: st
     )
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/progreso")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/progreso", methods=["GET"])
 @require_read_access()
 def progreso_nomina(planilla_id: str, nomina_id: str):
     """API endpoint to check calculation progress of a nomina."""
@@ -692,7 +692,7 @@ def recalcular_nomina(planilla_id: str, nomina_id: str):
     return redirect(url_for(ROUTE_LISTAR_NOMINAS, planilla_id=planilla_id))
 
 
-@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/log")
+@planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/log", methods=["GET"])
 @require_read_access()
 def ver_log_nomina(planilla_id: str, nomina_id: str):
     """View execution log for a nomina including warnings and errors."""

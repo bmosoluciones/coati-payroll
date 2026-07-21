@@ -38,7 +38,7 @@ vacation_bp = Blueprint("vacation", __name__, url_prefix="/vacation")
 # ============================================================================
 
 
-@vacation_bp.route("/policies")
+@vacation_bp.route("/policies", methods=["GET"])
 @require_read_access()
 def policy_index():
     """List all vacation policies."""
@@ -176,7 +176,7 @@ def policy_edit(policy_id):
     )
 
 
-@vacation_bp.route("/policies/<string:policy_id>")
+@vacation_bp.route("/policies/<string:policy_id>", methods=["GET"])
 @require_read_access()
 def policy_detail(policy_id):
     """View vacation policy details."""
@@ -203,7 +203,7 @@ def policy_detail(policy_id):
 # ============================================================================
 
 
-@vacation_bp.route("/accounts")
+@vacation_bp.route("/accounts", methods=["GET"])
 @require_read_access()
 def account_index():
     """List all vacation accounts."""
@@ -226,7 +226,7 @@ def account_index():
     )
 
 
-@vacation_bp.route("/accounts/<string:account_id>")
+@vacation_bp.route("/accounts/<string:account_id>", methods=["GET"])
 @require_read_access()
 def account_detail(account_id):
     """View vacation account details and history."""
@@ -300,7 +300,7 @@ def account_new():
 # ============================================================================
 
 
-@vacation_bp.route("/leave-requests")
+@vacation_bp.route("/leave-requests", methods=["GET"])
 @require_read_access()
 def leave_request_index():
     """List vacation leave requests."""
@@ -394,7 +394,7 @@ def leave_request_new():
     )
 
 
-@vacation_bp.route("/leave-requests/<string:request_id>")
+@vacation_bp.route("/leave-requests/<string:request_id>", methods=["GET"])
 @require_read_access()
 def leave_request_detail(request_id):
     """View vacation leave request details."""
@@ -685,7 +685,7 @@ def register_vacation_taken():
 # ============================================================================
 
 
-@vacation_bp.route("/")
+@vacation_bp.route("/", methods=["GET"])
 @login_required
 def dashboard():
     """Vacation management dashboard."""
@@ -731,7 +731,7 @@ def dashboard():
 # ============================================================================
 
 
-@vacation_bp.route("/api/employee/<string:employee_id>/balance")
+@vacation_bp.route("/api/employee/<string:employee_id>/balance", methods=["GET"])
 @login_required
 def api_employee_balance(employee_id):
     """Get employee vacation balance (AJAX endpoint)."""

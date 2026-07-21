@@ -12,7 +12,7 @@ plugins_bp = Blueprint("plugins", __name__, url_prefix="/plugins")
 ROUTE_PLUGINS_INDEX = "plugins.index"
 
 
-@plugins_bp.route("/")
+@plugins_bp.route("/", methods=["GET"])
 @require_write_access()
 def index():
     plugins = db.session.execute(db.select(PluginRegistry).order_by(PluginRegistry.distribution_name)).scalars().all()

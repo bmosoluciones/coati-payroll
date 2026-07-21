@@ -16,7 +16,7 @@ from coati_payroll.rbac import require_role, require_read_access
 empresa_bp = Blueprint("empresa", __name__, url_prefix="/empresa")
 
 
-@empresa_bp.route("/")
+@empresa_bp.route("/", methods=["GET"])
 @require_read_access()
 def index():
     """List all companies with pagination and filters."""

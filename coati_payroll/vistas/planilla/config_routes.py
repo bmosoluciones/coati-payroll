@@ -22,7 +22,7 @@ from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vistas.planilla import planilla_bp
 
 
-@planilla_bp.route("/<planilla_id>/config/empleados")
+@planilla_bp.route("/<planilla_id>/config/empleados", methods=["GET"])
 @require_read_access()
 def config_empleados(planilla_id: str):
     """View employees associated with a planilla."""
@@ -51,7 +51,7 @@ def config_empleados(planilla_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/config/percepciones")
+@planilla_bp.route("/<planilla_id>/config/percepciones", methods=["GET"])
 @require_read_access()
 def config_percepciones(planilla_id: str):
     """View perceptions associated with a planilla."""
@@ -73,7 +73,7 @@ def config_percepciones(planilla_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/config/deducciones")
+@planilla_bp.route("/<planilla_id>/config/deducciones", methods=["GET"])
 @require_read_access()
 def config_deducciones(planilla_id: str):
     """View deductions associated with a planilla."""
@@ -99,7 +99,7 @@ def config_deducciones(planilla_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/config/prestaciones")
+@planilla_bp.route("/<planilla_id>/config/prestaciones", methods=["GET"])
 @require_write_access()
 def config_prestaciones(planilla_id: str):
     """Manage benefits associated with a planilla."""
@@ -121,7 +121,7 @@ def config_prestaciones(planilla_id: str):
     )
 
 
-@planilla_bp.route("/<planilla_id>/config/reglas")
+@planilla_bp.route("/<planilla_id>/config/reglas", methods=["GET"])
 @require_read_access()
 def config_reglas(planilla_id: str):
     """View calculation rules associated with a planilla."""
