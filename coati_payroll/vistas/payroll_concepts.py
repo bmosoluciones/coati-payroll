@@ -21,7 +21,7 @@ from coati_payroll.audit_helpers import (
     puede_aprobar_concepto,
     rechazar_concepto,
 )
-from coati_payroll.enums import EstadoAprobacion
+from coati_payroll.enums import EstadoAprobacion, FormulaType
 from coati_payroll.forms import (
     DeduccionForm,
     PercepcionForm,
@@ -181,6 +181,10 @@ def edit_concept(concept_type: str, concept_id: str):
     }
 
     form = Form(obj=concept)
+    if request.method == "GET" and hasattr(form, "formula_tipo"):
+        normalized_formula_type = FormulaType.normalize(getattr(concept, "formula_tipo", None))
+        if normalized_formula_type:
+            form.formula_tipo.data = normalized_formula_type.value
 
     if form.validate_on_submit():
         populate_concept_from_form(concept, form)
@@ -264,7 +268,8 @@ def populate_concept_from_form(concept, form):
     concept.codigo = form.codigo.data
     concept.nombre = form.nombre.data
     concept.descripcion = form.descripcion.data
-    concept.formula_tipo = form.formula_tipo.data
+    normalized_formula_type = FormulaType.normalize(form.formula_tipo.data)
+    concept.formula_tipo = normalized_formula_type.value if normalized_formula_type else form.formula_tipo.data
     concept.activo = form.activo.data
 
     # Handle monto_default

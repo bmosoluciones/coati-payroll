@@ -4,16 +4,32 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import false, true
 
-from coati_payroll.enums import TipoUsuario
+from coati_payroll.enums import NominaEstado, TipoUsuario
 from coati_payroll.i18n import _
 from coati_payroll.model import Empleado, Empresa, Nomina, Planilla, db
 from coati_payroll.rbac import require_role, require_read_access
 
 empresa_bp = Blueprint("empresa", __name__, url_prefix="/empresa")
+
+
+def _bootstrap_fields_locked(empresa_id: str) -> bool:
+    """Return True when bootstrap fields must be locked for the company."""
+    nomina_id = db.session.execute(
+        db.select(Nomina.id)
+        .join(Planilla, Nomina.planilla_id == Planilla.id)
+        .filter(
+            Planilla.empresa_id == empresa_id,
+            Nomina.estado.in_([NominaEstado.APLICADO.value, NominaEstado.PAGADO.value]),
+        )
+        .limit(1)
+    ).scalar_one_or_none()
+    return nomina_id is not None
 
 
 @empresa_bp.route("/", methods=["GET"])
@@ -67,10 +83,19 @@ def new():
     from coati_payroll.forms import EmpresaForm
 
     form = EmpresaForm()
+    if request.method == "GET":
+        if form.primer_mes_nomina.data is None:
+            form.primer_mes_nomina.data = date.today().month
+        if form.primer_anio_nomina.data is None:
+            form.primer_anio_nomina.data = date.today().year
 
     if form.validate_on_submit():
         empresa = Empresa()
         form.populate_obj(empresa)
+        if empresa.primer_mes_nomina is None:
+            empresa.primer_mes_nomina = date.today().month
+        if empresa.primer_anio_nomina is None:
+            empresa.primer_anio_nomina = date.today().year
         empresa.creado_por = current_user.usuario
 
         db.session.add(empresa)
@@ -82,7 +107,9 @@ def new():
             db.session.rollback()
             flash(_("Error al crear la empresa: {}").format(str(e)), "danger")
 
-    return render_template("modules/empresa/form.html", form=form, titulo=_("Nueva Empresa"))
+    return render_template(
+        "modules/empresa/form.html", form=form, titulo=_("Nueva Empresa"), lock_bootstrap_fields=False
+    )
 
 
 @empresa_bp.route("/<string:empresa_id>/edit", methods=["GET", "POST"])
@@ -96,10 +123,29 @@ def edit(empresa_id):
         flash(_("Empresa no encontrada."), "warning")
         return redirect(url_for("empresa.index"))
 
+    lock_bootstrap_fields = _bootstrap_fields_locked(empresa.id)
     form = EmpresaForm(obj=empresa)
 
     if form.validate_on_submit():
+        original_primer_mes = empresa.primer_mes_nomina
+        original_primer_anio = empresa.primer_anio_nomina
         form.populate_obj(empresa)
+
+        if lock_bootstrap_fields:
+            attempted_change = (
+                empresa.primer_mes_nomina != original_primer_mes or empresa.primer_anio_nomina != original_primer_anio
+            )
+            empresa.primer_mes_nomina = original_primer_mes
+            empresa.primer_anio_nomina = original_primer_anio
+            if attempted_change:
+                flash(
+                    _(
+                        "No se puede modificar el período inicial de nómina "
+                        "porque ya existen nóminas aplicadas o pagadas."
+                    ),
+                    "warning",
+                )
+
         empresa.modificado_por = current_user.usuario
 
         try:
@@ -115,6 +161,7 @@ def edit(empresa_id):
         form=form,
         empresa=empresa,
         titulo=_("Editar Empresa"),
+        lock_bootstrap_fields=lock_bootstrap_fields,
     )
 
 

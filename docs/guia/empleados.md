@@ -78,6 +78,28 @@ Estos campos se usan cuando el sistema se implementa a mitad de un período fisc
 !!! info "Implementación a Mitad de Año"
     Si está implementando el sistema a mitad del año fiscal, estos campos permiten que el cálculo del IR considere los valores acumulados previamente.
 
+### Procedimiento Recomendado para Implementación a Mitad de Año Fiscal
+
+Use este flujo cuando la empresa comienza a operar en Coati Payroll después de haber pagado meses previos del mismo año fiscal.
+
+1. Defina en el empleado el **Año de implementación inicial** (ejemplo: `2025`).
+2. Registre el **Último mes cerrado** ya pagado fuera del sistema (ejemplo: `7` si julio fue el último mes pagado).
+3. Cargue **Salario acumulado** con el total bruto acumulado hasta ese último mes (ejemplo: `70416.67`).
+4. Cargue **Impuesto acumulado** con el IR retenido acumulado hasta ese último mes (ejemplo: `1073.67`).
+5. Guarde el empleado antes de ejecutar la primera nómina en el sistema.
+
+!!! important "Significado de Impuesto acumulado"
+    El campo **Impuesto acumulado** se interpreta como **IR retenido acumulado** del período fiscal, no como deducción antes de impuesto.
+
+!!! note "Comportamiento esperado"
+    En la primera nómina posterior al corte (por ejemplo, agosto con último mes cerrado julio), el cálculo usa:
+
+    - Salario bruto acumulado inicial = salario acumulado cargado.
+    - IR retenido acumulado inicial = impuesto acumulado cargado.
+    - Períodos fiscales procesados iniciales = último mes cerrado (para año fiscal enero-diciembre, julio = 7).
+
+    Estos saldos iniciales se aplican únicamente en el año fiscal configurado de implementación.
+
 ## Editar Empleado
 
 1. En la lista de empleados, haga clic en el empleado a editar
@@ -181,3 +203,16 @@ Use los filtros disponibles para buscar empleados:
 - Verifique que el empleado esté activo
 - Verifique que el empleado esté asignado a la planilla
 - Verifique la fecha de inicio de la asignación
+
+## Actualizacion: Implementacion Mid-Year por Empresa
+
+Desde la version 1.7.3, el periodo inicial de implementacion ya no se define en el empleado.
+
+- Se eliminaron los campos de implementacion por empleado:
+  - `anio_implementacion_inicial`
+  - `mes_ultimo_cierre`
+- El empleado mantiene unicamente los saldos de carry-in:
+  - `salario_acumulado`
+  - `impuesto_acumulado`
+
+Durante el periodo inicial configurado en la empresa, si ambos saldos (`salario_acumulado` e `impuesto_acumulado`) estan en `0` o vacios, el sistema emite advertencia por empleado y continua con el calculo.

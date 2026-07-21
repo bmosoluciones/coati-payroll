@@ -1,0 +1,94 @@
+name: Release Validation
+
+on:
+  workflow_run:
+    workflows: ["Unit Testing"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  multiple-db-check:
+    name: Validate release with PostgreSQL and MySQL
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: coati
+          POSTGRES_PASSWORD: coati
+          POSTGRES_DB: coati
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U coati -d coati"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: coati
+          MYSQL_USER: coati
+          MYSQL_PASSWORD: coati
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r test.txt
+          python -m pip install -e .
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U coati -d coati && exit 0
+            sleep 2
+          done
+          echo "PostgreSQL did not become ready in time" >&2
+          exit 1
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -P 3306 -uroot -proot --silent && exit 0
+            sleep 2
+          done
+          echo "MySQL did not become ready in time" >&2
+          exit 1
+
+      - name: Run release validation tests (PostgreSQL)
+        env:
+          DEVELOPMENT: True
+          SECRET_KEY: test-secret-key
+          DATABASE_URL: postgresql+pg8000://coati:coati@127.0.0.1:5432/coati
+        run: |
+          python -m pytest -v tests/test_release_validation_db.py
+
+      - name: Run release validation tests (MySQL)
+        env:
+          DEVELOPMENT: True
+          SECRET_KEY: test-secret-key
+          DATABASE_URL: mysql+mysqlconnector://coati:coati@127.0.0.1:3306/coati
+        run: |
+          python -m pytest -v tests/test_release_validation_db.py

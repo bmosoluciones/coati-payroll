@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
 from coati_payroll.model import db, Deduccion
 from coati_payroll.i18n import _
@@ -22,10 +23,12 @@ class AccumulationProcessor:
     def update_accumulations(
         self,
         emp_calculo: EmpleadoCalculo,
-        planilla,
+        planilla: Any,
+        periodo_inicio: date,
         periodo_fin: date,
-        fecha_calculo: date,
         deducciones_snapshot: dict[str, dict] | None = None,
+        empresa_primer_mes_nomina: int | None = None,
+        empresa_primer_anio_nomina: int | None = None,
     ) -> None:
         """Update accumulated annual values for the employee."""
         if not planilla.tipo_planilla:
@@ -35,11 +38,11 @@ class AccumulationProcessor:
         empleado = emp_calculo.empleado
 
         # Calculate fiscal period
-        anio = fecha_calculo.year
+        anio = periodo_inicio.year
         mes_inicio = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal)
         dia_inicio = tipo_planilla.dia_inicio_fiscal
 
-        if fecha_calculo.month < mes_inicio:
+        if periodo_inicio.month < mes_inicio:
             anio -= 1
 
         periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
@@ -52,7 +55,17 @@ class AccumulationProcessor:
             )
 
         # Get or create accumulated record
-        acumulado = self.acumulado_repo.get_or_create(empleado, tipo_planilla.id, empresa_id, periodo_fiscal_inicio)
+        acumulado = self.acumulado_repo.get_or_create(
+            empleado=empleado,
+            tipo_planilla_id=tipo_planilla.id,
+            empresa_id=empresa_id,
+            periodo_fiscal_inicio=periodo_fiscal_inicio,
+            periodo_inicio=periodo_inicio,
+            empresa_primer_mes_nomina=empresa_primer_mes_nomina,
+            empresa_primer_anio_nomina=empresa_primer_anio_nomina,
+            fiscal_start_month=mes_inicio,
+            periodos_por_anio=int(tipo_planilla.periodos_por_anio or 12),
+        )
 
         # Reset monthly accumulation if entering a new month
         acumulado.reset_mes_acumulado_if_needed(periodo_fin)
@@ -63,12 +76,7 @@ class AccumulationProcessor:
         acumulado.periodos_procesados += 1
         acumulado.ultimo_periodo_procesado = periodo_fin
 
-        # Calculate gravable income (perceptions that are gravable)
-        salario_gravable = emp_calculo.salario_base
-        for percepcion in emp_calculo.percepciones:
-            if percepcion.gravable:
-                salario_gravable += percepcion.monto
-        acumulado.salario_gravable_acumulado += salario_gravable
+        acumulado.salario_gravable_acumulado += emp_calculo.salario_gravable
 
         # Sum up before-tax deductions and taxes
         for deduccion in emp_calculo.deducciones:

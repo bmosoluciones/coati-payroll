@@ -244,6 +244,7 @@ def create_app(config) -> Flask:
         prestacion_management_bp,
         report_bp,
         settings_bp,
+        implementation_bp,
         plugins_bp,
         config_calculos_bp,
         liquidacion_bp,
@@ -269,6 +270,7 @@ def create_app(config) -> Flask:
     app.register_blueprint(prestacion_management_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(implementation_bp)
     app.register_blueprint(plugins_bp)
     app.register_blueprint(config_calculos_bp)
     app.register_blueprint(liquidacion_bp)

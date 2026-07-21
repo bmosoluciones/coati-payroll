@@ -116,6 +116,7 @@ class PayrollExecutionService:
         }
         self.concept_calculator.deducciones_snapshot = deducciones_snapshot
         self.concept_calculator.configuracion_snapshot = snapshot.get("configuracion") or None
+        bootstrap_context = self._resolve_company_bootstrap_context(planilla, periodo_inicio, warnings)
 
         # Prevent duplicate execution for the same period
         # Exclude ERROR state to allow retries
@@ -193,6 +194,9 @@ class PayrollExecutionService:
                     loan_processor,
                     snapshot.get("configuracion"),
                     snapshot.get("tipos_cambio"),
+                    bootstrap_context,
+                    warnings,
+                    nomina_id=nomina.id,
                 )
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
@@ -228,10 +232,11 @@ class PayrollExecutionService:
                     emp_calculo,
                     nomina,
                     planilla,
+                    periodo_inicio,
                     periodo_fin,
-                    fecha_calculo,
                     vacation_processor,
                     deducciones_snapshot,
+                    bootstrap_context,
                 )
 
             loan_processor.apply_pending_effects()
@@ -371,6 +376,9 @@ class PayrollExecutionService:
         loan_processor: LoanProcessor,
         configuracion_snapshot: dict[str, Any] | None,
         tipos_cambio_snapshot: dict[str, Any] | None,
+        bootstrap_context: dict[str, Any],
+        warnings: WarningCollector,
+        nomina_id: str | None = None,
     ) -> EmpleadoCalculo:
         """Process a single employee's payroll."""
         # Validate employee
@@ -405,7 +413,7 @@ class PayrollExecutionService:
 
         # Load employee novelties (including absence summaries)
         novelties, ausencia_resumen, codigos_descuento = self.novelty_processor.load_novelties_with_absences(
-            empleado, periodo_inicio, periodo_fin
+            empleado, periodo_inicio, periodo_fin, nomina_id=nomina_id
         )
 
         descuento_inasistencia = self._calculate_absence_discount(
@@ -444,7 +452,14 @@ class PayrollExecutionService:
 
         # Build calculation variables
         emp_calculo.variables_calculo = self.employee_processing_service.build_calculation_variables(
-            emp_calculo, planilla, periodo_inicio, periodo_fin, fecha_calculo, configuracion_snapshot
+            emp_calculo,
+            planilla,
+            periodo_inicio,
+            periodo_fin,
+            fecha_calculo,
+            configuracion_snapshot,
+            bootstrap_context=bootstrap_context,
+            warnings=warnings,
         )
 
         # Process perceptions
@@ -454,6 +469,15 @@ class PayrollExecutionService:
 
         # Calculate gross salary
         emp_calculo.salario_bruto = emp_calculo.salario_neto_inasistencia + emp_calculo.total_percepciones
+        emp_calculo.salario_gravable = emp_calculo.salario_neto_inasistencia + sum(
+            p.monto for p in emp_calculo.percepciones if p.gravable
+        )
+        emp_calculo.variables_calculo.update(
+            {
+                "salario_gravable": emp_calculo.salario_gravable,
+                "salario_gravable_periodo": emp_calculo.salario_gravable,
+            }
+        )
 
         # Process deductions
         deducciones = self.deduction_calculator.calculate(emp_calculo, planilla, fecha_calculo)
@@ -528,21 +552,59 @@ class PayrollExecutionService:
         emp_calculo: EmpleadoCalculo,
         nomina: Nomina,
         planilla: Planilla,
+        periodo_inicio: date,
         periodo_fin: date,
-        fecha_calculo: date,
         vacation_processor: VacationProcessor,
         deducciones_snapshot: dict[str, dict],
+        bootstrap_context: dict[str, Any],
     ) -> None:
         """Apply persistence side effects for a successful payroll run."""
         nomina_empleado = self.accounting_processor.create_nomina_empleado(emp_calculo, nomina)
         self.accumulation_processor.update_accumulations(
-            emp_calculo, planilla, periodo_fin, fecha_calculo, deducciones_snapshot
+            emp_calculo,
+            planilla,
+            periodo_inicio,
+            periodo_fin,
+            deducciones_snapshot,
+            empresa_primer_mes_nomina=bootstrap_context.get("primer_mes_nomina"),
+            empresa_primer_anio_nomina=bootstrap_context.get("primer_anio_nomina"),
         )
         setattr(
             emp_calculo,
             "vacaciones_resumen",
             vacation_processor.process_vacations(emp_calculo.empleado, emp_calculo, nomina_empleado),
         )
+
+    def _resolve_company_bootstrap_context(
+        self,
+        planilla: Planilla,
+        periodo_inicio: date,
+        warnings: WarningCollector,
+    ) -> dict[str, Any]:
+        """Build company bootstrap context and emit one warning if config is missing."""
+        empresa = planilla.empresa
+        primer_mes = getattr(empresa, "primer_mes_nomina", None)
+        primer_anio = getattr(empresa, "primer_anio_nomina", None)
+        configurada = primer_mes is not None and primer_anio is not None
+        es_periodo_inicial = False
+
+        if configurada and primer_mes is not None and primer_anio is not None:
+            primer_mes_int = int(primer_mes)
+            primer_anio_int = int(primer_anio)
+            es_periodo_inicial = periodo_inicio.month == primer_mes_int and periodo_inicio.year == primer_anio_int
+        else:
+            empresa_nombre = planilla.empresa.razon_social if planilla.empresa else planilla.empresa_id or "N/A"
+            warnings.append(
+                "Empresa %s sin configuración de Primer Mes/Año de Nómina; "
+                "se continúa el cálculo sin bootstrap de acumulados." % empresa_nombre
+            )
+
+        return {
+            "configured": configurada,
+            "is_initial_period": es_periodo_inicial,
+            "primer_mes_nomina": primer_mes,
+            "primer_anio_nomina": primer_anio,
+        }
 
     def _calculate_totals(self, nomina: Nomina, empleados_calculo: list[EmpleadoCalculo]) -> None:
         """Calculate grand totals for the nomina."""

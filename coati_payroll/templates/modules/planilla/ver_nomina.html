@@ -26,8 +26,10 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
         {% endfor %}
     </ul>
     <p class="mb-0">
-        <strong>Acción requerida:</strong> Corrija los datos (tipo de cambio, configuración, etc.) y recalcule la nómina.
-        <a href="{{ url_for('planilla.ver_log_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}" class="alert-link">Ver log completo</a>
+        <strong>Acción requerida:</strong> Corrija los datos (tipo de cambio, configuración, etc.) y recalcule la
+        nómina.
+        <a href="{{ url_for('planilla.ver_log_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
+            class="alert-link">Ver log completo</a>
     </p>
 </div>
 {% elif has_warnings %}
@@ -40,8 +42,25 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
         {% endfor %}
     </ul>
     <p class="mb-0">
-        <a href="{{ url_for('planilla.ver_log_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}" class="alert-link">Ver log completo</a>
+        <a href="{{ url_for('planilla.ver_log_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
+            class="alert-link">Ver log completo</a>
     </p>
+</div>
+{% endif %}
+
+{% if nomina.estado == 'cancelled' %}
+<div class="alert alert-secondary mb-4">
+    <h5><i class="bi bi-slash-circle"></i> {{ _('Nómina Anulada') }}</h5>
+    <p class="mb-1">{{ _('Esta nómina fue marcada como no válida y no será pagada.') }}</p>
+    {% if nomina.razon_anulacion %}
+    <p class="mb-1"><strong>{{ _('Razón:') }}</strong> {{ nomina.razon_anulacion }}</p>
+    {% endif %}
+    {% if nomina.anulado_por or nomina.anulado_en %}
+    <p class="mb-0 text-muted">
+        {% if nomina.anulado_por %}{{ _('Anulada por') }} {{ nomina.anulado_por }}{% endif %}
+        {% if nomina.anulado_en %} {{ _('el') }} {{ nomina.anulado_en.strftime('%d/%m/%Y %H:%M') }}{% endif %}
+    </p>
+    {% endif %}
 </div>
 {% endif %}
 
@@ -54,36 +73,35 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     </div>
     <div class="card-body">
         <p class="mb-3">
-            <strong>La nómina está siendo calculada en segundo plano.</strong> 
+            <strong>La nómina está siendo calculada en segundo plano.</strong>
             El sistema no se ha colgado, por favor espere mientras se procesan todos los empleados.
         </p>
-        
+
         <!-- Current employee being processed -->
         <div class="alert alert-info mb-3" id="current-employee-alert">
-            <i class="bi bi-person-clock"></i> 
-            <strong>Procesando:</strong> 
+            <i class="bi bi-person-clock"></i>
+            <strong>Procesando:</strong>
             <span id="empleado-actual">{{ nomina.empleado_actual or 'Iniciando...' }}</span>
         </div>
-        
+
         <!-- Progress bar -->
         <div class="progress mb-3" style="height: 30px;">
-            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
-                 role="progressbar" 
-                 style="width: {% if nomina.total_empleados and nomina.total_empleados > 0 %}{{ (nomina.empleados_procesados / nomina.total_empleados * 100)|int }}%{% else %}0%{% endif %}"
-                 aria-valuenow="{{ nomina.empleados_procesados or 0 }}" 
-                 aria-valuemin="0" 
-                 aria-valuemax="{{ nomina.total_empleados or 100 }}">
+            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                role="progressbar"
+                style="width: {% if nomina.total_empleados and nomina.total_empleados > 0 %}{{ (nomina.empleados_procesados / nomina.total_empleados * 100)|int }}%{% else %}0%{% endif %}"
+                aria-valuenow="{{ nomina.empleados_procesados or 0 }}" aria-valuemin="0"
+                aria-valuemax="{{ nomina.total_empleados or 100 }}">
                 <span id="progress-text">
                     {% if nomina.total_empleados and nomina.total_empleados > 0 %}
-                        {{ (nomina.empleados_procesados / nomina.total_empleados * 100)|int }}%
+                    {{ (nomina.empleados_procesados / nomina.total_empleados * 100)|int }}%
                     {% else %}
-                        0%
+                    0%
                     {% endif %}
                     ({{ nomina.empleados_procesados or 0 }}/{{ nomina.total_empleados or 0 }})
                 </span>
             </div>
         </div>
-        
+
         <!-- Statistics -->
         <div class="row text-center mb-3">
             <div class="col-md-4">
@@ -99,7 +117,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 <h4 id="empleados-con-error" class="text-danger">{{ nomina.empleados_con_error or 0 }}</h4>
             </div>
         </div>
-        
+
         <!-- Activity Log -->
         <div class="card">
             <div class="card-header bg-light">
@@ -110,22 +128,27 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     </button>
                 </h6>
             </div>
-            <div class="card-body" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9em; background-color: #f8f9fa;" id="activity-log">
+            <div class="card-body"
+                style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9em; background-color: #f8f9fa;"
+                id="activity-log">
                 {% if nomina.log_procesamiento %}
-                    {% for entry in nomina.log_procesamiento %}
-                    <div class="log-entry {% if entry.status == 'success' %}text-success{% elif entry.status == 'error' %}text-danger{% elif entry.status == 'warning' %}text-warning{% else %}text-muted{% endif %}">
-                        {% if entry.status == 'error' %}<i class="bi bi-x-circle"></i> {% elif entry.status == 'warning' %}<i class="bi bi-exclamation-triangle"></i> {% endif %}{{ entry.message }}
-                    </div>
-                    {% endfor %}
+                {% for entry in nomina.log_procesamiento %}
+                <div
+                    class="log-entry {% if entry.status == 'success' %}text-success{% elif entry.status == 'error' %}text-danger{% elif entry.status == 'warning' %}text-warning{% else %}text-muted{% endif %}">
+                    {% if entry.status == 'error' %}<i class="bi bi-x-circle"></i>
+                    {% elif entry.status == 'warning' %}<i class="bi bi-exclamation-triangle"></i>
+                    {% endif %}{{ entry.message }}
+                </div>
+                {% endfor %}
                 {% else %}
-                    <div class="text-muted">{{ _('No hay mensajes en el log de procesamiento para esta nómina.') }}</div>
+                <div class="text-muted">{{ _('No hay mensajes en el log de procesamiento para esta nómina.') }}</div>
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="text-center mt-3">
             <small class="text-muted">
-                <i class="bi bi-arrow-repeat"></i> 
+                <i class="bi bi-arrow-repeat"></i>
                 Esta página se actualiza automáticamente cada 3 segundos
             </small>
         </div>
@@ -139,32 +162,33 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     <ul>
         {% for key, error in nomina.errores_calculo.items() %}
         <li>
-            <strong>{{ key }}:</strong> 
+            <strong>{{ key }}:</strong>
             {% if error is mapping %}
-                {{ error.critical_error or error.error or error }}
+            {{ error.critical_error or error.error or error }}
             {% else %}
-                {{ error }}
+            {{ error }}
             {% endif %}
         </li>
         {% endfor %}
     </ul>
     {% endif %}
     <p class="mb-3">
-        <strong>Empleados procesados:</strong> {{ nomina.empleados_procesados or 0 }} / {{ nomina.total_empleados or 0 }}<br>
+        <strong>Empleados procesados:</strong> {{ nomina.empleados_procesados or 0 }} /
+        {{ nomina.total_empleados or 0 }}<br>
         <strong>Empleados con error:</strong> {{ nomina.empleados_con_error or 0 }}
     </p>
     <div>
         <form action="{{ url_for('planilla.reintentar_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
-              method="post" style="display: inline;">
+            method="post" style="display: inline;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-warning" 
-                    onclick="return confirm('¿Reintentar el procesamiento de esta nómina? Se limpiarán los datos parciales y se intentará procesar nuevamente.')">
+            <button type="submit" class="btn btn-warning"
+                onclick="return confirm('¿Reintentar el procesamiento de esta nómina? Se limpiarán los datos parciales y se intentará procesar nuevamente.')">
                 <i class="bi bi-arrow-clockwise"></i> Reintentar Procesamiento
             </button>
         </form>
         {% if nomina.errores_calculo and nomina.errores_calculo.get('is_recoverable') == False %}
         <small class="text-muted d-block mt-2">
-            <i class="bi bi-info-circle"></i> 
+            <i class="bi bi-info-circle"></i>
             Este error no es recuperable automáticamente. Revise la configuración o los datos antes de reintentar.
         </small>
         {% endif %}
@@ -175,7 +199,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 {% if nomina.estado == 'generated' and nomina.empleados_con_error and nomina.empleados_con_error > 0 %}
 <div class="alert alert-warning">
     <h5><i class="bi bi-exclamation-circle"></i> Advertencia: Algunos Empleados No Se Procesaron Correctamente</h5>
-    <p>La nómina se generó exitosamente, pero {{ nomina.empleados_con_error }} empleado(s) tuvieron errores durante el cálculo.</p>
+    <p>La nómina se generó exitosamente, pero {{ nomina.empleados_con_error }} empleado(s) tuvieron errores durante el
+        cálculo.</p>
     {% if nomina.errores_calculo %}
     <details>
         <summary><strong>Ver errores</strong></summary>
@@ -196,10 +221,11 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
             <div>
                 {% if nomina.estado == 'generated' %}
                 <form action="{{ url_for('planilla.aprobar_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
-                      method="post" style="display: inline;">
+                    method="post" style="display: inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {% if has_errors %}
-                    <button type="button" class="btn btn-success" disabled title="No se puede aprobar una nómina con errores de procesamiento">
+                    <button type="button" class="btn btn-success" disabled
+                        title="No se puede aprobar una nómina con errores de procesamiento">
                         <i class="bi bi-check-circle me-1"></i> Aprobar
                     </button>
                     {% else %}
@@ -210,57 +236,81 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 </form>
                 {% elif nomina.estado == 'approved' %}
                 <form action="{{ url_for('planilla.aplicar_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
-                      method="post" style="display: inline;">
+                    method="post" style="display: inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('¿Marcar como aplicada/pagada?')">
+                    <button type="submit" class="btn btn-primary"
+                        onclick="return confirm('¿Marcar como aplicada/pagada?')">
                         <i class="bi bi-cash-coin me-1"></i> Aplicar/Pagar
+                    </button>
+                </form>
+                {% endif %}
+                {% if nomina.estado not in ['applied', 'paid', 'cancelled', 'calculating'] %}
+                <form action="{{ url_for('planilla.anular_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
+                    method="post" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="razon_anulacion" value="Nómina anulada desde interfaz de usuario.">
+                    <button type="submit" class="btn btn-outline-danger"
+                        onclick="return confirm('¿Anular esta nómina? Esta acción la marca como no válida y no pagable.')">
+                        <i class="bi bi-slash-circle me-1"></i> Anular
                     </button>
                 </form>
                 {% endif %}
                 {% if nomina.estado != 'applied' %}
                 <form action="{{ url_for('planilla.recalcular_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
-                      method="post" style="display: inline;">
+                    method="post" style="display: inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-warning" onclick="return confirm('¿Recalcular esta nómina? Se eliminarán los datos actuales y se generarán nuevamente.')">
+                    <button type="submit" class="btn btn-warning"
+                        onclick="return confirm('¿Recalcular esta nómina? Se eliminarán los datos actuales y se generarán nuevamente.')">
                         <i class="bi bi-arrow-clockwise me-1"></i> Recalcular
                     </button>
                 </form>
                 {% endif %}
                 {% if nomina.estado not in ['applied', 'paid'] %}
                 <a href="{{ url_for('planilla.aplicar_vacaciones_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
-                   class="btn btn-outline-primary">
+                    class="btn btn-outline-primary">
                     <i class="bi bi-calendar-check"></i> Aplicar Vacaciones
                 </a>
                 {% endif %}
-                <a href="{{ url_for('planilla.listar_novedades', planilla_id=planilla.id, nomina_id=nomina.id) }}" class="btn btn-info">
+                <a href="{{ url_for('planilla.listar_novedades', planilla_id=planilla.id, nomina_id=nomina.id) }}"
+                    class="btn btn-info">
                     <i class="bi bi-list-check"></i> Novedades
                 </a>
-                <a href="{{ url_for('planilla.ver_log_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}" class="btn btn-outline-secondary">
+                <a href="{{ url_for('planilla.ver_log_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
+                    class="btn btn-outline-secondary">
                     <i class="bi bi-card-list"></i> Log de Ejecución
+                </a>
+                <a href="{{ url_for('planilla.comparar_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
+                    class="btn btn-outline-dark">
+                    <i class="bi bi-clipboard-data"></i> Comparar con otra nómina
                 </a>
                 {% if nomina.estado in ['generated', 'approved', 'applied'] %}
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                        aria-expanded="false">
                         <i class="bi bi-file-earmark-excel"></i> Exportar
                     </button>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('planilla.exportar_nomina_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
+                            <a class="dropdown-item"
+                                href="{{ url_for('planilla.exportar_nomina_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
                                 <i class="bi bi-file-earmark-excel"></i> Nómina (Excel)
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('planilla.exportar_prestaciones_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
+                            <a class="dropdown-item"
+                                href="{{ url_for('planilla.exportar_prestaciones_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
                                 <i class="bi bi-file-earmark-excel"></i> Prestaciones (Excel)
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('planilla.exportar_comprobante_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
+                            <a class="dropdown-item"
+                                href="{{ url_for('planilla.exportar_comprobante_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
                                 <i class="bi bi-receipt"></i> Comprobante Contable (Excel)
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('planilla.exportar_comprobante_detallado_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
+                            <a class="dropdown-item"
+                                href="{{ url_for('planilla.exportar_comprobante_detallado_excel', planilla_id=planilla.id, nomina_id=nomina.id) }}">
                                 <i class="bi bi-card-list"></i> Comprobante Detallado por Empleado (Excel)
                             </a>
                         </li>
@@ -286,8 +336,14 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 <span class="badge bg-info">Aprobado</span>
                 {% elif nomina.estado == 'applied' %}
                 <span class="badge bg-success">Aplicado</span>
+                {% elif nomina.estado == 'paid' %}
+                <span class="badge bg-success">Pagado</span>
+                {% elif nomina.estado == 'cancelled' %}
+                <span class="badge bg-secondary">Anulado</span>
                 {% elif nomina.estado == 'error' %}
                 <span class="badge bg-danger">Error</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ nomina.estado }}</span>
                 {% endif %}
             </div>
             <div class="col-md-2">
@@ -310,7 +366,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 <div class="card bg-light">
                     <div class="card-body text-center">
                         <h6 class="text-muted mb-1">Total Bruto</h6>
-                        <h4 class="text-primary mb-0">{{ planilla.moneda.simbolo if planilla.moneda else '' }} {{ "{:,.2f}".format(nomina.total_bruto|float) }}</h4>
+                        <h4 class="text-primary mb-0">{{ planilla.moneda.simbolo if planilla.moneda else '' }}
+                            {{ "{:,.2f}".format(nomina.total_bruto|float) }}</h4>
                     </div>
                 </div>
             </div>
@@ -318,7 +375,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 <div class="card bg-light">
                     <div class="card-body text-center">
                         <h6 class="text-muted mb-1">Total Deducciones</h6>
-                        <h4 class="text-danger mb-0">{{ planilla.moneda.simbolo if planilla.moneda else '' }} {{ "{:,.2f}".format(nomina.total_deducciones|float) }}</h4>
+                        <h4 class="text-danger mb-0">{{ planilla.moneda.simbolo if planilla.moneda else '' }}
+                            {{ "{:,.2f}".format(nomina.total_deducciones|float) }}</h4>
                     </div>
                 </div>
             </div>
@@ -326,7 +384,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 <div class="card bg-light">
                     <div class="card-body text-center">
                         <h6 class="text-muted mb-1">Total Neto</h6>
-                        <h4 class="text-success mb-0">{{ planilla.moneda.simbolo if planilla.moneda else '' }} {{ "{:,.2f}".format(nomina.total_neto|float) }}</h4>
+                        <h4 class="text-success mb-0">{{ planilla.moneda.simbolo if planilla.moneda else '' }}
+                            {{ "{:,.2f}".format(nomina.total_neto|float) }}</h4>
                     </div>
                 </div>
             </div>
@@ -354,20 +413,21 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
             </thead>
             <tbody>
                 {% for ne in nomina_empleados %}
+                {% set salario_base_visual = (ne.sueldo_base_historico or 0) - (ne.inasistencia_descuento or 0) %}
                 <tr>
                     <td>
                         <strong>{{ ne.empleado.primer_nombre }} {{ ne.empleado.primer_apellido }}</strong>
                         {% if ne.empleado.segundo_apellido %}{{ ne.empleado.segundo_apellido }}{% endif %}
                     </td>
                     <td>{{ ne.cargo_snapshot or ne.empleado.cargo or 'N/A' }}</td>
-                    <td class="text-right">{{ "{:,.2f}".format(ne.sueldo_base_historico|float) }}</td>
+                    <td class="text-right">{{ "{:,.2f}".format(salario_base_visual|float) }}</td>
                     <td class="text-right text-primary">+{{ "{:,.2f}".format(ne.total_ingresos|float) }}</td>
                     <td class="text-right text-danger">-{{ "{:,.2f}".format(ne.total_deducciones|float) }}</td>
                     <td class="text-right"><strong>{{ "{:,.2f}".format(ne.salario_neto|float) }}</strong></td>
                     <td>{{ "{:.4f}".format(ne.tipo_cambio_aplicado|float) if ne.tipo_cambio_aplicado else '1.0' }}</td>
                     <td>
                         <a href="{{ url_for('planilla.ver_nomina_empleado', planilla_id=planilla.id, nomina_id=nomina.id, nomina_empleado_id=ne.id) }}"
-                           class="btn btn-sm btn-outline-primary" title="Ver Detalle">
+                            class="btn btn-sm btn-outline-primary" title="Ver Detalle">
                             <i class="bi bi-eye"></i>
                         </a>
                     </td>
@@ -390,104 +450,103 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 
 {% if nomina.estado == 'calculating' %}
 <script>
-// Auto-refresh progress for nominas in "calculating" state
-(function() {
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    const totalEmpleados = document.getElementById('total-empleados');
-    const empleadosProcesados = document.getElementById('empleados-procesados');
-    const empleadosConError = document.getElementById('empleados-con-error');
-    const empleadoActual = document.getElementById('empleado-actual');
-    const activityLog = document.getElementById('activity-log');
-    let autoScroll = true;
-    
-    // Function to scroll log to bottom
-    window.scrollLogToBottom = function() {
-        activityLog.scrollTop = activityLog.scrollHeight;
-        autoScroll = true;
-    };
-    
-    // Detect manual scroll
-    activityLog.addEventListener('scroll', function() {
-        const isAtBottom = activityLog.scrollHeight - activityLog.scrollTop <= activityLog.clientHeight + 50;
-        autoScroll = isAtBottom;
-    });
-    
-    function updateProgress() {
-        fetch('{{ url_for("planilla.progreso_nomina", planilla_id=planilla.id, nomina_id=nomina.id) }}')
-            .then(response => response.json())
-            .then(data => {
-                // Update progress bar
-                const progreso = data.progreso_porcentaje || 0;
-                progressBar.style.width = progreso + '%';
-                progressBar.setAttribute('aria-valuenow', progreso);
-                progressText.textContent = progreso + '% (' + data.empleados_procesados + '/' + data.total_empleados + ')';
-                
-                // Update counters
-                totalEmpleados.textContent = data.total_empleados || 0;
-                empleadosProcesados.textContent = data.empleados_procesados || 0;
-                empleadosConError.textContent = data.empleados_con_error || 0;
-                
-                // Update current employee
-                if (data.empleado_actual) {
-                    empleadoActual.textContent = data.empleado_actual;
-                }
-                
-                // Update activity log
-                if (data.log_procesamiento && data.log_procesamiento.length > 0) {
-                    let logHtml = '';
-                    data.log_procesamiento.forEach(entry => {
-                        let statusClass = 'text-muted';
-                        if (entry.status === 'success') {
-                            statusClass = 'text-success';
-                        } else if (entry.status === 'error') {
-                            statusClass = 'text-danger';
-                        }
-                        logHtml += '<div class="log-entry ' + statusClass + '">' + 
-                                   escapeHtml(entry.message) + '</div>';
-                    });
-                    activityLog.innerHTML = logHtml;
-                    
-                    // Auto-scroll to bottom if user hasn't manually scrolled
-                    if (autoScroll) {
-                        activityLog.scrollTop = activityLog.scrollHeight;
+    // Auto-refresh progress for nominas in "calculating" state
+    (function () {
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const totalEmpleados = document.getElementById('total-empleados');
+        const empleadosProcesados = document.getElementById('empleados-procesados');
+        const empleadosConError = document.getElementById('empleados-con-error');
+        const empleadoActual = document.getElementById('empleado-actual');
+        const activityLog = document.getElementById('activity-log');
+        let autoScroll = true;
+
+        // Function to scroll log to bottom
+        window.scrollLogToBottom = function () {
+            activityLog.scrollTop = activityLog.scrollHeight;
+            autoScroll = true;
+        };
+
+        // Detect manual scroll
+        activityLog.addEventListener('scroll', function () {
+            const isAtBottom = activityLog.scrollHeight - activityLog.scrollTop <= activityLog.clientHeight + 50;
+            autoScroll = isAtBottom;
+        });
+
+        function updateProgress() {
+            fetch('{{ url_for("planilla.progreso_nomina", planilla_id=planilla.id, nomina_id=nomina.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Update progress bar
+                    const progreso = data.progreso_porcentaje || 0;
+                    progressBar.style.width = progreso + '%';
+                    progressBar.setAttribute('aria-valuenow', progreso);
+                    progressText.textContent = progreso + '% (' + data.empleados_procesados + '/' + data.total_empleados + ')';
+
+                    // Update counters
+                    totalEmpleados.textContent = data.total_empleados || 0;
+                    empleadosProcesados.textContent = data.empleados_procesados || 0;
+                    empleadosConError.textContent = data.empleados_con_error || 0;
+
+                    // Update current employee
+                    if (data.empleado_actual) {
+                        empleadoActual.textContent = data.empleado_actual;
                     }
-                }
-                
-                // If calculation is complete, reload page to show results
-                if (data.estado !== 'calculating') {
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching progress:', error);
-            });
-    }
-    
-    // Helper function to escape HTML
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    // Update immediately
-    updateProgress();
-    
-    // Poll every 3 seconds
-    const intervalId = setInterval(updateProgress, 3000);
-    
-    // Clear interval when page is unloaded
-    window.addEventListener('beforeunload', () => {
-        clearInterval(intervalId);
-    });
-    
-    // Initial scroll to bottom
-    scrollLogToBottom();
-})();
+
+                    // Update activity log
+                    if (data.log_procesamiento && data.log_procesamiento.length > 0) {
+                        let logHtml = '';
+                        data.log_procesamiento.forEach(entry => {
+                            let statusClass = 'text-muted';
+                            if (entry.status === 'success') {
+                                statusClass = 'text-success';
+                            } else if (entry.status === 'error') {
+                                statusClass = 'text-danger';
+                            }
+                            logHtml += '<div class="log-entry ' + statusClass + '">' +
+                                escapeHtml(entry.message) + '</div>';
+                        });
+                        activityLog.innerHTML = logHtml;
+
+                        // Auto-scroll to bottom if user hasn't manually scrolled
+                        if (autoScroll) {
+                            activityLog.scrollTop = activityLog.scrollHeight;
+                        }
+                    }
+
+                    // If calculation is complete, reload page to show results
+                    if (data.estado !== 'calculating') {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching progress:', error);
+                });
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Update immediately
+        updateProgress();
+
+        // Poll every 3 seconds
+        const intervalId = setInterval(updateProgress, 3000);
+
+        // Clear interval when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            clearInterval(intervalId);
+        });
+
+        // Initial scroll to bottom
+        scrollLogToBottom();
+    })();
 </script>
 {% endif %}
 {% endblock %}
-

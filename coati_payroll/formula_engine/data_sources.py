@@ -128,16 +128,6 @@ AVAILABLE_DATA_SOURCES = {
                 "description": "Número de cuenta para depósito de nómina",
             },
             # Implementation initial fields - for when system starts mid-fiscal-year
-            "anio_implementacion_inicial": {
-                "type": "integer",
-                "label": "Año de Implementación Inicial",
-                "description": "Año fiscal cuando se implementó el sistema",
-            },
-            "mes_ultimo_cierre": {
-                "type": "integer",
-                "label": "Último Mes Cerrado",
-                "description": "Último mes cerrado antes de pasar al sistema",
-            },
             "salario_acumulado": {
                 "type": "decimal",
                 "label": "Salario Acumulado (Implementación)",

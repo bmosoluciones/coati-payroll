@@ -4,16 +4,17 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+from typing import cast
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import false, true
 
-from coati_payroll.forms import EmployeeForm
+from coati_payroll.forms import EmployeeForm, SalaryChangeForm
 from coati_payroll.i18n import _
-from coati_payroll.model import CampoPersonalizado, Empleado, Moneda, db
+from coati_payroll.model import CampoPersonalizado, Empleado, HistorialSalario, Moneda, db
 from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO, PER_PAGE
 
@@ -223,8 +224,6 @@ def new():
         employee.creado_por = current_user.usuario
 
         # Initial implementation data
-        employee.anio_implementacion_inicial = form.anio_implementacion_inicial.data
-        employee.mes_ultimo_cierre = form.mes_ultimo_cierre.data
         employee.salario_acumulado = form.salario_acumulado.data or Decimal("0.00")
         employee.impuesto_acumulado = form.impuesto_acumulado.data or Decimal("0.00")
 
@@ -290,7 +289,8 @@ def edit(id_: str):
         employee.cargo = form.cargo.data
         employee.area = form.area.data
         employee.centro_costos = form.centro_costos.data
-        employee.salario_base = form.salario_base.data or Decimal("0.00")
+        salario_actual = employee.salario_base or Decimal("0.00")
+        salario_propuesto = form.salario_base.data or Decimal("0.00")
         employee.moneda_id = form.moneda_id.data or None
         employee.empresa_id = form.empresa_id.data or None
         employee.correo = form.correo.data
@@ -303,8 +303,6 @@ def edit(id_: str):
         employee.modificado_por = current_user.usuario
 
         # Initial implementation data
-        employee.anio_implementacion_inicial = form.anio_implementacion_inicial.data
-        employee.mes_ultimo_cierre = form.mes_ultimo_cierre.data
         employee.salario_acumulado = form.salario_acumulado.data or Decimal("0.00")
         employee.impuesto_acumulado = form.impuesto_acumulado.data or Decimal("0.00")
 
@@ -315,6 +313,14 @@ def edit(id_: str):
         employee.datos_adicionales = process_custom_fields_from_request(custom_fields)
 
         db.session.commit()
+
+        if salario_propuesto != salario_actual:
+            flash(
+                _("Los cambios salariales se gestionan únicamente desde el flujo de cambios salariales."),
+                "warning",
+            )
+            return redirect(url_for("employee.salary_change_new", employee_id=employee.id))
+
         flash(_("Empleado actualizado exitosamente."), "success")
         return redirect(url_for("employee.index"))
 
@@ -354,3 +360,150 @@ def delete(id_: str):
     db.session.commit()
     flash(_("Empleado eliminado exitosamente."), "success")
     return redirect(url_for("employee.index"))
+
+
+def _requires_different_approver(employee: Empleado) -> bool:
+    """Return True when company size suggests four-eyes approval."""
+    if not employee.empresa_id:
+        return False
+
+    company_employee_count = db.session.scalar(
+        db.select(db.func.count(Empleado.id)).filter(Empleado.empresa_id == employee.empresa_id)
+    )
+    return (company_employee_count or 0) >= 50
+
+
+@employee_bp.route("/salary-changes")
+@require_read_access()
+def salary_changes_index():
+    """List salary changes with filters for auditability."""
+    page = request.args.get("page", 1, type=int)
+    empleado_id = request.args.get("empleado_id", type=str)
+    estado = request.args.get("estado", type=str)
+
+    query = db.select(HistorialSalario).join(Empleado, HistorialSalario.empleado_id == Empleado.id)
+
+    if empleado_id:
+        query = query.filter(HistorialSalario.empleado_id == empleado_id)
+    if estado:
+        query = query.filter(HistorialSalario.estado == estado)
+
+    query = query.order_by(HistorialSalario.fecha_efectiva.desc(), HistorialSalario.timestamp.desc())
+
+    pagination = db.paginate(query, page=page, per_page=PER_PAGE, error_out=False)
+
+    employee_choices = (
+        db.session.execute(db.select(Empleado).order_by(Empleado.primer_apellido, Empleado.primer_nombre))
+        .scalars()
+        .all()
+    )
+
+    return render_template(
+        "modules/employee/salary_changes_index.html",
+        salary_changes=pagination.items,
+        pagination=pagination,
+        employee_choices=employee_choices,
+        empleado_id=empleado_id,
+        estado=estado,
+    )
+
+
+@employee_bp.route("/salary-changes/new/<string:employee_id>", methods=["GET", "POST"])
+@require_write_access()
+def salary_change_new(employee_id: str):
+    """Create salary change in draft status."""
+    employee = db.session.get(Empleado, employee_id)
+    if not employee:
+        flash(_("Empleado no encontrado."), "error")
+        return redirect(url_for("employee.index"))
+
+    form = SalaryChangeForm()
+    form.moneda_nueva_id.choices = get_currency_choices()
+    if form.validate_on_submit():
+        salary_change = HistorialSalario(
+            empleado_id=employee.id,
+            fecha_efectiva=form.fecha_efectiva.data,
+            salario_anterior=employee.salario_base or Decimal("0.00"),
+            moneda_anterior_id=employee.moneda_id,
+            salario_nuevo=form.salario_nuevo.data or Decimal("0.00"),
+            moneda_nueva_id=form.moneda_nueva_id.data or employee.moneda_id,
+            motivo=form.motivo.data,
+            estado="draft",
+            creado_por=current_user.usuario,
+        )
+        db.session.add(salary_change)
+        db.session.commit()
+        flash(_("Cambio salarial guardado como borrador."), "success")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    if not form.fecha_efectiva.data:
+        form.fecha_efectiva.data = date.today()
+    if not form.salario_nuevo.data:
+        form.salario_nuevo.data = employee.salario_base
+    if not form.moneda_nueva_id.data and employee.moneda_id:
+        form.moneda_nueva_id.data = employee.moneda_id
+
+    return render_template("modules/employee/salary_change_form.html", form=form, employee=employee)
+
+
+@employee_bp.route("/salary-changes/<string:change_id>/approve", methods=["POST"])
+@require_write_access()
+def salary_change_approve(change_id: str):
+    """Approve a draft salary change."""
+    salary_change = db.session.get(HistorialSalario, change_id)
+    if not salary_change:
+        flash(_("Cambio salarial no encontrado."), "error")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    if salary_change.estado != "draft":
+        flash(_("Solo se pueden aprobar cambios en borrador."), "warning")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    if salary_change.empleado is None:
+        flash(_("Empleado no encontrado para este cambio salarial."), "error")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    if (
+        _requires_different_approver(cast(Empleado, salary_change.empleado))
+        and salary_change.creado_por == current_user.usuario
+    ):
+        flash(_("Para empresas grandes, el aprobador debe ser distinto al creador."), "error")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    salary_change.estado = "approved"
+    salary_change.autorizado_por = current_user.usuario
+    salary_change.aprobado_en = datetime.utcnow()
+    db.session.commit()
+
+    flash(_("Cambio salarial aprobado."), "success")
+    return redirect(url_for("employee.salary_changes_index"))
+
+
+@employee_bp.route("/salary-changes/<string:change_id>/apply", methods=["POST"])
+@require_write_access()
+def salary_change_apply(change_id: str):
+    """Apply an approved salary change to employee record."""
+    salary_change = db.session.get(HistorialSalario, change_id)
+    if not salary_change:
+        flash(_("Cambio salarial no encontrado."), "error")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    if salary_change.estado != "approved":
+        flash(_("Solo se pueden aplicar cambios aprobados."), "warning")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    if salary_change.empleado is None:
+        flash(_("Empleado no encontrado para este cambio salarial."), "error")
+        return redirect(url_for("employee.salary_changes_index"))
+
+    empleado = cast(Empleado, salary_change.empleado)
+    empleado.salario_base = salary_change.salario_nuevo
+    if salary_change.moneda_nueva_id:
+        empleado.moneda_id = salary_change.moneda_nueva_id
+    salary_change.aplicado_por = current_user.usuario
+    salary_change.aplicado_en = datetime.utcnow()
+    salary_change.estado = "applied"
+    db.session.commit()
+
+    flash(_("Cambio salarial aplicado exitosamente."), "success")
+    return redirect(url_for("employee.salary_changes_index"))

@@ -11,9 +11,14 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-people me-2"></i>{{ _('Empleados') }}</h2>
-        <a href="{{ url_for('employee.new') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i>{{ _('Nuevo Empleado') }}
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('employee.salary_changes_index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-clock-history me-1"></i>{{ _('Cambios de salario') }}
+            </a>
+            <a href="{{ url_for('employee.new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>{{ _('Nuevo Empleado') }}
+            </a>
+        </div>
     </div>
 
     <!-- Filter Form -->
@@ -108,6 +113,12 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             <td>
                                 <a href="{{ url_for('employee.edit', id_=employee.id) }}" class="btn btn-sm btn-outline-primary" title="{{ _('Editar') }}">
                                     <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('employee.salary_change_new', employee_id=employee.id) }}" class="btn btn-sm btn-outline-success" title="{{ _('Nuevo cambio salarial') }}">
+                                    <i class="bi bi-currency-exchange"></i>
+                                </a>
+                                <a href="{{ url_for('employee.salary_changes_index', empleado_id=employee.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Historial salarial') }}">
+                                    <i class="bi bi-clock-history"></i>
                                 </a>
                                 <form action="{{ url_for('employee.delete', id_=employee.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('¿Está seguro de eliminar este empleado?') }}');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -19,19 +19,33 @@ class NoveltyRepository(BaseRepository[NominaNovedad]):
         return self.session.get(NominaNovedad, novelty_id)
 
     def get_by_employee_and_period(
-        self, empleado_id: str, periodo_inicio: date, periodo_fin: date
+        self, empleado_id: str, periodo_inicio: date, periodo_fin: date, nomina_id: str | None = None
     ) -> list[NominaNovedad]:
-        """Get novelties for employee within period."""
-        from sqlalchemy import select
+        """Get novelties for employee within period, filtering by specific nomina if provided."""
+        from sqlalchemy import select, or_, and_
 
-        return list(
-            self.session.execute(
-                select(NominaNovedad).filter(
-                    NominaNovedad.empleado_id == empleado_id,
+        stmt = select(NominaNovedad).filter(
+            NominaNovedad.empleado_id == empleado_id
+        )
+
+        if nomina_id:
+            condition = or_(
+                NominaNovedad.nomina_id == nomina_id,
+                and_(
+                    NominaNovedad.nomina_id.is_(None),
                     NominaNovedad.fecha_novedad >= periodo_inicio,
                     NominaNovedad.fecha_novedad <= periodo_fin,
                 )
             )
+            stmt = stmt.filter(condition)
+        else:
+            stmt = stmt.filter(
+                NominaNovedad.fecha_novedad >= periodo_inicio,
+                NominaNovedad.fecha_novedad <= periodo_fin,
+            )
+
+        return list(
+            self.session.execute(stmt)
             .unique()
             .scalars()
             .all()

@@ -1,4 +1,4 @@
-{#-
+﻿{#-
 SPDX-License-Identifier: Apache-2.0
 SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 -#}
@@ -9,7 +9,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     <h3>
         Detalle de Nómina: {{ nomina_empleado.empleado.primer_nombre }} {{ nomina_empleado.empleado.primer_apellido }}
     </h3>
-    <a href="{{ url_for('planilla.ver_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}" class="btn btn-secondary">
+    <a href="{{ url_for('planilla.ver_nomina', planilla_id=planilla.id, nomina_id=nomina.id) }}"
+        class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Volver a la Nómina
     </a>
 </div>
@@ -22,7 +23,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
         <div class="row">
             <div class="col-md-4">
                 <strong>Nombre Completo:</strong><br>
-                {{ nomina_empleado.empleado.primer_nombre }} 
+                {{ nomina_empleado.empleado.primer_nombre }}
                 {% if nomina_empleado.empleado.segundo_nombre %}{{ nomina_empleado.empleado.segundo_nombre }}{% endif %}
                 {{ nomina_empleado.empleado.primer_apellido }}
                 {% if nomina_empleado.empleado.segundo_apellido %}{{ nomina_empleado.empleado.segundo_apellido }}{% endif %}
@@ -54,23 +55,27 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 <table class="table table-sm mb-0">
                     <tr>
                         <td>Salario Base:</td>
-                        <td class="text-right">{{ "{:,.2f}".format(nomina_empleado.sueldo_base_historico|float) }}</td>
+                        <td class="text-right">{{ "{:,.2f}".format(salario_base_visual|float) }}</td>
                     </tr>
                     <tr>
                         <td>Total Ingresos:</td>
-                        <td class="text-right text-primary">+{{ "{:,.2f}".format(nomina_empleado.total_ingresos|float) }}</td>
+                        <td class="text-right text-primary">
+                            +{{ "{:,.2f}".format(nomina_empleado.total_ingresos|float) }}</td>
                     </tr>
                     <tr class="table-light">
                         <td><strong>Salario Bruto:</strong></td>
-                        <td class="text-right"><strong>{{ "{:,.2f}".format(nomina_empleado.salario_bruto|float) }}</strong></td>
+                        <td class="text-right">
+                            <strong>{{ "{:,.2f}".format(nomina_empleado.salario_bruto|float) }}</strong></td>
                     </tr>
                     <tr>
                         <td>Total Deducciones:</td>
-                        <td class="text-right text-danger">-{{ "{:,.2f}".format(nomina_empleado.total_deducciones|float) }}</td>
+                        <td class="text-right text-danger">
+                            -{{ "{:,.2f}".format(nomina_empleado.total_deducciones|float) }}</td>
                     </tr>
                     <tr class="table-success">
                         <td><strong>Salario Neto:</strong></td>
-                        <td class="text-right"><strong>{{ "{:,.2f}".format(nomina_empleado.salario_neto|float) }}</strong></td>
+                        <td class="text-right">
+                            <strong>{{ "{:,.2f}".format(nomina_empleado.salario_neto|float) }}</strong></td>
                     </tr>
                     {% if nomina_empleado.tipo_cambio_aplicado and nomina_empleado.tipo_cambio_aplicado != 1 %}
                     <tr>
@@ -168,6 +173,200 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     </div>
 </div>
 
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h6 class="mb-0">Novedades Aplicadas al Calculo</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-5 mb-3 mb-lg-0">
+                <h6 class="text-muted text-uppercase small mb-2">Resumen Dinamico</h6>
+                <table class="table table-sm mb-0">
+                    <tr>
+                        <td>Total novedades aplicadas</td>
+                        <td class="text-right"><strong>{{ resumen_novedades.total }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Con referencia de percepcion</td>
+                        <td class="text-right">{{ resumen_novedades.con_percepcion }}</td>
+                    </tr>
+                    <tr>
+                        <td>Con referencia de deduccion</td>
+                        <td class="text-right">{{ resumen_novedades.con_deduccion }}</td>
+                    </tr>
+                    <tr>
+                        <td>Sin referencia de catalogo</td>
+                        <td class="text-right">{{ resumen_novedades.sin_referencia_catalogo }}</td>
+                    </tr>
+                </table>
+
+                <h6 class="text-muted text-uppercase small mt-3 mb-2">Distribucion por tipo de valor</h6>
+                {% if resumen_novedades.conteo_tipo_valor %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tipo</th>
+                                <th class="text-right">Novedades</th>
+                                <th class="text-right">Valor Acumulado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tipo_valor, total_novedades in resumen_novedades.conteo_tipo_valor.items() %}
+                            <tr>
+                                <td><code>{{ tipo_valor }}</code></td>
+                                <td class="text-right">{{ total_novedades }}</td>
+                                <td class="text-right">
+                                    {{ "{:,.2f}".format(resumen_novedades.acumulado_tipo_valor.get(tipo_valor, 0)|float) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0"><em>No hay tipos de valor registrados.</em></p>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-7">
+                <h6 class="text-muted text-uppercase small mb-2">Conciliacion de Salario Base</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-3">
+                        <tr>
+                            <td>Salario base historico</td>
+                            <td class="text-right">
+                                {{ "{:,.2f}".format(conciliacion_salario_base.salario_base_historico|float) }}</td>
+                        </tr>
+                        <tr>
+                            <td>(-) Ajuste total aplicado al salario base</td>
+                            <td class="text-right text-danger">
+                                -{{ "{:,.2f}".format(conciliacion_salario_base.ajuste_total_salario_base|float) }}</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td><strong>Salario base resultante</strong></td>
+                            <td class="text-right">
+                                <strong>{{ "{:,.2f}".format(conciliacion_salario_base.salario_base_resultante|float) }}</strong>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                {% if conciliacion_salario_base.configuracion_contexto %}
+                <h6 class="text-muted text-uppercase small mb-2">Configuracion utilizada en esta nomina</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Parametro</th>
+                                <th class="text-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for clave, valor in conciliacion_salario_base.configuracion_contexto|dictsort %}
+                            <tr>
+                                <td><code>{{ clave }}</code></td>
+                                <td class="text-right">{{ valor }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="mb-2">Detalle de Novedades Aplicadas</h6>
+        {% if novedades_aplicadas %}
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Codigo</th>
+                        <th>Concepto</th>
+                        <th>Tipo Valor</th>
+                        <th class="text-right">Cantidad</th>
+                        <th class="text-right">Monto</th>
+                        <th>Detalle Monto</th>
+                        <th>Indicadores</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for novedad in novedades_aplicadas %}
+                    <tr>
+                        <td>{{ novedad.fecha_novedad.strftime('%d/%m/%Y') if novedad.fecha_novedad else '-' }}</td>
+                        <td><code>{{ novedad.codigo_concepto }}</code></td>
+                        <td>
+                            {% if novedad.percepcion_id %}
+                            {{ percepcion_catalogo.get(novedad.percepcion_id, novedad.codigo_concepto) }}
+                            <span class="badge bg-primary text-white ml-1">Percepcion</span>
+                            {% elif novedad.deduccion_id %}
+                            {{ deduccion_catalogo.get(novedad.deduccion_id, novedad.codigo_concepto) }}
+                            <span class="badge bg-danger text-white ml-1">Deduccion</span>
+                            {% else %}
+                            {{ novedad.codigo_concepto }}
+                            <span class="badge bg-secondary text-white ml-1">General</span>
+                            {% endif %}
+                        </td>
+                        <td><code>{{ novedad.tipo_valor or '-' }}</code></td>
+                        <td class="text-right">{{ "{:,.2f}".format(novedad.valor_cantidad|float) }}</td>
+                        {% set ref_monto = monto_novedad_referencia.get(novedad.id|string) %}
+                        <td class="text-right">
+                            {% if ref_monto and ref_monto.monto is not none %}
+                            <strong>{{ "{:,.2f}".format(ref_monto.monto|float) }}</strong>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ref_monto and ref_monto.detalle %}
+                            {{ ref_monto.detalle }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set total_indicadores = 0 %}
+                            {% if novedad.es_inasistencia %}
+                            {% set total_indicadores = total_indicadores + 1 %}
+                            <span class="badge bg-warning text-dark">es_inasistencia</span>
+                            {% endif %}
+                            {% if novedad.descontar_pago_inasistencia %}
+                            {% set total_indicadores = total_indicadores + 1 %}
+                            <span class="badge bg-danger text-white">descontar_pago</span>
+                            {% endif %}
+                            {% if novedad.es_descanso_vacaciones %}
+                            {% set total_indicadores = total_indicadores + 1 %}
+                            <span class="badge bg-info text-dark">descanso</span>
+                            {% endif %}
+                            {% if total_indicadores == 0 %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if novedad.estado == 'executed' %}
+                            <span class="badge bg-success text-white">executed</span>
+                            {% elif novedad.estado == 'pending' %}
+                            <span class="badge bg-warning text-dark">pending</span>
+                            {% else %}
+                            <span class="badge bg-secondary text-white">{{ novedad.estado }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0"><em>No hay novedades aplicadas para este empleado en esta nomina.</em></p>
+        {% endif %}
+    </div>
+</div>
+
 <!-- Prestaciones (Costo Empleador) -->
 {% if prestaciones %}
 <div class="card mb-4">
@@ -234,4 +433,3 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     </div>
 </div>
 {% endblock %}
-

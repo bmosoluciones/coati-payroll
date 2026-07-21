@@ -17,7 +17,19 @@ from sqlalchemy.orm import joinedload
 # <-------------------------------------------------------------------------> #
 from coati_payroll.forms import PlanillaForm
 from coati_payroll.i18n import _
-from coati_payroll.model import db, TipoPlanilla, Moneda, Empresa, VacationPolicy, NominaEmpleado, Percepcion, Deduccion
+from coati_payroll.model import (
+    db,
+    TipoPlanilla,
+    Moneda,
+    Empresa,
+    VacationPolicy,
+    Nomina,
+    NominaEmpleado,
+    PlanillaIngreso,
+    PlanillaDeduccion,
+    Percepcion,
+    Deduccion,
+)
 
 # Constants
 SELECT_PLACEHOLDER = "-- Seleccionar --"
@@ -63,6 +75,8 @@ def populate_form_choices(form: PlanillaForm):
 
 def populate_novedad_form_choices(form, nomina_id: str):
     """Populate form select choices for novedad form."""
+    nomina = db.session.get(Nomina, nomina_id)
+
     # Get employees associated with this nomina with eager loading
     nomina_empleados = (
         db.session.execute(
@@ -81,17 +95,45 @@ def populate_novedad_form_choices(form, nomina_id: str):
         for ne in nomina_empleados
     ]
 
-    # Get active percepciones
+    if nomina is None:
+        form.percepcion_id.choices = [("", _("-- Seleccionar Percepción --"))]
+        form.deduccion_id.choices = [("", _("-- Seleccionar Deducción --"))]
+        return
+
+    # Get active percepciones assigned to this planilla
     percepciones = (
-        db.session.execute(db.select(Percepcion).filter_by(activo=True).order_by(Percepcion.nombre)).scalars().all()
+        db.session.execute(
+            db.select(Percepcion)
+            .join(PlanillaIngreso, PlanillaIngreso.percepcion_id == Percepcion.id)
+            .where(
+                PlanillaIngreso.planilla_id == nomina.planilla_id,
+                PlanillaIngreso.activo.is_(True),
+                Percepcion.activo.is_(True),
+            )
+            .order_by(PlanillaIngreso.orden.asc(), Percepcion.nombre.asc())
+        )
+        .scalars()
+        .all()
     )
     form.percepcion_id.choices = [("", _("-- Seleccionar Percepción --"))] + [
         (p.id, f"{p.codigo} - {p.nombre}") for p in percepciones
     ]
 
-    # Get active deducciones
+    # Get active deducciones assigned to this planilla excluding tax/social security
     deducciones = (
-        db.session.execute(db.select(Deduccion).filter_by(activo=True).order_by(Deduccion.nombre)).scalars().all()
+        db.session.execute(
+            db.select(Deduccion)
+            .join(PlanillaDeduccion, PlanillaDeduccion.deduccion_id == Deduccion.id)
+            .where(
+                PlanillaDeduccion.planilla_id == nomina.planilla_id,
+                PlanillaDeduccion.activo.is_(True),
+                Deduccion.activo.is_(True),
+                ~Deduccion.tipo.in_(["tax", "social_security"]),
+            )
+            .order_by(PlanillaDeduccion.prioridad.asc(), Deduccion.nombre.asc())
+        )
+        .scalars()
+        .all()
     )
     form.deduccion_id.choices = [("", _("-- Seleccionar Deducción --"))] + [
         (d.id, f"{d.codigo} - {d.nombre}") for d in deducciones

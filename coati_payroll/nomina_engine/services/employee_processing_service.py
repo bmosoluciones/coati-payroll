@@ -9,10 +9,12 @@ from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
 
-from coati_payroll.model import Empleado, Planilla, AcumuladoAnual
+from coati_payroll.i18n import _
+from coati_payroll.model import AcumuladoAnual, Empleado, Planilla
 from ..domain.employee_calculation import EmpleadoCalculo
 from ..repositories.acumulado_repository import AcumuladoRepository
 from ..repositories.config_repository import ConfigRepository
+from ..results.warning_collector import WarningCollectorProtocol
 
 
 class EmployeeProcessingService:
@@ -34,10 +36,13 @@ class EmployeeProcessingService:
         periodo_fin: date,
         fecha_calculo: date,
         configuracion_snapshot: dict[str, Any] | None = None,
+        bootstrap_context: dict[str, Any] | None = None,
+        warnings: WarningCollectorProtocol | None = None,
     ) -> dict[str, Any]:
         """Build the calculation variables for an employee."""
         empleado = emp_calculo.empleado
         tipo_planilla = planilla.tipo_planilla
+        empresa = planilla.empresa
 
         config = self._resolve_config(planilla.empresa_id, configuracion_snapshot)
 
@@ -79,6 +84,8 @@ class EmployeeProcessingService:
             "salario_mensual": emp_calculo.salario_mensual,
             "tipo_cambio": emp_calculo.tipo_cambio,
             "salario_neto_inasistencia": emp_calculo.salario_neto_inasistencia,
+            "salario_gravable": emp_calculo.salario_gravable,
+            "salario_gravable_periodo": emp_calculo.salario_gravable,
             # Period data
             "fecha_calculo": fecha_calculo,
             "periodo_inicio": periodo_inicio,
@@ -108,16 +115,26 @@ class EmployeeProcessingService:
         salario_base_acumulado = Decimal(str(empleado.salario_acumulado or 0))
         impuesto_base_acumulado = Decimal(str(empleado.impuesto_acumulado or 0))
 
-        variables["salario_acumulado"] = salario_base_acumulado
-        variables["impuesto_acumulado"] = impuesto_base_acumulado
-        variables["ir_retenido_acumulado"] = impuesto_base_acumulado
+        es_periodo_inicial = self._is_initial_company_period(empresa, periodo_inicio, bootstrap_context)
+        if es_periodo_inicial:
+            variables["salario_acumulado"] = salario_base_acumulado
+            variables["impuesto_acumulado"] = impuesto_base_acumulado
+            variables["ir_retenido_acumulado"] = impuesto_base_acumulado
+            if warnings and salario_base_acumulado == Decimal("0") and impuesto_base_acumulado == Decimal("0"):
+                warnings.append(
+                    _(
+                        "Empleado %(codigo)s no tiene salario_acumulado ni "
+                        "impuesto_acumulado para el período inicial; se continúa con el cálculo.",
+                    )
+                    % {"codigo": empleado.codigo_empleado}
+                )
 
         # Add novelties
         for codigo, valor in emp_calculo.novedades.items():
             variables[f"novedad_{codigo}"] = valor
 
         # Load accumulated annual values
-        acumulado = self._get_acumulado_anual(empleado, planilla, fecha_calculo)
+        acumulado = self._get_acumulado_anual(empleado, planilla, periodo_inicio)
         if acumulado:
             variables["salario_acumulado"] = Decimal(str(acumulado.salario_bruto_acumulado or 0))
             variables["impuesto_acumulado"] = Decimal(str(acumulado.impuesto_retenido_acumulado or 0))
@@ -191,7 +208,7 @@ class EmployeeProcessingService:
         return self.config_repo.get_for_empresa(empresa_id)
 
     def _get_acumulado_anual(
-        self, empleado: Empleado, planilla: Planilla, fecha_calculo: date
+        self, empleado: Empleado, planilla: Planilla, periodo_inicio: date
     ) -> AcumuladoAnual | None:
         """Get accumulated annual values for employee."""
         if not planilla.tipo_planilla:
@@ -200,11 +217,11 @@ class EmployeeProcessingService:
         tipo_planilla = planilla.tipo_planilla
 
         # Calculate fiscal period
-        anio = fecha_calculo.year
+        anio = periodo_inicio.year
         mes_inicio = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal)
         dia_inicio = tipo_planilla.dia_inicio_fiscal
 
-        if fecha_calculo.month < mes_inicio:
+        if periodo_inicio.month < mes_inicio:
             anio -= 1
 
         periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
@@ -227,3 +244,23 @@ class EmployeeProcessingService:
         )
 
         return acumulado
+
+    def _is_initial_company_period(
+        self,
+        empresa,
+        periodo_inicio: date,
+        bootstrap_context: dict[str, Any] | None = None,
+    ) -> bool:
+        """Return whether periodo_inicio matches the company's first payroll period."""
+        if bootstrap_context is not None and "is_initial_period" in bootstrap_context:
+            return bool(bootstrap_context["is_initial_period"])
+
+        if not empresa:
+            return False
+
+        primer_mes = empresa.primer_mes_nomina
+        primer_anio = empresa.primer_anio_nomina
+        if primer_mes is None or primer_anio is None:
+            return False
+
+        return periodo_inicio.month == int(primer_mes) and periodo_inicio.year == int(primer_anio)

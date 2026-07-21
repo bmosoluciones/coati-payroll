@@ -8,7 +8,15 @@ from decimal import Decimal
 from unittest.mock import patch, MagicMock
 
 from coati_payroll.enums import NominaEstado
-from coati_payroll.model import Nomina, NominaEmpleado, NominaDetalle, Prestacion, PrestacionAcumulada
+from coati_payroll.model import (
+    Nomina,
+    NominaEmpleado,
+    NominaDetalle,
+    NominaNovedad,
+    Prestacion,
+    PrestacionAcumulada,
+    ComprobanteContable,
+)
 from tests.helpers.auth import login_user
 
 
@@ -191,6 +199,32 @@ def test_ejecutar_nomina_get_accessible_to_authenticated_users(app, client, admi
         assert response.status_code == 200
 
 
+def test_ejecutar_nomina_get_handles_multiple_nominas_with_cancelled(app, client, admin_user, db_session, planilla):
+    """GET /ejecutar should not fail when planilla has multiple payroll runs, including cancelled ones."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        nomina_enero = Nomina(
+            planilla_id=planilla.id,
+            periodo_inicio=date(2025, 1, 1),
+            periodo_fin=date(2025, 1, 31),
+            generado_por=admin_user.usuario,
+            estado=NominaEstado.GENERADO,
+        )
+        nomina_febrero_anulada = Nomina(
+            planilla_id=planilla.id,
+            periodo_inicio=date(2025, 2, 1),
+            periodo_fin=date(2025, 2, 28),
+            generado_por=admin_user.usuario,
+            estado=NominaEstado.ANULADO,
+        )
+        db_session.add_all([nomina_enero, nomina_febrero_anulada])
+        db_session.commit()
+
+        response = client.get(f"/planilla/{planilla.id}/ejecutar")
+        assert response.status_code == 200
+
+
 def test_ejecutar_nomina_post_requires_write_access(app, client, db_session, planilla):
     """Test that ejecutar_nomina POST requires write access."""
     with app.app_context():
@@ -284,6 +318,34 @@ def test_ejecutar_nomina_post_background_processing(mock_ejecutar, app, client, 
             follow_redirects=False,
         )
         assert response.status_code == 302
+
+
+@patch("coati_payroll.vistas.planilla.nomina_routes.NominaService.ejecutar_nomina")
+def test_ejecutar_nomina_post_displays_warning_messages(
+    mock_ejecutar, app, client, admin_user, db_session, planilla, nomina
+):
+    """Warnings returned by service must be shown to the user in response UI."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        warning = (
+            "WARNING: Este calculo de planilla tiene menos dias de lo esperado para una periodicidad mensual."
+        )
+        nomina.procesamiento_en_background = False
+        mock_ejecutar.return_value = (nomina, [], [warning])
+
+        response = client.post(
+            f"/planilla/{planilla.id}/ejecutar",
+            data={
+                "periodo_inicio": "2025-01-01",
+                "periodo_fin": "2025-01-01",
+                "fecha_calculo": "2025-01-01",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert warning in response.get_data(as_text=True)
 
 
 # ============================================================================
@@ -391,6 +453,23 @@ def test_ver_nomina_with_warnings(app, client, admin_user, db_session, planilla,
         assert response.status_code == 200
 
 
+def test_ver_nomina_muestra_salario_base_ajustado_por_inasistencia(
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado
+):
+    """Detalle por empleado should display base salary net of absence discount."""
+    with app.app_context():
+        nomina_empleado.sueldo_base_historico = Decimal("1000.00")
+        nomina_empleado.inasistencia_descuento = Decimal("333.33")
+        db_session.commit()
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}")
+        assert response.status_code == 200
+        assert b"Detalle por Empleado" in response.data
+        assert b"666.67" in response.data
+
+
 # ============================================================================
 # TESTS FOR ver_nomina_empleado
 # ============================================================================
@@ -452,6 +531,157 @@ def test_ver_nomina_empleado_shows_detalles(
 
         response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/empleado/{nomina_empleado.id}")
         assert response.status_code == 200
+
+
+def test_ver_nomina_empleado_muestra_salario_base_ajustado_por_inasistencia(
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado
+):
+    """Salario Base in summary should display base salary net of absence discount."""
+    with app.app_context():
+        nomina_empleado.salario_bruto = Decimal("1000.00")
+        nomina_empleado.total_ingresos = Decimal("333.33")
+        nomina_empleado.inasistencia_descuento = Decimal("333.33")
+        db_session.commit()
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/empleado/{nomina_empleado.id}")
+        assert response.status_code == 200
+        assert b"Salario Base:" in response.data
+        assert b"666.67" in response.data
+
+
+def test_ver_nomina_empleado_muestra_seccion_novedades_aplicadas(
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado
+):
+    """Employee payroll detail should always show applied novelties section."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/empleado/{nomina_empleado.id}")
+        assert response.status_code == 200
+        assert b"Novedades Aplicadas al Calculo" in response.data
+        assert b"Conciliacion de Salario Base" in response.data
+
+
+def test_ver_nomina_empleado_muestra_detalle_dinamico_de_novedades(
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado
+):
+    """Applied novelties detail must render novelty data dynamically."""
+    with app.app_context():
+        novedad = NominaNovedad(
+            nomina_id=nomina.id,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="AJUSTE_VAR",
+            tipo_valor="horas",
+            valor_cantidad=Decimal("2.50"),
+            fecha_novedad=date(2025, 1, 10),
+            estado="pending",
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad)
+        db_session.commit()
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/empleado/{nomina_empleado.id}")
+        assert response.status_code == 200
+        assert b"AJUSTE_VAR" in response.data
+        assert b"2.50" in response.data
+        assert b"horas" in response.data
+        assert b"Detalle Monto" in response.data
+        assert b"Total novedades aplicadas" in response.data
+
+
+def test_ver_nomina_empleado_calcula_monto_referencia_para_deduccion_por_horas(
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado
+):
+    """If there is no direct amount line, deduction-by-hours should show a dynamic estimated amount."""
+    with app.app_context():
+        nomina.configuracion_snapshot = {
+            "dias_mes_nomina": 10,
+            "horas_jornada_diaria": 5,
+        }
+        nomina_empleado.sueldo_base_historico = Decimal("1000.00")
+        novedad = NominaNovedad(
+            nomina_id=nomina.id,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="AJUSTE_HORAS",
+            tipo_valor="horas",
+            valor_cantidad=Decimal("2.00"),
+            fecha_novedad=date(2025, 1, 12),
+            es_inasistencia=True,
+            descontar_pago_inasistencia=True,
+            estado="pending",
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad)
+        db_session.commit()
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/empleado/{nomina_empleado.id}")
+        assert response.status_code == 200
+        assert b"AJUSTE_HORAS" in response.data
+        assert b"40.00" in response.data
+        assert b"Monto estimado por ajuste de salario base segun configuracion de la nomina" in response.data
+
+
+def test_ver_nomina_empleado_concilia_residuo_con_descuento_total_persistido(
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado
+):
+    """When snapshot is empty, residual cents should be reconciled against persisted descuento total."""
+    with app.app_context():
+        nomina.configuracion_snapshot = {}
+        nomina_empleado.sueldo_base_historico = Decimal("10000.00")
+        nomina_empleado.inasistencia_descuento = Decimal("416.67")
+
+        novedad_dia = NominaNovedad(
+            nomina_id=nomina.id,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="VAC_DESC",
+            tipo_valor="dias",
+            valor_cantidad=Decimal("1.00"),
+            es_inasistencia=True,
+            descontar_pago_inasistencia=True,
+            estado="pending",
+            creado_por=admin_user.usuario,
+        )
+        novedad_hora = NominaNovedad(
+            nomina_id=nomina.id,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="LLEGADA_TARDE",
+            tipo_valor="horas",
+            valor_cantidad=Decimal("2.00"),
+            es_inasistencia=True,
+            descontar_pago_inasistencia=True,
+            estado="pending",
+            creado_por=admin_user.usuario,
+        )
+        db_session.add_all([novedad_dia, novedad_hora])
+        db_session.flush()
+
+        detalle_dia = NominaDetalle(
+            nomina_empleado_id=nomina_empleado.id,
+            tipo="income",
+            codigo="VAC_DESC",
+            descripcion="Reclasificacion vacaciones",
+            monto=Decimal("333.33"),
+            orden=5,
+        )
+        db_session.add(detalle_dia)
+        db_session.commit()
+
+        login_user(client, admin_user.usuario, "admin-password")
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/empleado/{nomina_empleado.id}")
+
+        assert response.status_code == 200
+        html = response.get_data(as_text=True)
+        assert "VAC_DESC" in html
+        assert "LLEGADA_TARDE" in html
+        assert "333.33" in html
+        assert "83.34" in html
+        assert "Monto estimado por ajuste de salario base segun configuracion de la nomina" in html
 
 
 # ============================================================================
@@ -638,7 +868,7 @@ def test_aplicar_nomina_requires_write_access(app, client, db_session, planilla,
 
 
 def test_aplicar_nomina_success(app, client, admin_user, db_session, planilla, nomina):
-    """Test successful nomina application."""
+    """Test successful nomina application regenerates accounting voucher in DB."""
     with app.app_context():
         from coati_payroll.model import db
 
@@ -655,6 +885,42 @@ def test_aplicar_nomina_success(app, client, admin_user, db_session, planilla, n
         # Verify nomina was applied
         updated_nomina = db.session.get(Nomina, nomina.id)
         assert updated_nomina.estado == "applied"
+
+        comprobante = db.session.execute(
+            db.select(ComprobanteContable).filter_by(nomina_id=nomina.id)
+        ).scalar_one_or_none()
+        assert comprobante is not None
+
+
+def test_aplicar_nomina_rolls_back_when_voucher_regeneration_fails(
+    app, client, admin_user, db_session, planilla, nomina
+):
+    """Applying payroll must rollback state changes if voucher regeneration fails."""
+    with app.app_context():
+        from coati_payroll.model import db
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        nomina = db.session.merge(nomina)
+        nomina.estado = NominaEstado.APROBADO
+        db.session.commit()
+        nomina_id = nomina.id
+
+        with (
+            patch("coati_payroll.vistas.planilla.nomina_routes.db.session.rollback") as mock_rollback,
+            patch("coati_payroll.vistas.planilla.nomina_routes.db.session.commit") as mock_commit,
+            patch(
+                "coati_payroll.vistas.planilla.nomina_routes._regenerar_comprobante_contable_nomina",
+                side_effect=Exception("voucher regen failed"),
+            ),
+        ):
+            response = client.post(
+                f"/planilla/{planilla.id}/nomina/{nomina_id}/aplicar",
+                follow_redirects=False,
+            )
+            assert response.status_code == 302
+            mock_rollback.assert_called_once()
+            mock_commit.assert_not_called()
 
 
 def test_aplicar_nomina_wrong_state(app, client, admin_user, db_session, planilla, nomina):
@@ -828,6 +1094,83 @@ def test_aplicar_prestaciones_nomina_is_idempotent(app, db_session, planilla, no
             .all()
         )
         assert len(transacciones) == 1
+
+
+# ============================================================================
+# TESTS FOR anular_nomina
+# ============================================================================
+
+
+def test_anular_nomina_requires_write_access(app, client, db_session, planilla, nomina):
+    """Test that anular_nomina requires write access."""
+    with app.app_context():
+        response = client.post(f"/planilla/{planilla.id}/nomina/{nomina.id}/anular", follow_redirects=False)
+        assert response.status_code == 302
+
+
+def test_anular_nomina_success_for_generated_state(app, client, admin_user, db_session, planilla, nomina):
+    """Test successful nomina cancellation for generated state."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        nomina.estado = NominaEstado.GENERADO
+        db_session.commit()
+
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/anular",
+            data={"razon_anulacion": "Periodo inválido"},
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        db_session.refresh(nomina)
+        assert nomina.estado == NominaEstado.ANULADO
+        assert nomina.razon_anulacion == "Periodo inválido"
+        assert nomina.anulado_por == admin_user.usuario
+
+
+def test_anular_nomina_aplicado_state_fails(app, client, admin_user, db_session, planilla, nomina):
+    """Test that anular_nomina does not allow applied/payroll-paid nominas."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        nomina.estado = NominaEstado.APLICADO
+        db_session.commit()
+
+        response = client.post(f"/planilla/{planilla.id}/nomina/{nomina.id}/anular", follow_redirects=False)
+        assert response.status_code == 302
+
+        db_session.refresh(nomina)
+        assert nomina.estado == NominaEstado.APLICADO
+
+
+def test_ver_nomina_shows_anular_button_for_non_applied_states(app, client, admin_user, db_session, planilla, nomina):
+    """Detail view should show Anular action when nomina is not applied/paid."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        nomina.estado = NominaEstado.GENERADO
+        db_session.commit()
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}")
+        assert response.status_code == 200
+        html = response.get_data(as_text=True)
+        assert "Anular" in html
+        assert f"/planilla/{planilla.id}/nomina/{nomina.id}/anular" in html
+
+
+def test_ver_nomina_hides_anular_button_for_applied_state(app, client, admin_user, db_session, planilla, nomina):
+    """Detail view should not show Anular action for applied nominas."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        nomina.estado = NominaEstado.APLICADO
+        db_session.commit()
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}")
+        assert response.status_code == 200
+        html = response.get_data(as_text=True)
+        assert f"/planilla/{planilla.id}/nomina/{nomina.id}/anular" not in html
 
 
 # ============================================================================

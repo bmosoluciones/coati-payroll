@@ -6,6 +6,29 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .btn-outline-visible-success,
+    .btn-outline-visible-info,
+    .btn-outline-visible-warning {
+        border-width: 2px;
+    }
+
+    .btn-outline-visible-success {
+        border-color: #146c43;
+        color: #146c43;
+    }
+
+    .btn-outline-visible-info {
+        border-color: #087990;
+        color: #087990;
+    }
+
+    .btn-outline-visible-warning {
+        border-color: #997404;
+        color: #997404;
+    }
+</style>
+
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
@@ -105,7 +128,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                         <span class="badge bg-success fs-5">{{ percepciones_count }}</span>
                         <br><small class="text-muted">{{ _('percepciones asignadas') }}</small>
                     </p>
-                    <a href="{{ url_for('planilla.config_percepciones', planilla_id=planilla.id) }}" class="btn btn-outline-success">
+                    <a href="{{ url_for('planilla.config_percepciones', planilla_id=planilla.id) }}" class="btn btn-outline-visible-success">
                         <i class="bi bi-gear me-1"></i>{{ _('Gestionar') }}
                     </a>
                 </div>
@@ -143,7 +166,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                         <span class="badge bg-info fs-5">{{ prestaciones_count }}</span>
                         <br><small class="text-muted">{{ _('prestaciones asignadas') }}</small>
                     </p>
-                    <a href="{{ url_for('planilla.config_prestaciones', planilla_id=planilla.id) }}" class="btn btn-outline-info">
+                    <a href="{{ url_for('planilla.config_prestaciones', planilla_id=planilla.id) }}" class="btn btn-outline-visible-info">
                         <i class="bi bi-gear me-1"></i>{{ _('Gestionar') }}
                     </a>
                 </div>
@@ -162,7 +185,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                         <span class="badge bg-warning text-dark fs-5">{{ reglas_count }}</span>
                         <br><small class="text-muted">{{ _('reglas asignadas') }}</small>
                     </p>
-                    <a href="{{ url_for('planilla.config_reglas', planilla_id=planilla.id) }}" class="btn btn-outline-warning">
+                    <a href="{{ url_for('planilla.config_reglas', planilla_id=planilla.id) }}" class="btn btn-outline-visible-warning">
                         <i class="bi bi-gear me-1"></i>{{ _('Gestionar') }}
                     </a>
                 </div>

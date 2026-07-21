@@ -197,7 +197,7 @@ class DramatiqDriver(QueueDriver):
 
             # Try to get queue lengths
             try:
-                keys = client.keys("dramatiq:*:msgs")
+                keys = cast(list[bytes], client.keys("dramatiq:*:msgs"))
                 stats["queues"] = {}
                 for key in keys:
                     queue_name = key.decode("utf-8").split(":")[1]

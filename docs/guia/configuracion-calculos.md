@@ -35,3 +35,12 @@ El monto por días pendientes en la liquidación se calcula multiplicando la tas
 
 - Si el **modo** no coincide con un valor válido, el sistema usa **Calendario** como valor por defecto.
 - Un factor de días inválido (0 o negativo) evita el cálculo de la liquidación y genera error.
+
+## Nota sobre Implementacion Inicial de Nomina
+
+Desde la version 1.7.3, el periodo inicial de implementacion no se configura en **Configuracion > Calculos**.
+
+Ahora se define por empresa en **Empresas** mediante:
+
+- `primer_mes_nomina`
+- `primer_anio_nomina`

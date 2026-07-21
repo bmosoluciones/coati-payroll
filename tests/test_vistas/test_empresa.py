@@ -2,8 +2,11 @@
 # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 """Comprehensive tests for empresa (company) CRUD operations (coati_payroll/vistas/empresa.py)."""
 
+from datetime import date, timedelta
+
 from sqlalchemy import select
-from coati_payroll.model import Empresa
+from coati_payroll.enums import NominaEstado
+from coati_payroll.model import Empresa, Moneda, Nomina, Planilla, TipoPlanilla
 from tests.helpers.auth import login_user
 
 
@@ -85,6 +88,9 @@ def test_empresa_new_creates_company(app, client, admin_user, db_session):
             assert empresa.razon_social == "New Company S.A."
             assert empresa.ruc == "J-11111111-1"
             assert empresa.activo is True
+            assert empresa.primer_mes_nomina is not None
+            assert empresa.primer_anio_nomina is not None
+            assert 1 <= int(empresa.primer_mes_nomina) <= 12
 
 
 def test_empresa_edit_requires_admin(app, client, db_session):
@@ -238,9 +244,6 @@ def test_empresa_delete_prevents_deletion_if_has_employees(app, client, admin_us
 def test_empresa_delete_prevents_deletion_if_has_nominas(app, client, admin_user, db_session):
     """Test that company cannot be deleted if it has associated nominas."""
     with app.app_context():
-        from datetime import date, timedelta
-
-        from coati_payroll.model import Moneda, Nomina, Planilla, TipoPlanilla
         from tests.factories.company_factory import create_company
 
         empresa = create_company(db_session, "EMPNOM", "Nomina Company", "J-66666666-7")
@@ -278,6 +281,70 @@ def test_empresa_delete_prevents_deletion_if_has_nominas(app, client, admin_user
         assert response.status_code == 200
         db_session.refresh(empresa)
         assert empresa is not None
+
+
+def test_empresa_edit_locks_initial_period_when_has_applied_or_paid_nominas(app, client, admin_user, db_session):
+    """It should keep bootstrap fields unchanged when payroll already applied/paid."""
+    with app.app_context():
+        empresa = Empresa(
+            codigo="LOCKED01",
+            razon_social="Locked Company S.A.",
+            ruc="J-99999999-9",
+            activo=True,
+            primer_mes_nomina=3,
+            primer_anio_nomina=2025,
+            creado_por="admin-test",
+        )
+        db_session.add(empresa)
+        db_session.flush()
+
+        tipo_planilla = TipoPlanilla(codigo="MN1", descripcion="Mensual", periodicidad="monthly", activo=True)
+        moneda = Moneda(codigo="EUR", nombre="Euro", simbolo="EUR", activo=True)
+        db_session.add_all([tipo_planilla, moneda])
+        db_session.flush()
+
+        planilla = Planilla(
+            nombre="Planilla Lock",
+            tipo_planilla_id=tipo_planilla.id,
+            moneda_id=moneda.id,
+            empresa_id=empresa.id,
+            activo=True,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(planilla)
+        db_session.flush()
+
+        nomina = Nomina(
+            planilla_id=planilla.id,
+            periodo_inicio=date.today(),
+            periodo_fin=date.today() + timedelta(days=14),
+            generado_por=admin_user.usuario,
+            estado=NominaEstado.APLICADO.value,
+        )
+        db_session.add(nomina)
+        db_session.commit()
+        db_session.refresh(empresa)
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        response = client.post(
+            f"/empresa/{empresa.id}/edit",
+            data={
+                "codigo": empresa.codigo,
+                "razon_social": "Locked Company Updated",
+                "ruc": empresa.ruc,
+                "primer_mes_nomina": "9",
+                "primer_anio_nomina": "2026",
+                "activo": "y",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        db_session.refresh(empresa)
+        assert empresa.razon_social == "Locked Company Updated"
+        assert empresa.primer_mes_nomina == 3
+        assert empresa.primer_anio_nomina == 2025
 
 def test_empresa_toggle_active_changes_status(app, client, admin_user, db_session):
     """Test toggling company active status."""

@@ -5,330 +5,239 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 {% from 'macros.html' import render_messages %}
 <!doctype html>
 <html lang="es">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{{ _('Coaty - Sistema de Planillas') }}</title>
-        <link
-            rel="icon"
-            type="image/x-icon"
-            href="{{ url_for('static', filename='logo/Icono.svg') }}"
-        />
 
-        <!-- Google Fonts - Enterprise Typography -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ _('Coaty - Sistema de Planillas') }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo/Icono.svg') }}" />
+    <link rel="manifest" href="{{ url_for('app.manifest') }}" />
+    <meta name="theme-color" content="#5D4037" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Coati Payroll" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo/icon-192.png') }}" />
 
-        <!-- Bootstrap 5 -->
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-        />
+    <!-- Google Fonts - Enterprise Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-        <!-- Bootstrap Icons -->
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        />
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-        <!-- Custom styles -->
-        <link
-            rel="stylesheet"
-            href="{{ url_for('static', filename='styles.css') }}"
-        />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
 
-        <!-- Alpine.js -->
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.8/dist/cdn.min.js"></script>
-    </head>
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 
-    <body>
-        <!-- ======================= NAVBAR SUPERIOR ======================= -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-coaty-dark px-3">
-            <!-- Botón hamburguesa para abrir sidebar en pantallas pequeñas -->
-            <button
-                class="btn sidebar-toggle-btn d-lg-none me-2"
-                id="sidebarToggleMobile"
-                aria-label="Toggle sidebar"
-            >
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</head>
 
-            <a
-                class="navbar-brand fw-bold text-uppercase"
-                href="{{ url_for('app.index') }}"
-            >
-                    <img
-                        src="{{ url_for('static', filename='logo/Icono.png') }}"
-                        alt="Coati Payroll Logo"
-                        height="30"
-                        width="30"
-                    />
-                    {{ _('Coati') }}
-                    <span class="fw-normal">Payroll</span></span
-                >
-            </a>
+<body>
+    <!-- ======================= NAVBAR SUPERIOR ======================= -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-coaty-dark px-3">
+        <!-- Botón hamburguesa para abrir sidebar en pantallas pequeñas -->
+        <button class="btn sidebar-toggle-btn d-lg-none me-2" id="sidebarToggleMobile" aria-label="Toggle sidebar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <!-- Navbar items - visible en pantallas grandes -->
-            <div
-                class="navbar-collapse justify-content-end d-none d-lg-flex"
-                id="topNav"
-            >
-                <ul class="navbar-nav flex-row gap-2 mb-0">
+        <a class="navbar-brand fw-bold text-uppercase" href="{{ url_for('app.index') }}">
+            <img src="{{ url_for('static', filename='logo/Icono.png') }}" alt="Coati Payroll Logo" height="30"
+                width="30" />
+            {{ _('Coati') }}
+            <span class="fw-normal">Payroll</span></span>
+        </a>
+
+        <!-- Navbar items - visible en pantallas grandes -->
+        <div class="navbar-collapse justify-content-end d-none d-lg-flex" id="topNav">
+            <ul class="navbar-nav flex-row gap-2 mb-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.profile') }}">
+                        <i class="bi bi-person-circle"></i>
+                        {{ _('Mi Perfil') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <form method="POST" action="{{ url_for('auth.logout') }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="nav-link btn btn-link p-0">
+                            <i class="bi bi-box-arrow-right"></i>
+                            {{ _('Cerrar Sesión') }}
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ======================= LAYOUT PRINCIPAL ======================= -->
+    <div class="d-flex">
+        <!-- ======================= SIDEBAR ======================= -->
+        <aside id="sidebar" class="sidebar bg-coaty-light">
+            <!-- Sidebar header with logo -->
+            <div class="sidebar-header">
+                <div class="brand-title">
+                    <img src="{{ url_for('static', filename='logo/Icono.png') }}" alt="Coati Payroll Logo" height="30"
+                        width="30" />
+                    {{ _('Coati Payroll') }}
+                </div>
+                <div class="brand-subtitle">
+                    {{ _('Sistema de Planillas') }}
+                </div>
+            </div>
+
+            <ul class="nav flex-column">
+                <!-- Inicio -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('app.index') }}">
+                        <i class="bi bi-house me-2"></i><span><span>{{ _('Inicio') }}</span></span>
+                    </a>
+                </li>
+
+                <!-- Empresas -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('empresa.index') }}">
+                        <i class="bi bi-building-fill"></i><span><span>{{ _('Empresas') }}</span></span>
+                    </a>
+                </li>
+
+                <!-- Planillas -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('planilla.index') }}">
+                        <i class="bi bi-calculator me-2"></i><span><span>{{ _('Planillas') }}</span></span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('liquidacion.index') }}">
+                        <i class="bi bi-file-earmark-text me-2"></i><span><span>{{ _('Liquidaciones') }}</span></span>
+                    </a>
+                </li>
+
+                <!-- Empleados -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('employee.index') }}">
+                        <i class="bi bi-people me-2"></i><span><span>{{ _('Empleados') }}</span></span>
+                    </a>
+                </li>
+
+                <!-- Vacaciones -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('vacation.dashboard') }}">
+                        <i class="bi bi-calendar-check me-2"></i><span><span>{{ _('Vacaciones') }}</span></span>
+                    </a>
+                </li>
+
+                <!-- Prestaciones -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center"
+                        href="{{ url_for('prestacion_management.dashboard') }}">
+                        <i class="bi bi-gift me-2"></i><span><span>{{ _('Prestaciones') }}</span></span>
+                    </a>
+                </li>
+
+                <!-- Préstamos -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('prestamo.index') }}">
+                        <i class="bi bi-cash-coin me-2"></i><span><span>{{ _('Préstamos') }}</span></span>
+                    </a>
+                </li>
+
+                <!-- Usuarios -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('user.index') }}">
+                        <i class="bi bi-person-gear me-2"></i><span><span>{{ _('Usuarios') }}</span></span>
+                    </a>
+                </li>
+
+                {% for active_plugin in plugin_actives %}
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ active_plugin.url }}">
+                        <i
+                            class="{{ active_plugin.icon or 'bi bi-puzzle' }} me-2"></i><span><span>{{ active_plugin.label }}</span></span>
+                    </a>
+                </li>
+                {% endfor %}
+
+                <!-- Configuración -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('settings.index') }}">
+                        <i class="bi bi-gear me-2"></i><span><span>{{ _('Configuración') }}</span></span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Mobile-only links: Profile and Logout (shown only on small screens) -->
+            <div class="mobile-only-links">
+                <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a
-                            class="nav-link"
-                            href="{{ url_for('user.profile') }}"
-                        >
-                            <i class="bi bi-person-circle"></i>
-                            {{ _('Mi Perfil') }}
+                        <a class="nav-link d-flex align-items-center" href="{{ url_for('user.profile') }}">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <span>{{ _('Mi Perfil') }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <form
-                            method="POST"
-                            action="{{ url_for('auth.logout') }}"
-                            class="d-inline"
-                        >
-                            <input
-                                type="hidden"
-                                name="csrf_token"
-                                value="{{ csrf_token() }}"
-                            />
-                            <button
-                                type="submit"
-                                class="nav-link btn btn-link p-0"
-                            >
-                                <i class="bi bi-box-arrow-right"></i>
-                                {{ _('Cerrar Sesión') }}
+                        <form method="POST" action="{{ url_for('auth.logout') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit"
+                                class="nav-link d-flex align-items-center btn btn-link w-100 text-start">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                <span>{{ _('Cerrar Sesión') }}</span>
                             </button>
                         </form>
                     </li>
                 </ul>
             </div>
-        </nav>
+        </aside>
 
-        <!-- ======================= LAYOUT PRINCIPAL ======================= -->
-        <div class="d-flex">
-            <!-- ======================= SIDEBAR ======================= -->
-            <aside id="sidebar" class="sidebar bg-coaty-light">
-                <!-- Sidebar header with logo -->
-                <div class="sidebar-header">
-                    <div class="brand-title">
-                        <img
-                            src="{{ url_for('static', filename='logo/Icono.png') }}"
-                            alt="Coati Payroll Logo"
-                            height="30"
-                            width="30"
-                        />
-                        {{ _('Coati Payroll') }}
-                    </div>
-                    <div class="brand-subtitle">
-                        {{ _('Sistema de Planillas') }}
-                    </div>
-                </div>
+        <!-- ======================= CONTENIDO DINÁMICO ======================= -->
+        <main class="flex-grow-1 p-4">
+            {{ render_messages() }}
+            {% block content %}
+            <h2>{{ _('Bienvenido a Coaty') }}</h2>
+            <p>{{ _('Sistema de Planillas (Payroll)') }}</p>
+            {% endblock %}
+        </main>
+    </div>
 
-                <ul class="nav flex-column">
-                    <!-- Inicio -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('app.index') }}"
-                        >
-                            <i class="bi bi-house me-2"></i
-                            ><span><span>{{ _('Inicio') }}</span></span>
-                        </a>
-                    </li>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
-                    <!-- Empresas -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('empresa.index') }}"
-                        >
-                            <i class="bi bi-building-fill"></i
-                            ><span><span>{{ _('Empresas') }}</span></span>
-                        </a>
-                    </li>
+    <!-- Service Worker registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}');
+        }
+    </script>
 
-                    <!-- Planillas -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('planilla.index') }}"
-                        >
-                            <i class="bi bi-calculator me-2"></i
-                            ><span><span>{{ _('Planillas') }}</span></span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('liquidacion.index') }}"
-                        >
-                            <i class="bi bi-file-earmark-text me-2"></i
-                            ><span><span>{{ _('Liquidaciones') }}</span></span>
-                        </a>
-                    </li>
-
-                    <!-- Empleados -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('employee.index') }}"
-                        >
-                            <i class="bi bi-people me-2"></i
-                            ><span><span>{{ _('Empleados') }}</span></span>
-                        </a>
-                    </li>
-
-                    <!-- Vacaciones -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('vacation.dashboard') }}"
-                        >
-                            <i class="bi bi-calendar-check me-2"></i
-                            ><span><span>{{ _('Vacaciones') }}</span></span>
-                        </a>
-                    </li>
-
-                    <!-- Prestaciones -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('prestacion_management.dashboard') }}"
-                        >
-                            <i class="bi bi-gift me-2"></i
-                            ><span><span>{{ _('Prestaciones') }}</span></span>
-                        </a>
-                    </li>
-
-                    <!-- Préstamos -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('prestamo.index') }}"
-                        >
-                            <i class="bi bi-cash-coin me-2"></i
-                            ><span><span>{{ _('Préstamos') }}</span></span>
-                        </a>
-                    </li>
-
-                    <!-- Usuarios -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('user.index') }}"
-                        >
-                            <i class="bi bi-person-gear me-2"></i
-                            ><span><span>{{ _('Usuarios') }}</span></span>
-                        </a>
-                    </li>
-
-                    {% for active_plugin in plugin_actives %}
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ active_plugin.url }}"
-                        >
-                            <i
-                                class="{{ active_plugin.icon or 'bi bi-puzzle' }} me-2"
-                            ></i
-                            ><span><span>{{ active_plugin.label }}</span></span>
-                        </a>
-                    </li>
-                    {% endfor %}
-
-                    <!-- Configuración -->
-                    <li class="nav-item">
-                        <a
-                            class="nav-link d-flex align-items-center"
-                            href="{{ url_for('settings.index') }}"
-                        >
-                            <i class="bi bi-gear me-2"></i
-                            ><span><span>{{ _('Configuración') }}</span></span>
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Mobile-only links: Profile and Logout (shown only on small screens) -->
-                <div class="mobile-only-links">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a
-                                class="nav-link d-flex align-items-center"
-                                href="{{ url_for('user.profile') }}"
-                            >
-                                <i class="bi bi-person-circle me-2"></i>
-                                <span>{{ _('Mi Perfil') }}</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <form
-                                method="POST"
-                                action="{{ url_for('auth.logout') }}"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="csrf_token"
-                                    value="{{ csrf_token() }}"
-                                />
-                                <button
-                                    type="submit"
-                                    class="nav-link d-flex align-items-center btn btn-link w-100 text-start"
-                                >
-                                    <i class="bi bi-box-arrow-right me-2"></i>
-                                    <span>{{ _('Cerrar Sesión') }}</span>
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </aside>
-
-            <!-- ======================= CONTENIDO DINÁMICO ======================= -->
-            <main class="flex-grow-1 p-4">
-                {{ render_messages() }}
-                {% block content %}
-                <h2>{{ _('Bienvenido a Coaty') }}</h2>
-                <p>{{ _('Sistema de Planillas (Payroll)') }}</p>
-                {% endblock %}
-            </main>
-        </div>
-
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-        <!-- Sidebar Toggle Script -->
-        <script>
-            document
-                .getElementById("sidebarToggleMobile")
-                .addEventListener("click", function () {
-                    document.getElementById("sidebar").classList.toggle("open");
-                });
-
-            // Close sidebar when clicking outside of it on mobile
-            document.addEventListener("click", function (event) {
-                const sidebar = document.getElementById("sidebar");
-                const toggleBtn = document.getElementById(
-                    "sidebarToggleMobile",
-                );
-
-                if (
-                    window.innerWidth < 992 &&
-                    sidebar.classList.contains("open") &&
-                    !sidebar.contains(event.target) &&
-                    !toggleBtn.contains(event.target)
-                ) {
-                    sidebar.classList.remove("open");
-                }
+    <!-- Sidebar Toggle Script -->
+    <script>
+        document
+            .getElementById("sidebarToggleMobile")
+            .addEventListener("click", function () {
+                document.getElementById("sidebar").classList.toggle("open");
             });
-        </script>
-    </body>
-</html>
 
+        // Close sidebar when clicking outside of it on mobile
+        document.addEventListener("click", function (event) {
+            const sidebar = document.getElementById("sidebar");
+            const toggleBtn = document.getElementById(
+                "sidebarToggleMobile",
+            );
+
+            if (
+                window.innerWidth < 992 &&
+                sidebar.classList.contains("open") &&
+                !sidebar.contains(event.target) &&
+                !toggleBtn.contains(event.target)
+            ) {
+                sidebar.classList.remove("open");
+            }
+        });
+    </script>
+</body>
+
+</html>

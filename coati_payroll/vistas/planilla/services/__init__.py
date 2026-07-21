@@ -6,10 +6,12 @@ from coati_payroll.vistas.planilla.services.planilla_service import PlanillaServ
 from coati_payroll.vistas.planilla.services.nomina_service import NominaService
 from coati_payroll.vistas.planilla.services.export_service import ExportService
 from coati_payroll.vistas.planilla.services.novedad_service import NovedadService
+from coati_payroll.vistas.planilla.services.nomina_comparison_service import NominaComparisonService
 
 __all__ = [
     "PlanillaService",
     "NominaService",
     "ExportService",
     "NovedadService",
+    "NominaComparisonService",
 ]

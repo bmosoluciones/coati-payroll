@@ -139,6 +139,7 @@ def deduccion(app, db_session):
             nombre="INSS Laboral",
             descripcion="Seguro Social Laboral",
             formula_tipo="percentage",
+            tipo="general",
             activo=True,
         )
         db_session.add(deduccion)
@@ -918,6 +919,31 @@ def nomina_empleado(app, db_session, nomina, empleado):
         return nomina_empleado
 
 
+@pytest.fixture
+def planilla_novedad_conceptos(app, db_session, planilla, percepcion, deduccion, admin_user):
+    """Assign active income/deduction concepts to planilla for novedades tests."""
+    with app.app_context():
+        from coati_payroll.model import PlanillaIngreso, PlanillaDeduccion
+
+        ingreso = PlanillaIngreso(
+            planilla_id=planilla.id,
+            percepcion_id=percepcion.id,
+            orden=1,
+            activo=True,
+            creado_por=admin_user.usuario,
+        )
+        egreso = PlanillaDeduccion(
+            planilla_id=planilla.id,
+            deduccion_id=deduccion.id,
+            prioridad=1,
+            activo=True,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add_all([ingreso, egreso])
+        db_session.commit()
+        return ingreso, egreso
+
+
 def test_listar_novedades_displays(app, client, admin_user, db_session, planilla, nomina, empleado):
     """Test that GET /planilla/<id>/nomina/<nomina_id>/novedades displays novedades list."""
     with app.app_context():
@@ -948,8 +974,173 @@ def test_nueva_novedad_get_displays_form(app, client, admin_user, db_session, pl
         assert response.status_code == 200
 
 
+def test_nueva_novedad_get_filters_concepts_by_planilla_state_and_type(
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    deduccion,
+    planilla_novedad_conceptos,
+):
+    """GET novedades/new should show only active planilla concepts and hide tax/social_security deductions."""
+    with app.app_context():
+        from coati_payroll.model import Planilla, Percepcion, Deduccion, PlanillaIngreso, PlanillaDeduccion
+
+        login_user(client, admin_user.usuario, "admin-password")
+
+        # Unassigned/hidden income concepts
+        percepcion_no_asignada = Percepcion(
+            codigo="BONO_OUT",
+            nombre="Bono Fuera de Planilla",
+            formula_tipo="fixed",
+            activo=True,
+        )
+        percepcion_inactiva = Percepcion(
+            codigo="BONO_OFF",
+            nombre="Bono Inactivo",
+            formula_tipo="fixed",
+            activo=False,
+        )
+
+        # Deductions for filtering scenarios
+        deduccion_tax = Deduccion(
+            codigo="DED_TAX",
+            nombre="Impuesto Test",
+            tipo="tax",
+            formula_tipo="fixed",
+            activo=True,
+        )
+        deduccion_social = Deduccion(
+            codigo="DED_SS",
+            nombre="Seguro Social Test",
+            tipo="social_security",
+            formula_tipo="fixed",
+            activo=True,
+        )
+        deduccion_otra_planilla = Deduccion(
+            codigo="DED_OTHER",
+            nombre="Deducción Otra Planilla",
+            tipo="general",
+            formula_tipo="fixed",
+            activo=True,
+        )
+        deduccion_asoc_inactiva = Deduccion(
+            codigo="DED_ASSOC_OFF",
+            nombre="Deducción Asociación Inactiva",
+            tipo="general",
+            formula_tipo="fixed",
+            activo=True,
+        )
+        deduccion_catalogo_inactivo = Deduccion(
+            codigo="DED_CAT_OFF",
+            nombre="Deducción Catálogo Inactivo",
+            tipo="general",
+            formula_tipo="fixed",
+            activo=False,
+        )
+        db_session.add_all(
+            [
+                percepcion_no_asignada,
+                percepcion_inactiva,
+                deduccion_tax,
+                deduccion_social,
+                deduccion_otra_planilla,
+                deduccion_asoc_inactiva,
+                deduccion_catalogo_inactivo,
+            ]
+        )
+        db_session.commit()
+
+        # Second planilla to verify scope filtering
+        otra_planilla = Planilla(
+            nombre="Otra Planilla Test",
+            descripcion="Planilla secundaria",
+            tipo_planilla_id=planilla.tipo_planilla_id,
+            moneda_id=planilla.moneda_id,
+            empresa_id=planilla.empresa_id,
+            periodo_fiscal_inicio=planilla.periodo_fiscal_inicio,
+            periodo_fiscal_fin=planilla.periodo_fiscal_fin,
+            activo=True,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(otra_planilla)
+        db_session.commit()
+        db_session.refresh(otra_planilla)
+
+        # Associations for visibility/hiding checks
+        db_session.add(
+            PlanillaIngreso(
+                planilla_id=planilla.id,
+                percepcion_id=percepcion_inactiva.id,
+                orden=2,
+                activo=True,
+                creado_por=admin_user.usuario,
+            )
+        )
+        db_session.add_all(
+            [
+                PlanillaDeduccion(
+                    planilla_id=planilla.id,
+                    deduccion_id=deduccion_tax.id,
+                    prioridad=2,
+                    activo=True,
+                    creado_por=admin_user.usuario,
+                ),
+                PlanillaDeduccion(
+                    planilla_id=planilla.id,
+                    deduccion_id=deduccion_social.id,
+                    prioridad=3,
+                    activo=True,
+                    creado_por=admin_user.usuario,
+                ),
+                PlanillaDeduccion(
+                    planilla_id=planilla.id,
+                    deduccion_id=deduccion_asoc_inactiva.id,
+                    prioridad=4,
+                    activo=False,
+                    creado_por=admin_user.usuario,
+                ),
+                PlanillaDeduccion(
+                    planilla_id=planilla.id,
+                    deduccion_id=deduccion_catalogo_inactivo.id,
+                    prioridad=5,
+                    activo=True,
+                    creado_por=admin_user.usuario,
+                ),
+                PlanillaDeduccion(
+                    planilla_id=otra_planilla.id,
+                    deduccion_id=deduccion_otra_planilla.id,
+                    prioridad=1,
+                    activo=True,
+                    creado_por=admin_user.usuario,
+                ),
+            ]
+        )
+        db_session.commit()
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/new")
+        assert response.status_code == 200
+
+        # Visible: assigned and active
+        assert b"BONO - Bono Mensual" in response.data
+        assert b"INSS - INSS Laboral" in response.data
+
+        # Hidden: not assigned, wrong type, inactive association, inactive concept, other planilla
+        assert b"BONO_OUT - Bono Fuera de Planilla" not in response.data
+        assert b"BONO_OFF - Bono Inactivo" not in response.data
+        assert b"DED_TAX - Impuesto Test" not in response.data
+        assert b"DED_SS - Seguro Social Test" not in response.data
+        assert b"DED_OTHER - Deducci\xc3\xb3n Otra Planilla" not in response.data
+        assert b"DED_ASSOC_OFF - Deducci\xc3\xb3n Asociaci\xc3\xb3n Inactiva" not in response.data
+        assert b"DED_CAT_OFF - Deducci\xc3\xb3n Cat\xc3\xa1logo Inactivo" not in response.data
+
+
 def test_nueva_novedad_post_creates_novedad(
-    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, percepcion
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, percepcion, planilla_novedad_conceptos
 ):
     """Test that POST /planilla/<id>/nomina/<nomina_id>/novedades/new creates a novedad."""
     with app.app_context():
@@ -983,7 +1174,15 @@ def test_nueva_novedad_post_creates_novedad(
 
 
 def test_nueva_novedad_post_uses_concept_absence_defaults_when_flags_omitted(
-    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, percepcion
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
 ):
     """When absence flags are omitted, use Percepcion defaults."""
     with app.app_context():
@@ -1021,7 +1220,15 @@ def test_nueva_novedad_post_uses_concept_absence_defaults_when_flags_omitted(
 
 
 def test_nueva_novedad_post_respects_explicit_flags_over_concept_defaults(
-    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, percepcion
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
 ):
     """If flags are explicitly present in payload, they override concept defaults."""
     with app.app_context():
@@ -1061,7 +1268,15 @@ def test_nueva_novedad_post_respects_explicit_flags_over_concept_defaults(
 
 
 def test_nueva_novedad_post_uses_deduccion_absence_defaults_when_flags_omitted(
-    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, deduccion
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    deduccion,
+    planilla_novedad_conceptos,
 ):
     """When absence flags are omitted, use Deduccion defaults."""
     with app.app_context():
@@ -1099,7 +1314,15 @@ def test_nueva_novedad_post_uses_deduccion_absence_defaults_when_flags_omitted(
 
 
 def test_editar_novedad_get_displays_form(
-    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, percepcion
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
 ):
     """Test that GET /planilla/<id>/nomina/<nomina_id>/novedades/<novedad_id>/edit displays form."""
     with app.app_context():
@@ -1128,7 +1351,15 @@ def test_editar_novedad_get_displays_form(
 
 
 def test_editar_novedad_post_updates_novedad(
-    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, percepcion
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
 ):
     """Test that POST /planilla/<id>/nomina/<nomina_id>/novedades/<novedad_id>/edit updates novedad."""
     with app.app_context():
@@ -1302,3 +1533,245 @@ def test_reintentar_nomina_requires_authentication(app, client, db_session):
         response = client.post("/planilla/999/nomina/888/reintentar", follow_redirects=False)
         assert response.status_code == 302
         assert "/auth/login" in response.location
+
+
+def test_edit_delete_floating_novelty_inside_range(
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
+):
+    """Test editing and deleting a floating novelty (nomina_id is None) whose date is within the Nomina's range."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        from coati_payroll.model import NominaNovedad
+
+        # Create a floating novelty within range (nomina_id=None)
+        novedad = NominaNovedad(
+            nomina_id=None,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="BONO",
+            tipo_valor="monto",
+            valor_cantidad=Decimal("150.00"),
+            fecha_novedad=nomina.periodo_inicio,  # exactly inside
+            percepcion_id=percepcion.id,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad)
+        db_session.commit()
+        db_session.refresh(novedad)
+
+        novedad_id = novedad.id
+
+        # 1. Test GET edit displays form
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit")
+        assert response.status_code == 200
+
+        # 2. Test POST edit successfully updates
+        data = {
+            "empleado_id": nomina_empleado.empleado_id,
+            "codigo_concepto": "BONO",
+            "tipo_concepto": "income",
+            "percepcion_id": percepcion.id,
+            "tipo_valor": "monto",
+            "valor_cantidad": 200,
+            "fecha_novedad": (nomina.periodo_inicio).isoformat(),
+        }
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit",
+            data=data,
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        db_session.refresh(novedad)
+        assert novedad.valor_cantidad == Decimal("200.00")
+
+        # 3. Test POST delete successfully removes
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/delete",
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        deleted = db_session.get(NominaNovedad, novedad_id)
+        assert deleted is None
+
+
+def test_edit_delete_floating_novelty_outside_range_is_rejected(
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
+):
+    """Test editing and deleting a floating novelty (nomina_id is None) whose date is outside the Nomina's range is blocked."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        from coati_payroll.model import NominaNovedad
+
+        # Create a floating novelty outside range (nomina_id=None)
+        novedad = NominaNovedad(
+            nomina_id=None,
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="BONO",
+            tipo_valor="monto",
+            valor_cantidad=Decimal("150.00"),
+            fecha_novedad=nomina.periodo_inicio - timedelta(days=5),  # outside
+            percepcion_id=percepcion.id,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad)
+        db_session.commit()
+        db_session.refresh(novedad)
+
+        novedad_id = novedad.id
+
+        # 1. Test GET edit blocks with redirect
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit")
+        assert response.status_code == 302
+
+        # 2. Test POST edit blocks with redirect
+        data = {
+            "empleado_id": nomina_empleado.empleado_id,
+            "codigo_concepto": "BONO",
+            "tipo_concepto": "income",
+            "percepcion_id": percepcion.id,
+            "tipo_valor": "monto",
+            "valor_cantidad": 200,
+            "fecha_novedad": (nomina.periodo_inicio - timedelta(days=5)).isoformat(),
+        }
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/edit",
+            data=data,
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+        db_session.refresh(novedad)
+        assert novedad.valor_cantidad == Decimal("150.00")  # unchanged
+
+        # 3. Test POST delete blocks with redirect
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/{novedad_id}/delete",
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        # Verify not deleted
+        still_exists = db_session.get(NominaNovedad, novedad_id)
+        assert still_exists is not None
+
+
+def test_concurrent_overlapping_nomina_novelties_isolation(
+    app,
+    client,
+    admin_user,
+    db_session,
+    planilla,
+    nomina,
+    nomina_empleado,
+    percepcion,
+    planilla_novedad_conceptos,
+):
+    """Test isolation of novelties between concurrent/overlapping nominas of the same period.
+    - A novelty explicitly assigned to Nomina A must NOT show in Nomina B's novelty list.
+    - A novelty explicitly assigned to Nomina A must NOT get marked as EJECUTADA when Nomina B is applied.
+    - A novelty explicitly assigned to Nomina A must NOT be loaded/processed during Nomina B's calculation.
+    """
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+
+        from coati_payroll.model import Nomina, NominaNovedad, Empleado, PlanillaEmpleado
+        from coati_payroll.enums import NominaEstado, NovedadEstado
+        from coati_payroll.vistas.planilla.services import NovedadService
+        from coati_payroll.nomina_engine.processors.novelty_processor import NoveltyProcessor
+        from coati_payroll.nomina_engine.repositories.novelty_repository import NoveltyRepository
+
+        # Associate the employee with the planilla
+        association = PlanillaEmpleado(
+            planilla_id=planilla.id,
+            empleado_id=nomina_empleado.empleado_id,
+            fecha_inicio=nomina.periodo_inicio,
+            activo=True,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(association)
+        db_session.commit()
+
+        # Create a second, overlapping/concurrent Nomina B for the same planilla
+        nomina_b = Nomina(
+            planilla_id=planilla.id,
+            periodo_inicio=nomina.periodo_inicio,
+            periodo_fin=nomina.periodo_fin,
+            generado_por=admin_user.usuario,
+            estado=NominaEstado.APROBADO,  # Set as approved so we can call apply
+        )
+        db_session.add(nomina_b)
+        db_session.commit()
+        db_session.refresh(nomina_b)
+
+        # Create a novelty explicitly assigned to Nomina A
+        novedad_a = NominaNovedad(
+            nomina_id=nomina.id,  # Assigned to Nomina A
+            empleado_id=nomina_empleado.empleado_id,
+            codigo_concepto="BONO",
+            tipo_valor="monto",
+            valor_cantidad=Decimal("123.45"),
+            fecha_novedad=nomina.periodo_inicio,  # Within the date range of BOTH nominas
+            percepcion_id=percepcion.id,
+            estado=NovedadEstado.PENDIENTE,
+            creado_por=admin_user.usuario,
+        )
+        db_session.add(novedad_a)
+        db_session.commit()
+        db_session.refresh(novedad_a)
+
+        # 1. Verify NovedadService.listar_novedades for Nomina B does NOT include novedad_a
+        novedades_b = NovedadService.listar_novedades(planilla, nomina_b)
+        assert novedad_a not in novedades_b
+
+        # 2. Verify NovedadService.listar_novedades for Nomina A DOES include novedad_a
+        novedades_a = NovedadService.listar_novedades(planilla, nomina)
+        assert novedad_a in novedades_a
+
+        # 3. Verify NoveltyProcessor does NOT load novelty_a when calculating Nomina B
+        repo = NoveltyRepository(db_session)
+        processor = NoveltyProcessor(repo)
+
+        empleado_obj = db_session.get(Empleado, nomina_empleado.empleado_id)
+
+        # Load novelties for Nomina B (should be empty/excluding novedad_a)
+        novedades_load_b = processor.load_novelties(
+            empleado_obj, nomina_b.periodo_inicio, nomina_b.periodo_fin, nomina_id=nomina_b.id
+        )
+        assert "BONO" not in novedades_load_b
+
+        # Load novelties for Nomina A (should include novedad_a)
+        novedades_load_a = processor.load_novelties(
+            empleado_obj, nomina.periodo_inicio, nomina.periodo_fin, nomina_id=nomina.id
+        )
+        assert novedades_load_a.get("BONO") == Decimal("123.45")
+
+        # 4. Verify applying Nomina B (making it executed/applied) does NOT mark novedad_a as EJECUTADA
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina_b.id}/aplicar",
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        db_session.refresh(nomina_b)
+        assert nomina_b.estado == NominaEstado.APLICADO
+
+        db_session.refresh(novedad_a)
+        assert novedad_a.estado == NovedadEstado.PENDIENTE  # Stays pending!

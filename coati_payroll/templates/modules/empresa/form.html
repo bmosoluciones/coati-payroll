@@ -66,6 +66,63 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                         {{ render_field(form.activo) }}
                     </div>
                 </div>
+
+                <hr class="my-4">
+                <h5 class="mb-3">
+                    <i class="bi bi-journal-text me-2"></i>{{ _('Contabilización de Salario Básico') }}
+                </h5>
+                <p class="text-muted small mb-3">
+                    {{ _('Estas cuentas se usan para generar las líneas contables de salario básico en el comprobante resumido de la nómina.') }}
+                </p>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ render_field(form.codigo_cuenta_debe_salario) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.descripcion_cuenta_debe_salario) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ render_field(form.codigo_cuenta_haber_salario) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.descripcion_cuenta_haber_salario) }}
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <h5 class="mb-3">
+                    <i class="bi bi-calendar-check me-2"></i>{{ _('Implementación de Nómina') }}
+                </h5>
+                <p class="text-muted small mb-3">
+                    {{ _('Define el primer mes/año de nómina para habilitar el empalme de acumulados iniciales por empleado.') }}
+                </p>
+
+                {% if lock_bootstrap_fields %}
+                <div class="alert alert-warning py-2">
+                    {{ _('Estos campos están bloqueados porque la empresa ya tiene nóminas aplicadas o pagadas.') }}
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {% if lock_bootstrap_fields %}
+                            {{ render_field(form.primer_mes_nomina, disabled=True) }}
+                        {% else %}
+                            {{ render_field(form.primer_mes_nomina) }}
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% if lock_bootstrap_fields %}
+                            {{ render_field(form.primer_anio_nomina, disabled=True) }}
+                        {% else %}
+                            {{ render_field(form.primer_anio_nomina) }}
+                        {% endif %}
+                    </div>
+                </div>
                 
                 <div class="mt-4">
                     {{ form.submit(class="btn btn-primary") }}

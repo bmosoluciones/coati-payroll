@@ -91,6 +91,21 @@ Opcionalmente, agregue información de contacto:
 2. Haga clic en **Guardar**
 3. La empresa quedará activa y disponible para asignar empleados y planillas
 
+## Configuración Contable de Salario Básico en Empresa
+
+Desde la versión **1.7.4**, la empresa puede definir las cuentas contables del salario básico que usa el comprobante resumido de nómina:
+
+- **Cuenta Débito Salario Básico**
+- **Descripción Débito Salario Básico**
+- **Cuenta Crédito Salario Básico**
+- **Descripción Crédito Salario Básico**
+
+### ¿Por qué configurarlo en Empresa?
+
+- Permite una fuente de verdad única para varias planillas de la misma razón social.
+- Reduce inconsistencias cuando diferentes planillas comparten la misma política contable.
+- Mantiene compatibilidad con planillas legacy (fallback), pero se recomienda centralizar en empresa.
+
 ## Asignar Empresas
 
 ### Asignar Empleados a una Empresa
@@ -270,3 +285,24 @@ Después de configurar empresas, continúe con:
 - [Gestión de Empleados](empleados.md)
 - [Configuración de Planillas](planillas.md)
 - [Tutorial: Nómina Completa](../tutorial/nomina-completa.md)
+
+## Implementacion de Nomina por Empresa
+
+Cada empresa define su primer periodo de nomina con estos campos:
+
+- `primer_mes_nomina` (1..12)
+- `primer_anio_nomina` (1900..2100)
+
+Regla funcional:
+
+- Si el `periodo_inicio` de la nomina coincide con ese mes/anio, se aplica bootstrap usando `salario_acumulado` e `impuesto_acumulado` del empleado.
+- Si no coincide, el sistema usa acumulados normales del sistema.
+
+### Bloqueo de Edicion
+
+La edicion de `primer_mes_nomina` y `primer_anio_nomina` queda bloqueada cuando existe al menos una nomina de la empresa en estado:
+
+- `applied`
+- `paid`
+
+Si se intenta cambiar esos campos en ese escenario, el backend ignora el cambio, muestra advertencia y conserva los valores existentes.

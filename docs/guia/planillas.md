@@ -52,6 +52,15 @@ El **Mes Inicio Fiscal** determina desde qué mes se acumulan los valores anuale
 
 Ejemplo: Si el año fiscal inicia en abril, el sistema considera abril como mes 1 del período fiscal al calcular acumulados y meses restantes.
 
+!!! important "Coherencia en implementaciones a mitad de año"
+   Si migra en medio del año fiscal, alinee la planilla y los empleados así:
+
+   - Configure correctamente el **Mes Inicio Fiscal** en la planilla.
+   - Registre en el empleado el **Último mes cerrado** y los saldos acumulados previos.
+   - Verifique que el **Año de implementación inicial** del empleado corresponda al período fiscal que inicia en la planilla.
+
+   Con esta coherencia, el cálculo de IR inicial considera meses y saldos históricos correctamente desde la primera nómina en el sistema.
+
 ### Período Fiscal
 
 | Campo | Descripción |

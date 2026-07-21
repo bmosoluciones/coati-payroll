@@ -213,6 +213,16 @@ class Empresa(database.Model, BaseTabla):
     # Status
     activo = database.Column(database.Boolean(), default=True, nullable=False)
 
+    # Initial payroll implementation period for company-level mid-year carry-in
+    primer_mes_nomina = database.Column(database.Integer, nullable=True, default=lambda: date.today().month)
+    primer_anio_nomina = database.Column(database.Integer, nullable=True, default=lambda: date.today().year)
+
+    # Accounting control for base salary at company level
+    codigo_cuenta_debe_salario = database.Column(database.String(64), nullable=True)
+    descripcion_cuenta_debe_salario = database.Column(database.String(255), nullable=True)
+    codigo_cuenta_haber_salario = database.Column(database.String(64), nullable=True)
+    descripcion_cuenta_haber_salario = database.Column(database.String(255), nullable=True)
+
     # Relationships
     empleados = database.relationship("Empleado", back_populates="empresa")
     planillas = database.relationship("Planilla", back_populates="empresa")
@@ -328,8 +338,6 @@ class Empleado(database.Model, BaseTabla):
     # Datos iniciales de implementación
     # Estos campos almacenan saldos acumulados cuando el sistema se implementa
     # a mitad de un período fiscal
-    anio_implementacion_inicial = database.Column(database.Integer, nullable=True)
-    mes_ultimo_cierre = database.Column(database.Integer, nullable=True)
     salario_acumulado = database.Column(database.Numeric(14, 2), nullable=True, default=Decimal("0.00"))
     impuesto_acumulado = database.Column(database.Numeric(14, 2), nullable=True, default=Decimal("0.00"))
     ultimos_tres_salarios = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
@@ -371,7 +379,7 @@ class TipoPlanilla(database.Model, BaseTabla):
 
     __tablename__ = "tipo_planilla"
 
-    codigo = database.Column(database.String(20), unique=True, nullable=False)
+    codigo = database.Column(database.String(40), unique=True, nullable=False)
     descripcion = database.Column(database.String(150), nullable=True)
     dias = database.Column(database.Integer, nullable=False, default=30)  # días usados para prorrateos
     periodicidad = database.Column(
@@ -438,7 +446,14 @@ class Planilla(database.Model, BaseTabla):
 
     # Strong relationship: each payroll can bind to one specific vacation accrual policy
     vacation_policy_id = database.Column(
-        database.String(26), database.ForeignKey("vacation_policy.id"), nullable=True, index=True
+        database.String(26),
+        database.ForeignKey(
+            "vacation_policy.id",
+            name="fk_planilla_vacation_policy_id",
+            use_alter=True,
+        ),
+        nullable=True,
+        index=True,
     )
     vacation_policy = database.relationship("VacationPolicy", foreign_keys=[vacation_policy_id])
 
@@ -931,6 +946,44 @@ class Nomina(database.Model, BaseTabla):
         back_populates="nomina",
         cascade="all, delete-orphan",
     )
+    comparaciones_actual = database.relationship(
+        "NominaComparacion",
+        back_populates="nomina_actual",
+        foreign_keys="NominaComparacion.nomina_actual_id",
+    )
+    comparaciones_base = database.relationship(
+        "NominaComparacion",
+        back_populates="nomina_base",
+        foreign_keys="NominaComparacion.nomina_base_id",
+    )
+
+
+class NominaComparacion(database.Model, BaseTabla):
+    """Cached comparison between two payroll runs in the same planilla."""
+
+    __tablename__ = "nomina_comparacion"
+    __table_args__ = (
+        database.UniqueConstraint("nomina_base_id", "nomina_actual_id", name="uq_nomina_comparacion_par"),
+        database.CheckConstraint("nomina_base_id <> nomina_actual_id", name="ck_nomina_comparacion_distintas"),
+    )
+
+    planilla_id = database.Column(database.String(26), database.ForeignKey(FK_PLANILLA_ID), nullable=False)
+    nomina_base_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=False)
+    nomina_actual_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=False)
+    resumen_json = database.Column(JSON, nullable=False)
+    base_modificado_en = database.Column(database.DateTime, nullable=True)
+    actual_modificado_en = database.Column(database.DateTime, nullable=True)
+    es_calculo_actual = database.Column(database.Boolean, nullable=False, default=True)
+    planilla_actual_aprobada = database.Column(database.Boolean, nullable=False, default=False)
+    generado_en = database.Column(database.DateTime, nullable=False, default=utc_now)
+
+    planilla = database.relationship("Planilla")
+    nomina_base = database.relationship("Nomina", foreign_keys=[nomina_base_id], back_populates="comparaciones_base")
+    nomina_actual = database.relationship(
+        "Nomina",
+        foreign_keys=[nomina_actual_id],
+        back_populates="comparaciones_actual",
+    )
 
 
 class NominaProgress(database.Model, BaseTabla):
@@ -952,6 +1005,7 @@ class NominaProgress(database.Model, BaseTabla):
 
 class NominaEmpleado(database.Model, BaseTabla):
     __tablename__ = "nomina_empleado"
+    __table_args__ = (database.Index("ix_nomina_empleado_nomina_empleado", "nomina_id", "empleado_id"),)
 
     nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=False)
     empleado_id = database.Column(database.String(26), database.ForeignKey(FK_EMPLEADO_ID), nullable=False)
@@ -987,6 +1041,7 @@ class NominaEmpleado(database.Model, BaseTabla):
 
 class NominaDetalle(database.Model, BaseTabla):
     __tablename__ = "nomina_detalle"
+    __table_args__ = (database.Index("ix_nomina_detalle_emp_tipo_codigo", "nomina_empleado_id", "tipo", "codigo"),)
 
     nomina_empleado_id = database.Column(database.String(26), database.ForeignKey("nomina_empleado.id"), nullable=False)
     tipo = database.Column(database.String(15), nullable=False)  # income | deduction | benefit
@@ -1068,8 +1123,8 @@ class LiquidacionDetalle(database.Model, BaseTabla):
 class NominaNovedad(database.Model, BaseTabla):
     __tablename__ = "nomina_novedad"
 
-    # FK a la ejecución de Nómina (el ID que solicitaste)
-    nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=False)
+    # FK a la ejecución de Nómina (el ID que solicitaste). Can be nullable (None) for floating/pre-assigned novelties.
+    nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=True)
     # FK al empleado afectado
     empleado_id = database.Column(database.String(26), database.ForeignKey(FK_EMPLEADO_ID), nullable=False)
 
@@ -1238,11 +1293,19 @@ class HistorialSalario(database.Model, BaseTabla):
     )
     fecha_efectiva = database.Column(database.Date, nullable=False, index=True)
     salario_anterior = database.Column(database.Numeric(14, 2), nullable=False, default=Decimal("0.00"))
+    moneda_anterior_id = database.Column(database.String(26), database.ForeignKey(FK_MONEDA_ID), nullable=True)
     salario_nuevo = database.Column(database.Numeric(14, 2), nullable=False, default=Decimal("0.00"))
+    moneda_nueva_id = database.Column(database.String(26), database.ForeignKey(FK_MONEDA_ID), nullable=True)
     motivo = database.Column(database.String(255), nullable=True)
+    estado = database.Column(database.String(20), nullable=False, default="draft", index=True)
     autorizado_por = database.Column(database.String(150), nullable=True)
+    aprobado_en = database.Column(database.DateTime, nullable=True)
+    aplicado_por = database.Column(database.String(150), nullable=True)
+    aplicado_en = database.Column(database.DateTime, nullable=True)
 
     empleado = database.relationship("Empleado", back_populates="historial_salarios")
+    moneda_anterior = database.relationship("Moneda", foreign_keys=[moneda_anterior_id])
+    moneda_nueva = database.relationship("Moneda", foreign_keys=[moneda_nueva_id])
 
 
 # Configuración de vacaciones por país/empresa
@@ -1994,7 +2057,12 @@ class VacationPolicy(database.Model, BaseTabla):
 
     # Payroll association (primary) - policies are tied to specific payrolls
     # This allows different vacation rules for different payrolls in consolidated companies
-    planilla_id = database.Column(database.String(26), database.ForeignKey(FK_PLANILLA_ID), nullable=True, index=True)
+    planilla_id = database.Column(
+        database.String(26),
+        database.ForeignKey(FK_PLANILLA_ID, name="fk_vacation_policy_planilla_id"),
+        nullable=True,
+        index=True,
+    )
     planilla = database.relationship("Planilla", foreign_keys=[planilla_id], backref="vacation_policies")
 
     # Company association (secondary, optional) - for policies that apply to entire company

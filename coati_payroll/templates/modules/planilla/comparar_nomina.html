@@ -1,0 +1,633 @@
+{#-
+SPDX-License-Identifier: Apache-2.0
+SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
+-#}
+
+{% extends "base.html" %}
+{% macro fmt_money(value) -%}
+{%- if value is not none and value != '' -%}
+{{ "{:,.2f}".format(value|float) }}
+{%- else -%}
+N/A
+{%- endif -%}
+{%- endmacro %}
+
+{% macro fmt_pct(value) -%}
+{%- if value is not none and value != '' -%}
+{{ "{:,.2f}".format(value|float) }}%
+{%- else -%}
+N/A
+{%- endif -%}
+{%- endmacro %}
+
+{% macro fmt_int(value) -%}
+{%- if value is not none and value != '' -%}
+{{ "{:,}".format(value|int) }}
+{%- else -%}
+N/A
+{%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+{% set resumen = comparacion_payload.get('resumen', {}) if comparacion_payload else {} %}
+{% set distribucion = resumen.get('distribucion', {}) if resumen else {} %}
+{% set alertas = comparacion_payload.get('alertas', {}) if comparacion_payload else {} %}
+{% set rojas = alertas.get('rojas', {}) if alertas else {} %}
+{% set amarillas = alertas.get('amarillas', {}) if alertas else {} %}
+{% set impacto = comparacion_payload.get('impacto_empleados', {}) if comparacion_payload else {} %}
+{% set concentracion = comparacion_payload.get('concentracion_impacto', {}) if comparacion_payload else {} %}
+{% set ratios = comparacion_payload.get('ratios', {}) if comparacion_payload else {} %}
+{% set flujo = comparacion_payload.get('flujo_caja', {}) if comparacion_payload else {} %}
+{% set calidad = comparacion_payload.get('calidad', {}) if comparacion_payload else {} %}
+{% set estructurales = comparacion_payload.get('cambios_estructurales', {}) if comparacion_payload else {} %}
+{% set segmentacion = comparacion_payload.get('segmentacion', {}) if comparacion_payload else {} %}
+{% set seg_departamentos = segmentacion.get('departamentos', []) if segmentacion else [] %}
+{% set seg_contrato = segmentacion.get('tipo_contrato', []) if segmentacion else [] %}
+{% set bucket_variacion = comparacion_payload.get('bucket_variacion_neto', []) if comparacion_payload else [] %}
+{% set indice = comparacion_payload.get('indice_estabilidad', {}) if comparacion_payload else {} %}
+{% set empleados = comparacion_payload.get('empleados', {}) if comparacion_payload else {} %}
+{% set conceptos = comparacion_payload.get('conceptos', {}) if comparacion_payload else {} %}
+{% set radar_top = conceptos.get('radar_top', []) if conceptos else [] %}
+{% set componentes = comparacion_payload.get('componentes_planilla', {}) if comparacion_payload else {} %}
+{% set vacaciones = comparacion_payload.get('vacaciones', {}) if comparacion_payload else {} %}
+{% set reglas_vacaciones = vacaciones.get('reglas', []) if vacaciones else [] %}
+
+<div class="content-header">
+    <h3>Comparar Nóminas</h3>
+    <div>
+        <a href="{{ url_for('planilla.ver_nomina', planilla_id=planilla.id, nomina_id=nomina_actual.id) }}"
+            class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver a la nómina
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Seleccionar base de comparación</h5>
+    </div>
+    <div class="card-body">
+        {% if nominas_para_comparar %}
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label for="nomina_base_id" class="form-label">Nómina base</label>
+                <select id="nomina_base_id" name="nomina_base_id" class="form-select" required>
+                    {% for nomina_item in nominas_para_comparar %}
+                    <option value="{{ nomina_item.id }}"
+                        {% if nomina_base and nomina_item.id == nomina_base.id %}selected{% endif %}>
+                        {{ nomina_item.periodo_inicio.strftime('%d/%m/%Y') }} -
+                        {{ nomina_item.periodo_fin.strftime('%d/%m/%Y') }} ({{ nomina_item.estado }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="hidden" name="ejecutar" value="1">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-play-circle"></i> Ejecutar
+                    comparación</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-info mb-0">Sin datos</div>
+        {% endif %}
+    </div>
+</div>
+
+{% if comparacion_payload %}
+<div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+    {% if comparacion_payload.get('is_cached') %}
+    <span class="badge bg-info">Cache</span>
+    {% else %}
+    <span class="badge bg-success">Recalculado ahora</span>
+    {% endif %}
+
+    {% if comparacion_payload.get('cache_generado_en') %}
+    <span class="text-muted small" id="cache-time"
+        data-iso="{{ comparacion_payload.get('cache_generado_en') }}">N/A</span>
+    {% else %}
+    <span class="text-muted small">N/A</span>
+    {% endif %}
+
+    {% set nivel_estabilidad = indice.get('nivel') %}
+    <span
+        class="badge {% if nivel_estabilidad == 'alto' %}bg-success{% elif nivel_estabilidad == 'medio' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+        Índice de estabilidad: {{ indice.get('score', 'N/A') }} ({{ nivel_estabilidad or 'N/A' }})
+    </span>
+</div>
+
+{% if comparacion_payload.get('es_calculo_actual') is sameas false %}
+<div class="alert alert-warning" role="alert">
+    La planilla base/actual de este cálculo ha cambiado.
+</div>
+{% endif %}
+
+{% if comparacion_payload.get('planilla_actual_aprobada') %}
+{% set flujo_aprobacion = comparacion_payload.get('flujo_aprobacion', {}) %}
+<div class="alert alert-success" role="alert">
+    <div class="fw-semibold">La planilla actual de esta comparación ha sido aplicada.</div>
+    <div class="small mt-1">
+        Flujo de aprobación:
+        Creó: {{ flujo_aprobacion.get('creado_por') or 'N/A' }} |
+        Aprobó: {{ flujo_aprobacion.get('validado_por') or 'N/A' }} |
+        Aplicó/Pagó: {{ flujo_aprobacion.get('aplicado_por') or 'N/A' }}
+    </div>
+</div>
+{% endif %}
+
+<div class="accordion mb-4" id="kpiEtapasAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#etapa1">1) Resumen Ejecutivo</button></h2>
+        <div id="etapa1" class="accordion-collapse collapse show" data-bs-parent="#kpiEtapasAccordion">
+            <div class="accordion-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card border-danger">
+                            <div class="card-body text-center">
+                                <div class="text-muted">Alertas rojas</div>
+                                <h3 class="text-danger mb-0">{{ fmt_int(alertas.get('total_rojas')) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <div class="text-muted">Alertas amarillas</div>
+                                <h3 class="text-warning mb-0">{{ fmt_int(alertas.get('total_amarillas')) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <div class="text-muted">Neto base → actual</div>
+                                <h6>{{ fmt_money(resumen.get('total_neto_base')) }} →
+                                    {{ fmt_money(resumen.get('total_neto_actual')) }}</h6><small>Δ
+                                    {{ fmt_money(resumen.get('variacion_total_neto')) }}
+                                    ({{ fmt_pct(resumen.get('variacion_total_neto_pct')) }})</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <div class="text-muted">Deducciones base → actual</div>
+                                <h6>{{ fmt_money(resumen.get('total_deducciones_base')) }} →
+                                    {{ fmt_money(resumen.get('total_deducciones_actual')) }}</h6><small>Δ
+                                    {{ fmt_money(resumen.get('variacion_total_deducciones')) }}
+                                    ({{ fmt_pct(resumen.get('variacion_total_deducciones_pct')) }})</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <div class="text-muted">Var dias calculo</div>
+                                <h6>{{ fmt_int(resumen.get('dias_calculo_base')) }} ->
+                                    {{ fmt_int(resumen.get('dias_calculo_actual')) }}</h6>
+                                {% set var_dias = resumen.get('variacion_dias_calculo') %}
+                                <small>Delta {% if var_dias is not none and var_dias > 0 %}+{% endif %}{{ fmt_int(var_dias) }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#etapa2">2) Impacto Sistémico y Concentración</button></h2>
+        <div id="etapa2" class="accordion-collapse collapse" data-bs-parent="#kpiEtapasAccordion">
+            <div class="accordion-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center"><small>% empleados con variación</small>
+                                <h6>{{ fmt_pct(impacto.get('porcentaje_con_variacion')) }}</h6>
+                                <div class="small">{{ fmt_int(impacto.get('empleados_con_variacion')) }} de
+                                    {{ fmt_int(impacto.get('total_comunes')) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center"><small>Concentración top 10 empleados</small>
+                                <h6>{{ fmt_pct(concentracion.get('top_10_empleados_pct')) }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center"><small>Concentración top 10 conceptos</small>
+                                <h6>{{ fmt_pct(concentracion.get('top_10_conceptos_pct')) }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><strong>Bucket variación neto</strong></div>
+                    <ul class="list-group list-group-flush">
+                        {% if bucket_variacion %}
+                        {% for bucket in bucket_variacion %}
+                        {% set total_comunes = impacto.get('total_comunes')|int %}
+                        {% set bucket_cantidad = bucket.cantidad|int %}
+                        {% set pct_bucket = ((bucket_cantidad / total_comunes * 100) if total_comunes > 0 else none) %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ bucket.rango }}</span>
+                            <strong>{{ fmt_int(bucket_cantidad) }}{% if pct_bucket is not none %}
+                                ({{ fmt_pct(pct_bucket) }}){% endif %}</strong>
+                        </li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item">Sin datos</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#etapa3">3) Distribución, Segmentación y Calidad</button></h2>
+        <div id="etapa3" class="accordion-collapse collapse" data-bs-parent="#kpiEtapasAccordion">
+            <div class="accordion-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center"><small>Std Neto (base/actual)</small>
+                                <h6>{{ fmt_money(distribucion.get('std_neto_base')) }} /
+                                    {{ fmt_money(distribucion.get('std_neto_actual')) }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center"><small>IQR Neto (base/actual)</small>
+                                <h6>{{ fmt_money(distribucion.get('iqr_neto_base')) }} /
+                                    {{ fmt_money(distribucion.get('iqr_neto_actual')) }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center"><small>Ratio Deducciones/Bruto</small>
+                                <h6>{{ fmt_pct(ratios.get('ratio_deducciones_bruto_base')) }} →
+                                    {{ fmt_pct(ratios.get('ratio_deducciones_bruto_actual')) }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center"><small>Cambio estructural</small>
+                                <h6>{% if estructurales.get('reglas_cambiadas') or estructurales.get('catalogos_cambiados') or estructurales.get('tipos_cambio_modificados') %}Sí{% else %}No{% endif %}
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header"><strong>Detalle cambios estructurales</strong></div>
+                    <div class="card-body d-flex gap-2 flex-wrap">
+                        <span
+                            class="badge {% if estructurales.get('reglas_cambiadas') %}bg-danger{% else %}bg-success{% endif %}">Reglas
+                            {% if estructurales.get('reglas_cambiadas') %}❌{% else %}✅{% endif %}</span>
+                        <span
+                            class="badge {% if estructurales.get('catalogos_cambiados') %}bg-danger{% else %}bg-success{% endif %}">Catálogos
+                            {% if estructurales.get('catalogos_cambiados') %}❌{% else %}✅{% endif %}</span>
+                        <span
+                            class="badge {% if estructurales.get('tipos_cambio_modificados') %}bg-danger{% else %}bg-success{% endif %}">Tipo
+                            de cambio
+                            {% if estructurales.get('tipos_cambio_modificados') %}❌{% else %}✅{% endif %}</span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header"><strong>Segmentación por departamento</strong></div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Departamento</th>
+                                                <th>Empleados</th>
+                                                <th>Δ Neto</th>
+                                                <th>%Δ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in seg_departamentos[:10] %}
+                                            <tr>
+                                                <td>{{ item.departamento or 'Sin datos' }}</td>
+                                                <td>{{ fmt_int(item.empleados) }}</td>
+                                                <td>{{ fmt_money(item.variacion_total_neto) }}</td>
+                                                <td>{{ fmt_pct(item.variacion_pct) }}</td>
+                                            </tr>
+                                            {% else %}<tr>
+                                                <td colspan="4">Sin datos</td>
+                                            </tr>{% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header"><strong>Segmentación por tipo contrato</strong></div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tipo</th>
+                                                <th>Empleados</th>
+                                                <th>Δ Neto</th>
+                                                <th>%Δ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in seg_contrato[:10] %}
+                                            <tr>
+                                                <td>{{ item.tipo or 'Sin datos' }}</td>
+                                                <td>{{ fmt_int(item.empleados) }}</td>
+                                                <td>{{ fmt_money(item.variacion_total_neto) }}</td>
+                                                <td>{{ fmt_pct(item.variacion_pct) }}</td>
+                                            </tr>
+                                            {% else %}<tr>
+                                                <td colspan="4">Sin datos</td>
+                                            </tr>{% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header"><strong>Calidad y consistencia</strong></div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between"><span>Empleados con novedades
+                                        (base)</span><strong>{{ fmt_int(calidad.get('empleados_con_novedades_base')) }}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between"><span>Empleados con novedades
+                                        (actual)</span><strong>{{ fmt_int(calidad.get('empleados_con_novedades_actual')) }}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between"><span>% actual con
+                                        novedades</span><strong>{{ fmt_pct(calidad.get('porcentaje_actual')) }}</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body"><strong>Impacto en flujo de caja:</strong> Δ Neto
+                                {{ fmt_money(flujo.get('variacion_total_neto')) }}, Δ Deducciones
+                                {{ fmt_money(flujo.get('variacion_total_deducciones')) }}, Δ Bruto
+                                {{ fmt_money(flujo.get('variacion_total_bruto')) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3 d-flex gap-2 flex-wrap" id="toolbar-outliers">
+    <button type="button" class="btn btn-sm btn-outline-dark active" data-modo="todos">Todos</button>
+    <button type="button" class="btn btn-sm btn-outline-danger" data-modo="alta">Solo outliers severidad alta</button>
+    <button type="button" class="btn btn-sm btn-outline-warning" data-modo="media">Solo outliers severidad
+        media</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-modo="neto_no_positivo">Neto ≤ 0</button>
+    <button type="button" class="btn btn-sm btn-outline-success" data-action="export-csv">Export CSV outliers</button>
+</div>
+
+<div class="accordion" id="comparacionAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#resumenEmpleados">Cambios por empleados y priorización</button></h2>
+        <div id="resumenEmpleados" class="accordion-collapse collapse show" data-bs-parent="#comparacionAccordion">
+            <div class="accordion-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        {% set solo_base = empleados.get('solo_en_base', []) %}
+                        <h6>Solo en nómina base ({{ solo_base|length }})</h6>
+                        <ul>
+                            {% for item in solo_base[:50] %}<li>{{ item.empleado_codigo }} - {{ item.nombre }}</li>
+                            {% else %}<li>Sin datos</li>{% endfor %}
+                        </ul>
+                        {% if solo_base|length > 50 %}<div class="small text-muted">+{{ solo_base|length - 50 }} más
+                        </div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% set solo_actual = empleados.get('solo_en_actual', []) %}
+                        <h6>Solo en nómina actual ({{ solo_actual|length }})</h6>
+                        <ul>
+                            {% for item in solo_actual[:50] %}<li>{{ item.empleado_codigo }} - {{ item.nombre }}</li>
+                            {% else %}<li>Sin datos</li>{% endfor %}
+                        </ul>
+                        {% if solo_actual|length > 50 %}<div class="small text-muted">+{{ solo_actual|length - 50 }} más
+                        </div>{% endif %}
+                    </div>
+                </div>
+
+                <h6 class="mt-3">Top outliers por Δ neto</h6>
+                <div class="table-responsive" style="max-height: 420px;">
+                    <table class="table table-sm table-striped" id="tabla-outliers">
+                        <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Neto base</th>
+                                <th>Neto actual</th>
+                                <th>Δ</th>
+                                <th>%Δ</th>
+                                <th>Driver principal</th>
+                                <th>Severidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in empleados.get('outliers_neto', []) %}
+                            <tr data-severidad="{{ (item.severidad or '')|lower|trim }}"
+                                data-neto-actual="{{ item.neto_actual if item.neto_actual is not none else '' }}">
+                                <td>{{ item.empleado_codigo }} - {{ item.nombre }}</td>
+                                <td>{{ fmt_money(item.neto_base) }}</td>
+                                <td>{{ fmt_money(item.neto_actual) }}</td>
+                                <td>{{ fmt_money(item.variacion_neto) }}</td>
+                                <td>{{ fmt_pct(item.variacion_neto_pct) }}</td>
+                                <td>{{ item.driver or 'Sin datos' }}</td>
+                                <td>{{ item.severidad or 'N/A' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr data-placeholder="1">
+                                <td colspan="7">Sin datos</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#resumenConceptos">Conceptos y explicabilidad del cambio</button></h2>
+        <div id="resumenConceptos" class="accordion-collapse collapse" data-bs-parent="#comparacionAccordion">
+            <div class="accordion-body">
+                <p><strong>Percepciones configuradas:</strong>
+                    {{ componentes.get('percepciones', [])|join(', ') if componentes.get('percepciones') else 'Sin datos' }}
+                </p>
+                <p><strong>Deducciones configuradas:</strong>
+                    {{ componentes.get('deducciones', [])|join(', ') if componentes.get('deducciones') else 'Sin datos' }}
+                </p>
+                <p><strong>Prestaciones configuradas:</strong>
+                    {{ componentes.get('prestaciones', [])|join(', ') if componentes.get('prestaciones') else 'Sin datos' }}
+                </p>
+                <p><strong>Reglas de cálculo:</strong>
+                    {{ componentes.get('reglas_calculo', [])|join(', ') if componentes.get('reglas_calculo') else 'Sin datos' }}
+                </p>
+
+                <h6 class="mt-3">Top 10 conceptos por impacto monetario</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Código</th>
+                                <th>Monto base</th>
+                                <th>Monto actual</th>
+                                <th>Δ</th>
+                                <th>%Δ</th>
+                                <th># Emp. base</th>
+                                <th># Emp. actual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in radar_top %}
+                            <tr>
+                                <td>{{ item.tipo }}</td>
+                                <td>{{ item.codigo }}</td>
+                                <td>{{ fmt_money(item.monto_base) }}</td>
+                                <td>{{ fmt_money(item.monto_actual) }}</td>
+                                <td>{{ fmt_money(item.variacion) }}</td>
+                                <td>{{ fmt_pct(item.variacion_pct) }}</td>
+                                <td>{{ fmt_int(item.empleados_base) }}</td>
+                                <td>{{ fmt_int(item.empleados_actual) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8">Sin datos</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#resumenRiesgo">Riesgo y vacaciones</button></h2>
+        <div id="resumenRiesgo" class="accordion-collapse collapse" data-bs-parent="#comparacionAccordion">
+            <div class="accordion-body">
+                <h6>Alertas de riesgo</h6>
+                <ul>
+                    <li>Empleados con neto negativo: {{ fmt_int(rojas.get('neto_negativo')) }}</li>
+                    <li>Empleados con neto cero: {{ fmt_int(rojas.get('neto_cero')) }}</li>
+                    <li>Outliers de neto: {{ fmt_int(amarillas.get('outliers_neto')) }}</li>
+                    <li>Cambios de salario base: {{ fmt_int(amarillas.get('salario_base_cambiado')) }}</li>
+                </ul>
+
+                <h6 class="mt-3">Vacaciones</h6>
+                <p><strong>Reglas de vacaciones comparadas:</strong> {{ fmt_int(vacaciones.get('total_reglas')) }}</p>
+                <ul>
+                    {% for regla in reglas_vacaciones %}
+                    <li>{{ regla.codigo_concepto }}: {{ fmt_money(regla.cantidad_base) }} →
+                        {{ fmt_money(regla.cantidad_actual) }} (Δ {{ fmt_money(regla.variacion) }})</li>
+                    {% else %}<li>Sin datos</li>{% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        function formatIsoToUtcText(isoString) {
+            if (!isoString) return 'N/A';
+            const normalizedIso = /(?:Z|[+-]\d{2}:?\d{2})$/.test(isoString) ? isoString : `${isoString}Z`;
+            const d = new Date(normalizedIso);
+            if (Number.isNaN(d.getTime())) return 'N/A';
+            const pad = (n) => String(n).padStart(2, '0');
+            return `Generado (UTC): ${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+        }
+
+        const cacheTime = document.getElementById('cache-time');
+        if (cacheTime) {
+            cacheTime.textContent = formatIsoToUtcText(cacheTime.dataset.iso);
+        }
+
+        function filtrarOutliers(modo) {
+            const rows = document.querySelectorAll('#tabla-outliers tbody tr');
+            rows.forEach((row) => {
+                if (row.dataset.placeholder === '1') {
+                    row.style.display = modo === 'todos' ? '' : 'none';
+                    return;
+                }
+
+                const severidad = String(row.dataset.severidad || '').toLowerCase().trim();
+                const rawNeto = row.dataset.netoActual;
+                const netoActual = rawNeto === undefined || rawNeto === null || rawNeto === '' ? null : Number(rawNeto);
+
+                if (modo === 'todos') row.style.display = '';
+                else if (modo === 'alta') row.style.display = severidad === 'alta' ? '' : 'none';
+                else if (modo === 'media') row.style.display = severidad === 'media' ? '' : 'none';
+                else if (modo === 'neto_no_positivo') row.style.display = (Number.isFinite(netoActual) && netoActual <= 0) ? '' : 'none';
+            });
+        }
+
+        function descargarCSV(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const visibleRows = [...table.querySelectorAll('tr')].filter((tr) => tr.offsetParent !== null);
+            const rows = visibleRows.map((tr) => [...tr.querySelectorAll('th,td')]
+                .map((td) => `"${(td.innerText || '').replaceAll('"', '""')}"`)
+                .join(','));
+
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${tableId}.csv`;
+            a.click();
+        }
+
+        document.getElementById('toolbar-outliers')?.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            if (!button) return;
+
+            if (button.dataset.action === 'export-csv') {
+                descargarCSV('tabla-outliers');
+                return;
+            }
+
+            const modo = button.dataset.modo;
+            if (!modo) return;
+
+            document.querySelectorAll('#toolbar-outliers button[data-modo]').forEach((item) => item.classList.remove('active'));
+            button.classList.add('active');
+            filtrarOutliers(modo);
+        });
+    })();
+</script>
+{% endif %}
+{% endblock %}

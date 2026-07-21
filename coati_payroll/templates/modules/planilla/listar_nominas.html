@@ -58,6 +58,10 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                         <span class="badge bg-info">Aprobado</span>
                         {% elif nomina.estado == 'applied' %}
                         <span class="badge bg-success">Aplicado</span>
+                        {% elif nomina.estado == 'paid' %}
+                        <span class="badge bg-success">Pagado</span>
+                        {% elif nomina.estado == 'cancelled' %}
+                        <span class="badge bg-secondary">Anulado</span>
                         {% elif nomina.estado == 'error' %}
                         <span class="badge bg-danger">Error</span>
                         {% else %}

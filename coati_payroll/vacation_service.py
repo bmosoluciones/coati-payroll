@@ -519,7 +519,7 @@ class VacationService:
                 return Decimal("0.00")
 
         if not self.apply_side_effects:
-            log.info(
+            log.trace(
                 "Accrual calculated (no side effects) for employee %s policy=%s amount=%s balance_before=%s",
                 empleado.codigo_empleado,
                 policy.codigo,

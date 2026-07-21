@@ -1,0 +1,66 @@
+{#-
+SPDX-License-Identifier: Apache-2.0
+SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
+-#}
+
+{% extends 'base.html' %}
+{% from 'macros.html' import render_field, render_form_errors %}
+
+{% block content %}
+<div class="container">
+    {{ render_form_errors(form) }}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ title }}</h2>
+        <a href="{{ url_for('employee.edit', id_=employee.id) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('Volver a Edicion') }}
+        </a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="mb-2">{{ _('Empleado') }}</h6>
+            <p class="mb-1"><strong>{{ employee.codigo_empleado }}</strong> - {{ employee.primer_nombre }} {{ employee.primer_apellido }}</p>
+            <p class="mb-0 text-muted">
+                {{ _('Salario actual') }}:
+                {% if employee.moneda %}
+                    {{ employee.moneda.simbolo or employee.moneda.codigo }} {{ employee.salario_base }}
+                {% else %}
+                    {{ employee.salario_base }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="row">
+                    <div class="col-md-4">
+                        {{ render_field(form.fecha_efectiva) }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ render_field(form.salario_base) }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ render_field(form.moneda_id) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ render_field(form.motivo) }}
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('employee.edit', id_=employee.id) }}" class="btn btn-secondary">{{ _('Cancelar') }}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

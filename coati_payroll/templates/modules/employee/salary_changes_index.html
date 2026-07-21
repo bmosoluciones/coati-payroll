@@ -1,0 +1,108 @@
+{#-
+SPDX-License-Identifier: Apache-2.0
+SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
+-#}
+
+{% extends 'base.html' %}
+{% from 'macros.html' import render_pagination %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clock-history me-2"></i>{{ _('Historial de cambios salariales') }}</h2>
+        <a href="{{ url_for('employee.index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('Volver a empleados') }}
+        </a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('employee.salary_changes_index') }}">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label for="empleado_id" class="form-label">{{ _('Empleado') }}</label>
+                        <select class="form-select" id="empleado_id" name="empleado_id">
+                            <option value="">{{ _('Todos') }}</option>
+                            {% for employee in employee_choices %}
+                                <option value="{{ employee.id }}" {% if empleado_id == employee.id %}selected{% endif %}>
+                                    {{ employee.codigo_empleado }} - {{ employee.primer_nombre }} {{ employee.primer_apellido }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="estado" class="form-label">{{ _('Estado') }}</label>
+                        <select class="form-select" id="estado" name="estado">
+                            <option value="">{{ _('Todos') }}</option>
+                            <option value="draft" {% if estado == 'draft' %}selected{% endif %}>{{ _('Borrador') }}</option>
+                            <option value="approved" {% if estado == 'approved' %}selected{% endif %}>{{ _('Aprobado') }}</option>
+                            <option value="applied" {% if estado == 'applied' %}selected{% endif %}>{{ _('Aplicado') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>{{ _('Filtrar') }}</button>
+                        <a href="{{ url_for('employee.salary_changes_index') }}" class="btn btn-outline-secondary">{{ _('Limpiar') }}</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{ _('Empleado') }}</th>
+                            <th>{{ _('Fecha efectiva') }}</th>
+                            <th>{{ _('Salario anterior') }}</th>
+                            <th>{{ _('Salario nuevo') }}</th>
+                            <th>{{ _('Moneda anterior') }}</th>
+                            <th>{{ _('Moneda nueva') }}</th>
+                            <th>{{ _('Estado') }}</th>
+                            <th>{{ _('Creado por') }}</th>
+                            <th>{{ _('Aprobado por') }}</th>
+                            <th>{{ _('Acciones') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in salary_changes %}
+                        <tr>
+                            <td>{{ change.empleado.codigo_empleado }} - {{ change.empleado.primer_nombre }} {{ change.empleado.primer_apellido }}</td>
+                            <td>{{ change.fecha_efectiva }}</td>
+                            <td>{{ change.salario_anterior }}</td>
+                            <td>{{ change.salario_nuevo }}</td>
+                            <td>{{ change.moneda_anterior.codigo if change.moneda_anterior else '-' }}</td>
+                            <td>{{ change.moneda_nueva.codigo if change.moneda_nueva else '-' }}</td>
+                            <td><span class="badge bg-{% if change.estado == 'applied' %}success{% elif change.estado == 'approved' %}info{% else %}secondary{% endif %}">{{ change.estado }}</span></td>
+                            <td>{{ change.creado_por or '-' }}</td>
+                            <td>{{ change.autorizado_por or '-' }}</td>
+                            <td>
+                                {% if change.estado == 'draft' %}
+                                <form method="POST" action="{{ url_for('employee.salary_change_approve', change_id=change.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ _('Aprobar') }}</button>
+                                </form>
+                                {% endif %}
+                                {% if change.estado == 'approved' %}
+                                <form method="POST" action="{{ url_for('employee.salary_change_apply', change_id=change.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-success">{{ _('Aplicar') }}</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted">{{ _('No hay cambios salariales registrados.') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {{ render_pagination(pagination, 'employee.salary_changes_index') }}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -18,6 +18,15 @@ from coati_payroll.queue.drivers.dramatiq_driver import DramatiqDriver
 class NominaService:
     """Service for nomina operations."""
 
+    _PERIODICIDAD_SHORT_PERIOD_RULES: dict[str, tuple[str, int]] = {
+        "monthly": ("mensual", 30),
+        "mensual": ("mensual", 30),
+        "biweekly": ("quincenal", 15),
+        "quincenal": ("quincenal", 15),
+        "weekly": ("semanal", 7),
+        "semanal": ("semanal", 7),
+    }
+
     @staticmethod
     def _rollback_accumulations_for_nomina(nomina: Nomina, planilla: Planilla) -> None:
         """Rollback accumulated annual values produced by one payroll.
@@ -112,8 +121,10 @@ class NominaService:
                 continue
 
             salario_bruto = Decimal(str(ne.salario_bruto or 0))
-            salario_base = Decimal(str(ne.sueldo_base_historico or 0))
-            salario_gravable = salario_base + gravable_by_ne.get(ne.id, Decimal("0.00"))
+            salario_base_neto_inasistencia = Decimal(str(ne.sueldo_base_historico or 0)) - Decimal(
+                str(ne.inasistencia_descuento or 0)
+            )
+            salario_gravable = salario_base_neto_inasistencia + gravable_by_ne.get(ne.id, Decimal("0.00"))
             deducciones = deducciones_by_ne.get(ne.id, {"impuesto": Decimal("0.00"), "antes": Decimal("0.00")})
 
             acumulado.salario_bruto_acumulado = max(
@@ -154,9 +165,26 @@ class NominaService:
             Tuple of (periodo_inicio, periodo_fin)
         """
         # Get last nomina for default dates
-        ultima_nomina = db.session.execute(
-            db.select(Nomina).filter_by(planilla_id=planilla.id).order_by(Nomina.periodo_fin.desc())
-        ).scalar_one_or_none()
+        estados_relevantes = (
+            NominaEstado.CALCULANDO,
+            NominaEstado.GENERADO,
+            NominaEstado.APROBADO,
+            NominaEstado.APLICADO,
+            NominaEstado.PAGADO,
+        )
+        ultima_nomina = (
+            db.session.execute(
+                db.select(Nomina)
+                .where(
+                    Nomina.planilla_id == planilla.id,
+                    Nomina.estado.in_(estados_relevantes),
+                )
+                .order_by(Nomina.periodo_fin.desc(), Nomina.fecha_generacion.desc())
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
 
         hoy = date.today()
 
@@ -187,6 +215,78 @@ class NominaService:
         return periodo_inicio_sugerido, periodo_fin_sugerido
 
     @staticmethod
+    def _build_first_payroll_fiscal_start_warning(planilla: Planilla, periodo_inicio: date) -> str | None:
+        """Warn when first payroll period does not start at fiscal period start.
+
+        This helps operators identify potential tax-side effects (e.g., annualized
+        income tax behaviors) when bootstrapping payroll mid-fiscal-year.
+        """
+        has_previous_nomina = db.session.execute(
+            db.select(Nomina.id).where(Nomina.planilla_id == planilla.id).limit(1)
+        ).scalar_one_or_none()
+        if has_previous_nomina:
+            return None
+
+        tipo_planilla = planilla.tipo_planilla
+        if not tipo_planilla:
+            return None
+
+        mes_inicio_fiscal = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal or 1)
+        dia_inicio_fiscal = int(tipo_planilla.dia_inicio_fiscal or 1)
+        anio_fiscal = periodo_inicio.year if periodo_inicio.month >= mes_inicio_fiscal else periodo_inicio.year - 1
+
+        try:
+            inicio_fiscal = date(anio_fiscal, mes_inicio_fiscal, dia_inicio_fiscal)
+        except ValueError:
+            return None
+
+        if periodo_inicio == inicio_fiscal:
+            return None
+
+        return (
+            "La primera nomina calculada no coincide con el inicio del periodo fiscal "
+            f"({inicio_fiscal.isoformat()}). Se recomienda verificacion manual de impuestos."
+        )
+
+    @staticmethod
+    def _build_short_period_warning(planilla: Planilla, periodo_inicio: date, periodo_fin: date) -> str | None:
+        """Warn when selected payroll period has fewer days than expected by payroll periodicity."""
+        dias_periodo = (periodo_fin - periodo_inicio).days + 1
+        if dias_periodo <= 0:
+            return None
+
+        tipo_planilla = planilla.tipo_planilla
+        if not tipo_planilla:
+            return None
+
+        periodicidad = (tipo_planilla.periodicidad or "").strip().lower()
+        periodicidad_label, dias_esperados = NominaService._PERIODICIDAD_SHORT_PERIOD_RULES.get(
+            periodicidad,
+            ("periodica", int(tipo_planilla.dias or 0)),
+        )
+
+        if dias_esperados <= 0:
+            return None
+
+        # For monthly payrolls, a full natural month (28/29/30/31 days) is expected and valid.
+        if periodicidad in {"monthly", "mensual"}:
+            same_month = periodo_inicio.year == periodo_fin.year and periodo_inicio.month == periodo_fin.month
+            if same_month and periodo_inicio.day == 1:
+                next_month = periodo_inicio.replace(day=28) + timedelta(days=4)
+                fin_mes = next_month - timedelta(days=next_month.day)
+                if periodo_fin == fin_mes:
+                    return None
+
+        if dias_periodo >= dias_esperados:
+            return None
+
+        return (
+            "WARNING: Este calculo de planilla tiene menos dias de lo esperado para una "
+            f"periodicidad {periodicidad_label}. Se seleccionaron {dias_periodo} dias y se esperan al menos "
+            f"{dias_esperados}. Periodo: {periodo_inicio.isoformat()} a {periodo_fin.isoformat()}."
+        )
+
+    @staticmethod
     def ejecutar_nomina(
         planilla: Planilla,
         periodo_inicio: date,
@@ -206,6 +306,15 @@ class NominaService:
         Returns:
             Tuple of (nomina, errors, warnings)
         """
+        warnings: list[str] = []
+        short_period_warning = NominaService._build_short_period_warning(planilla, periodo_inicio, periodo_fin)
+        if short_period_warning:
+            warnings.append(short_period_warning)
+
+        fiscal_start_warning = NominaService._build_first_payroll_fiscal_start_warning(planilla, periodo_inicio)
+        if fiscal_start_warning:
+            warnings.append(fiscal_start_warning)
+
         # Count active employees
         planilla_empleados = cast(list[Any], planilla.planilla_empleados)
         num_empleados = len([pe for pe in planilla_empleados if pe.activo and pe.empleado.activo])
@@ -249,7 +358,7 @@ class NominaService:
                         fecha_calculo=fecha_calculo.isoformat(),
                         usuario=usuario,
                     )
-                    return nomina, [], []
+                    return nomina, [], warnings
                 except Exception:
                     # Fallback to synchronous execution while keeping an auditable trace
                     db.session.delete(nomina)
@@ -265,7 +374,7 @@ class NominaService:
         )
 
         nomina_result = engine.ejecutar()
-        return nomina_result, engine.errors, engine.warnings
+        return nomina_result, engine.errors, warnings + list(engine.warnings or [])
 
     @staticmethod
     def recalcular_nomina(
@@ -291,12 +400,17 @@ class NominaService:
             VacationLedger,
             VacationAccount,
         )
+        from coati_payroll.vistas.planilla.services.nomina_comparison_service import NominaComparisonService
 
         # Store the original period and calculation date for consistency
         periodo_inicio = nomina.periodo_inicio
         periodo_fin = nomina.periodo_fin
         fecha_calculo_original = nomina.fecha_calculo_original or nomina.fecha_generacion.date()
         nomina_original_id = nomina.id
+        warnings: list[str] = []
+        short_period_warning = NominaService._build_short_period_warning(planilla, periodo_inicio, periodo_fin)
+        if short_period_warning:
+            warnings.append(short_period_warning)
         novedad_ids = (
             db.session.execute(db.select(NominaNovedad.id).where(NominaNovedad.nomina_id == nomina.id)).scalars().all()
         )
@@ -398,6 +512,13 @@ class NominaService:
             # The voucher has a non-nullable FK, so it must be deleted before the nomina.
             db.session.execute(db.delete(ComprobanteContable).where(ComprobanteContable.nomina_id == nomina.id))
 
+            # Refresh comparisons that referenced the old payroll id.
+            NominaComparisonService.refresh_after_recalculo(
+                planilla_id=planilla.id,
+                nomina_original_id=nomina_original_id,
+                nomina_nueva_id=new_nomina.id,
+            )
+
             # Delete the old nomina record after moving linked novelties
             db.session.delete(nomina)
 
@@ -421,4 +542,4 @@ class NominaService:
 
             db.session.commit()
 
-        return new_nomina, engine.errors, engine.warnings
+        return new_nomina, engine.errors, warnings + list(engine.warnings or [])

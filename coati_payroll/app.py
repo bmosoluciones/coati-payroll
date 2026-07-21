@@ -7,11 +7,12 @@ from __future__ import annotations
 # <-------------------------------------------------------------------------> #
 # Standard library
 # <-------------------------------------------------------------------------> #
+import json
 
 # <-------------------------------------------------------------------------> #
 # Third party libraries
 # <-------------------------------------------------------------------------> #
-from flask import Blueprint, render_template
+from flask import Blueprint, Response, render_template, url_for
 from flask_login import login_required
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.functions import count
@@ -76,3 +77,33 @@ def ready():
     except Exception:
         # Catch any other exception that might occur
         return {"status": "unavailable"}, 503
+
+
+@app.route("/manifest.json")
+def manifest():
+    """Serve the PWA web app manifest with correct icon URLs."""
+    data = {
+        "name": "Coati Payroll",
+        "short_name": "Coati",
+        "description": "Sistema de gestión de nóminas",
+        "start_url": url_for("app.index"),
+        "display": "standalone",
+        "background_color": "#FAF8F6",
+        "theme_color": "#5D4037",
+        "lang": "es",
+        "icons": [
+            {
+                "src": url_for("static", filename="logo/icon-192.png"),
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any maskable",
+            },
+            {
+                "src": url_for("static", filename="logo/icon-512.png"),
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable",
+            },
+        ],
+    }
+    return Response(json.dumps(data), mimetype="application/manifest+json")

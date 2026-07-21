@@ -63,9 +63,18 @@ Cada asiento contable incluirá el centro de costos del empleado:
 }
 ```
 
-### 2. Configuración Contable de la Planilla
+### 2. Configuración Contable del Salario Base (Empresa/Planilla)
 
-**REQUERIMIENTO**: La planilla DEBE tener configuradas las cuentas para el salario base.
+**REQUERIMIENTO**: El salario base DEBE tener configuradas cuentas de débito y crédito.
+
+Desde la versión **1.7.4**, la fuente principal para salario base es la **Empresa** asociada a la planilla.
+
+#### Orden de resolución (fuente de verdad)
+
+1. **Empresa de la planilla** (prioridad alta)
+2. **Planilla** (fallback para compatibilidad)
+
+Esto permite estandarizar la contabilización del salario base cuando una empresa tiene múltiples planillas.
 
 #### Campos Requeridos
 
@@ -88,7 +97,22 @@ Esta configuración registra:
 - El **gasto** laboral de la empresa (debe ir a cuentas 6xxx)
 - El **pasivo** (obligación de pago) con el empleado (debe ir a cuentas 2xxx)
 
-### 3. Configuración Contable de Percepciones
+### 3. Matriz robusta de configuración contable para comprobante resumido
+
+Para emitir un comprobante resumido sin advertencias, configure cuentas por tipo de movimiento así:
+
+| Movimiento | ¿Dónde se define la cuenta? | Campos clave |
+|-----------|------------------------------|--------------|
+| **Salario básico** | **Empresa** (primario) / Planilla (fallback) | `codigo_cuenta_debe_salario`, `codigo_cuenta_haber_salario` |
+| **Percepciones** | En cada percepción contabilizable | `codigo_cuenta_debe`, `codigo_cuenta_haber` |
+| **Deducciones** | En cada deducción contabilizable | `codigo_cuenta_debe`, `codigo_cuenta_haber` |
+| **Prestaciones** | En cada prestación contabilizable | `codigo_cuenta_debe`, `codigo_cuenta_haber` |
+| **Devengo de vacaciones pagadas** | En la política de vacaciones (`VacationPolicy`) | `cuenta_debito_vacaciones_pagadas`, `cuenta_credito_vacaciones_pagadas` |
+
+!!! info "Devengo de vacaciones"
+    El devengo/consumo de vacaciones pagadas no se toma de percepción/deducción/prestación, sino de la **política de vacaciones** asociada por alcance (planilla/empresa/global) y se contabiliza como líneas de `vacation_liability`.
+
+### 4. Configuración Contable de Percepciones
 
 **REQUERIMIENTO**: Cada percepción que debe contabilizarse DEBE tener sus cuentas configuradas.
 
@@ -119,7 +143,7 @@ DÉBITO:  6102-001 - Gastos de Bonos            $2,000.00
 CRÉDITO: 2101-001 - Salarios por Pagar         $2,000.00
 ```
 
-### 4. Configuración Contable de Deducciones
+### 5. Configuración Contable de Deducciones
 
 **REQUERIMIENTO**: Cada deducción contabilizable DEBE tener configuradas sus cuentas.
 
@@ -152,7 +176,7 @@ CRÉDITO: 2101-001 - Salarios por Pagar         $1,062.50
 
 **Nota**: La deducción REDUCE el salario por pagar al empleado, por eso se debita la cuenta de salarios por pagar y se acredita una cuenta de pasivo con el instituto (INSS).
 
-### 5. Configuración Contable de Prestaciones
+### 6. Configuración Contable de Prestaciones
 
 **REQUERIMIENTO**: Cada prestación patronal contabilizable DEBE tener configuradas sus cuentas.
 
@@ -395,10 +419,12 @@ pytest tests/test_accounting_voucher_e2e.py -v
 Antes de ejecutar una nómina, verificar:
 
 - [ ] Todos los empleados tienen centro de costos definido
-- [ ] La planilla tiene configuradas las cuentas de salario base (débito y crédito)
+- [ ] La **empresa de la planilla** tiene configuradas las cuentas de salario base (débito y crédito)
+- [ ] (Compatibilidad) Si no se usa empresa, la planilla tiene cuentas de salario base como fallback
 - [ ] Todas las percepciones contabilizables tienen ambas cuentas configuradas
 - [ ] Todas las deducciones contabilizables tienen ambas cuentas configuradas
 - [ ] Todas las prestaciones contabilizables tienen ambas cuentas configuradas
+- [ ] Si usa vacaciones pagadas, la política de vacaciones tiene cuentas de débito y crédito configuradas
 - [ ] Las cuentas de gasto usan el rango correcto (6xxx)
 - [ ] Las cuentas de pasivo usan el rango correcto (2xxx)
 - [ ] Se ha probado con una nómina de prueba pequeña primero

@@ -5,6 +5,174 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.3] - 2026-06-10
+
+### Changed
+
+- Maintenance release.
+- Updated Python dependencies: `cryptography`, `flask-reuploaded`, `sqlalchemy`, `weasyprint`.
+- Updated Javascript dependencies: `bootstrap-icons`, `alpinejs`.
+
+## [1.10.2] - 2026-05-16
+
+### Changed
+
+- Added `salario_gravable` / `salario_gravable_periodo` as calculation variables for formula and `ReglaCalculo` execution, derived from period salary after absence discounts plus perceptions configured as gravable.
+- Updated payroll accumulation and recalculation rollback to use the same configured gravable-income basis, keeping tax accumulators consistent across recalculations.
+
+
+## [1.10.0] - 2026-05-03
+
+### Changed
+
+ - Include PwA manifest
+
+## [1.9.1] - 2026-03-05
+
+### Fixed
+
+ - Adjusted code long to avoid Text to long issue.
+
+### Changed
+
+ - Include vacations liability in details view.
+
+### Fixed
+ - Fix text to long issue in `tipo_planilla` table
+
+## [1.9.0] - 2026-02-23
+
+### Added
+
+- Added a dedicated employee salary-change flow at `/employee/edit/<id>/salary` with a `Modificar Salario Base` action in employee edit view.
+- Added salary change persistence in `HistorialSalario` when salary/currency updates are executed from the dedicated flow.
+- Added payroll void action (`POST /planilla/<planilla_id>/nomina/<nomina_id>/anular`) for payrolls that are not in `applied`/`paid` status, with audit trail and cancellation reason.
+
+### Changed
+
+- Locked `salario_base` and `moneda` fields in regular employee edit (`/employee/edit/<id>`) and enforced server-side protection so those values cannot be changed through the standard employee update endpoint.
+- Updated payroll detail/history views to render `Anulado` (`cancelled`) status and expose the `Anular` action when applicable.
+- Clarified payroll overlap behavior so `cancelled` payrolls do not block creating new payroll runs for overlapping periods.
+- Restricted payroll void operation to disallow cancellation while payroll is `calculating`, avoiding invalid state transitions during background processing.
+- Added a visible warning when payroll is executed/recalculated with fewer days than expected for the payroll periodicity (for example, a monthly payroll calculated for a single day).
+- Added `Var dias calculo` as a primary KPI in payroll comparison dashboard (`comparar nomina`) to highlight period-length changes between base and current payroll.
+
+### Tests
+
+- Added route-level coverage for payroll void action permissions, valid/invalid state transitions, and `Anular` button visibility in payroll detail.
+- Re-validated overlap behavior with cancelled payrolls to ensure cancelled runs do not block new payroll generation for the same period.
+
+### Fixed
+
+- Adjusted payroll employee detail summary to display `Salario Base` net of absence discounts (`sueldo_base_historico - inasistencia_descuento`) for reclassified novelties.
+- Adjusted payroll main detail table (`Detalle por Empleado`) to display `Salario Base` net of absence discounts (`sueldo_base_historico - inasistencia_descuento`).
+- Updated payroll Excel export (`exportar-excel`) so `Total Ingresos` reflects period gross pay while preserving the reclassification-adjusted salary display column.
+- Added an explicit warning when the first payroll run does not start at fiscal period start, recommending manual tax verification.
+- Fixed payroll comparison approval banner to label the approving user clearly and avoid 404s by flashing and redirecting when a comparison payroll id is missing.
+- Fixed suggested payroll period selector (`/planilla/<id>/ejecutar`) to safely handle multiple payroll records and ignore cancelled runs when computing the recommended start date.
+
+
+## [1.8.1] - 2026-02-22
+
+### Added
+
+- Added payroll comparison flow with a dedicated route, comparison dashboard template, and a "Comparar con otra nómina" action from payroll detail.
+- Added `NominaComparacion` model persistence for cached base-vs-actual comparison results, including freshness and approval metadata.
+- Added `NominaComparisonService` with KPI generation for alerts, outliers, concept drivers, segmentation, structural changes, stability score, and vacation-rule comparisons.
+- Added comparison-oriented indexes on `NominaEmpleado (nomina_id, empleado_id)` and `NominaDetalle (nomina_empleado_id, tipo, codigo)`.
+
+### Changed
+
+- Updated payroll recalculation flow to refresh/re-point comparison cache rows that referenced the replaced payroll id.
+- Exposed `NominaComparisonService` through the planilla services package exports.
+
+### Fixed
+
+- Added race-safe comparison cache persistence by handling concurrent insert `IntegrityError` with rollback and cached-row re-read fallback.
+
+### Tests
+
+- Added unit tests for comparison KPI/statistical helpers, approval metadata helpers, and concurrent cache insert fallback handling.
+
+## [1.8.0] - 2026-02-21
+
+### Changed
+
+- Moved base salary accounting configuration to company-level (`Empresa`) and exposed debit/credit account + description fields in company maintenance UI.
+- Updated accounting voucher generation to resolve base salary accounts with company-first priority and planilla fallback for backward compatibility.
+- Updated accounting configuration validation warnings to report missing base salary setup based on the effective source (empresa/planilla).
+- Updated salary-payable usage in loan/advance accounting lines to reuse the same resolved base salary credit account.
+
+### Added
+
+- Added documentation for robust summarized voucher setup, including source-of-truth matrix for salario básico, percepciones, deducciones, prestaciones, and paid-vacation accrual liability.
+- Edit html forms.
+- Updated payroll novelties concept selectors to use only active concepts assigned to the payroll template (`Planilla`).
+- Updated novelties deduction selector to exclude deduction types `tax` and `social_security`.
+
+### Tests
+
+- Added coverage for novelties selector filtering by planilla assignment, active state, and deduction type exclusion (`tax` / `social_security`).
+
+## [1.7.3] - 2026-02-19
+
+### Changed
+
+- Replaced mid-year carry-in bootstrap strategy from employee-level implementation fields to company-level configuration using `primer_mes_nomina` and `primer_anio_nomina`.
+- Added bootstrap period fields to company management forms and company edit views.
+- Added server-side lock for company bootstrap period fields when payroll runs already exist in `applied` or `paid` status.
+- Updated payroll calculation flow so employee carry-in values are applied only when `periodo_inicio` matches the company's configured first payroll period.
+- Updated accumulation bootstrap to derive `periodos_procesados` from fiscal start month and payroll periodicity (`periodos_por_anio`) without hardcoded assumptions.
+- Added an initial implementation helper at `/settings/helpers/` to import summarized accounting voucher account mappings from an Excel template using user-visible names (not internal database IDs) for companies, earnings, deductions, benefits, and vacation policies.
+
+### Fixed
+
+- Fixed carry-in behavior to avoid reapplying employee bootstrap balances outside the configured initial company period.
+- Fixed company form rendering to support disabled fields in `render_field` macro, ensuring lock UX works correctly.
+
+### Documentation
+
+- Updated employer docs to describe company-level bootstrap configuration and lock behavior.
+- Updated employee docs to remove legacy implementation year/month fields and keep only carry-in balances.
+- Clarified that implementation period is not configured in global calculation settings.
+
+### Tests
+
+- Updated repository tests for company-level bootstrap behavior and derived initial period counts.
+- Added company view test coverage for bootstrap field lock when payroll is already applied.
+
+
+## [1.7.2] - 2026-02-18
+
+### Changed
+
+- Improved annual accumulation bootstrap logic for mid-year payroll implementations by applying employee-provided initial balances only during the configured implementation fiscal year.
+- Added explicit implementer guidance for fiscal mid-year cutovers with accumulated salary and retained income tax balances.
+
+### Fixed
+
+- Fixed IR carry-in initialization so `impuesto_acumulado` is now mapped to `impuesto_retenido_acumulado` (retained tax), not to pre-tax deductions.
+- Fixed initial processed-period bootstrap for fiscal calculations by deriving `periodos_procesados` from `mes_ultimo_cierre` during implementation cutovers.
+
+### Tests
+
+- Added repository-level tests to validate mid-year bootstrap balances and prevent reapplying initial carry-in values in subsequent fiscal years.
+
+
+## [1.7.1] - 2026-02-17
+
+### Fixed
+
+- Regenerated audit vouchers during payroll apply after prestaciones/vacation side effects, ensuring persisted accounting lines include paid vacation liability for detailed voucher exports.
+- Made `aplicar_nomina` transactional around side effects and voucher regeneration so failures roll back the apply operation and avoid partial persistence.
+- Reused a shared voucher-regeneration helper in the manual regeneration route to keep calculation date/user behavior consistent.
+- Updated payroll Excel export (`exportar-excel`) to a dynamic 5-section layout with extended header metadata, generic reclassification handling, and vacation liability in labor benefits.
+
+### Tests
+
+- Added route-level coverage to verify payroll apply persists a voucher and rolls back correctly when voucher regeneration fails.
+- Updated vacation accrual end-to-end validation to assert `vacation_liability` lines are available from persisted detailed voucher data after applying payroll, without manual regeneration.
+
 
 ## [1.7.0] - 2026-02-17
 

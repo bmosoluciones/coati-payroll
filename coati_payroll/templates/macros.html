@@ -5,12 +5,12 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 
 {# Form rendering macros #}
 
-{% macro render_field(field, class="form-control") %}
+{% macro render_field(field, class="form-control", disabled=False) %}
 <div class="mb-3">
     {% if field.type == 'BooleanField' %}
         {# Checkbox with Bootstrap 5 form-check structure #}
         <div class="form-check">
-            {{ field(class="form-check-input" + (" is-invalid" if field.errors else "")) }}
+            {{ field(class="form-check-input" + (" is-invalid" if field.errors else ""), disabled=disabled) }}
             {{ field.label(class="form-check-label") }}
             {% if field.errors %}
                 {% for error in field.errors %}
@@ -23,7 +23,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
         {{ field.label(class="form-label") }}
         {% for subfield in field %}
             <div class="form-check">
-                {{ subfield(class="form-check-input" + (" is-invalid" if field.errors else "")) }}
+                {{ subfield(class="form-check-input" + (" is-invalid" if field.errors else ""), disabled=disabled) }}
                 {{ subfield.label(class="form-check-label") }}
             </div>
         {% endfor %}
@@ -35,7 +35,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     {% elif field.type == 'SelectField' or field.type == 'SelectMultipleField' %}
         {# Select dropdowns with Bootstrap 5 form-select #}
         {{ field.label(class="form-label") }}
-        {{ field(class="form-select" + (" is-invalid" if field.errors else "")) }}
+        {{ field(class="form-select" + (" is-invalid" if field.errors else ""), disabled=disabled) }}
         {% if field.errors %}
             {% for error in field.errors %}
                 <div class="invalid-feedback d-block">{{ error }}</div>
@@ -44,7 +44,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
     {% else %}
         {# Standard inputs (text, email, password, number, date, etc.) with form-control #}
         {{ field.label(class="form-label") }}
-        {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
+        {{ field(class="form-control" + (" is-invalid" if field.errors else ""), disabled=disabled) }}
         {% if field.errors %}
             {% for error in field.errors %}
                 <div class="invalid-feedback d-block">{{ error }}</div>

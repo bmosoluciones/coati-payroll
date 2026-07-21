@@ -143,12 +143,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateVisibility() {
-        if (tipoConcepto.value === 'percepcion') {
+        if (tipoConcepto.value === 'income') {
             percepcionGroup.style.display = 'block';
             deduccionGroup.style.display = 'none';
-        } else {
+        } else if (tipoConcepto.value === 'deduction') {
             percepcionGroup.style.display = 'none';
             deduccionGroup.style.display = 'block';
+        } else {
+            percepcionGroup.style.display = 'none';
+            deduccionGroup.style.display = 'none';
         }
     }
 

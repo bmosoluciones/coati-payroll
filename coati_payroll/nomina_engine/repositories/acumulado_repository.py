@@ -24,6 +24,11 @@ class AcumuladoRepository(BaseRepository[AcumuladoAnual]):
         tipo_planilla_id: str,
         empresa_id: str,
         periodo_fiscal_inicio: date,
+        periodo_inicio: date | None = None,
+        empresa_primer_mes_nomina: int | None = None,
+        empresa_primer_anio_nomina: int | None = None,
+        fiscal_start_month: int = 1,
+        periodos_por_anio: int = 12,
     ) -> AcumuladoAnual:
         """Get or create acumulado for employee and fiscal period."""
         from sqlalchemy import select
@@ -48,17 +53,34 @@ class AcumuladoRepository(BaseRepository[AcumuladoAnual]):
                 periodo_fiscal_inicio.year + 1, periodo_fiscal_inicio.month, periodo_fiscal_inicio.day
             )
 
+            salario_inicial_acumulado = Decimal("0.00")
+            impuesto_retenido_inicial = Decimal("0.00")
+            periodos_iniciales = 0
+
+            if self._is_initial_company_period(
+                periodo_inicio=periodo_inicio,
+                empresa_primer_mes_nomina=empresa_primer_mes_nomina,
+                empresa_primer_anio_nomina=empresa_primer_anio_nomina,
+            ):
+                salario_inicial_acumulado = Decimal(str(empleado.salario_acumulado or 0))
+                impuesto_retenido_inicial = Decimal(str(empleado.impuesto_acumulado or 0))
+                periodos_iniciales = self._calculate_initial_processed_periods(
+                    periodo_inicio=periodo_inicio,
+                    fiscal_start_month=fiscal_start_month,
+                    periodos_por_anio=periodos_por_anio,
+                )
+
             acumulado = AcumuladoAnual(
                 empleado_id=empleado.id,
                 tipo_planilla_id=tipo_planilla_id,
                 empresa_id=empresa_id,
                 periodo_fiscal_inicio=periodo_fiscal_inicio,
                 periodo_fiscal_fin=periodo_fiscal_fin,
-                salario_bruto_acumulado=empleado.salario_acumulado or Decimal("0.00"),
+                salario_bruto_acumulado=salario_inicial_acumulado,
                 salario_gravable_acumulado=Decimal("0.00"),
-                deducciones_antes_impuesto_acumulado=empleado.impuesto_acumulado or Decimal("0.00"),
-                impuesto_retenido_acumulado=Decimal("0.00"),
-                periodos_procesados=0,
+                deducciones_antes_impuesto_acumulado=Decimal("0.00"),
+                impuesto_retenido_acumulado=impuesto_retenido_inicial,
+                periodos_procesados=periodos_iniciales,
                 salario_acumulado_mes=Decimal("0.00"),
             )
             self.session.add(acumulado)
@@ -69,3 +91,45 @@ class AcumuladoRepository(BaseRepository[AcumuladoAnual]):
         """Save acumulado."""
         self.session.add(acumulado)
         return acumulado
+
+    def _is_initial_company_period(
+        self,
+        periodo_inicio: date | None,
+        empresa_primer_mes_nomina: int | None,
+        empresa_primer_anio_nomina: int | None,
+    ) -> bool:
+        """Return True when payroll period matches company's configured first period."""
+        if periodo_inicio is None:
+            return False
+
+        if empresa_primer_mes_nomina is None or empresa_primer_anio_nomina is None:
+            return False
+
+        return periodo_inicio.month == int(empresa_primer_mes_nomina) and periodo_inicio.year == int(
+            empresa_primer_anio_nomina
+        )
+
+    def _calculate_initial_processed_periods(
+        self,
+        periodo_inicio: date | None,
+        fiscal_start_month: int,
+        periodos_por_anio: int,
+    ) -> int:
+        """Calculate initial processed periods from fiscal calendar and periodicity."""
+        if periodo_inicio is None:
+            return 0
+
+        if fiscal_start_month < 1 or fiscal_start_month > 12:
+            return 0
+
+        if periodos_por_anio <= 0:
+            return 0
+
+        fiscal_start_year = (
+            periodo_inicio.year if periodo_inicio.month >= fiscal_start_month else periodo_inicio.year - 1
+        )
+        meses_cerrados_previos = max(
+            0,
+            (periodo_inicio.year - fiscal_start_year) * 12 + (periodo_inicio.month - fiscal_start_month),
+        )
+        return (meses_cerrados_previos * periodos_por_anio) // 12

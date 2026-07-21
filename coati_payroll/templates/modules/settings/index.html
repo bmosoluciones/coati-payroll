@@ -7,7 +7,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 
 {% block content %}
 <div class="container">
-    
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-gear me-2"></i>{{ _('Configuración') }}</h2>
     </div>
@@ -105,7 +105,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     </div>
                     <p class="card-text text-muted">{{ _('Administrar percepciones de nómina') }}</p>
                     <div class="mt-auto">
-                        <a href="{{ url_for('percepcion.percepcion_index') }}" class="btn border btn-outline-success w-100">
+                        <a href="{{ url_for('percepcion.percepcion_index') }}"
+                            class="btn border btn-outline-success w-100">
                             <i class="bi bi-arrow-right-circle me-1"></i>{{ _('Acceder') }}
                         </a>
                     </div>
@@ -125,7 +126,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     </div>
                     <p class="card-text text-muted">{{ _('Administrar deducciones de nómina') }}</p>
                     <div class="mt-auto">
-                        <a href="{{ url_for('deduccion.deduccion_index') }}" class="btn border btn-outline-danger w-100">
+                        <a href="{{ url_for('deduccion.deduccion_index') }}"
+                            class="btn border btn-outline-danger w-100">
                             <i class="bi bi-arrow-right-circle me-1"></i>{{ _('Acceder') }}
                         </a>
                     </div>
@@ -145,7 +147,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     </div>
                     <p class="card-text text-muted">{{ _('Configurar prestaciones patronales') }}</p>
                     <div class="mt-auto">
-                        <a href="{{ url_for('prestacion.prestacion_index') }}" class="btn border btn-outline-primary w-100">
+                        <a href="{{ url_for('prestacion.prestacion_index') }}"
+                            class="btn border btn-outline-primary w-100">
                             <i class="bi bi-arrow-right-circle me-1"></i>{{ _('Acceder') }}
                         </a>
                     </div>
@@ -165,7 +168,8 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     </div>
                     <p class="card-text text-muted">{{ _('Definir reglas de cálculo') }}</p>
                     <div class="mt-auto">
-                        <a href="{{ url_for('calculation_rule.index') }}" class="btn border btn-outline-secondary w-100">
+                        <a href="{{ url_for('calculation_rule.index') }}"
+                            class="btn border btn-outline-secondary w-100">
                             <i class="bi bi-arrow-right-circle me-1"></i>{{ _('Acceder') }}
                         </a>
                     </div>
@@ -205,13 +209,36 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     </div>
                     <p class="card-text text-muted">{{ _('Cargar prestaciones iniciales') }}</p>
                     <div class="mt-auto">
-                        <a href="{{ url_for('carga_inicial_prestacion.index') }}" class="btn border btn-outline-warning w-100">
+                        <a href="{{ url_for('carga_inicial_prestacion.index') }}"
+                            class="btn border btn-outline-warning w-100">
                             <i class="bi bi-arrow-right-circle me-1"></i>{{ _('Acceder') }}
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+
+        {% if current_user.tipo == 'admin' %}
+        <!-- Implementación Inicial -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded p-3 me-3">
+                            <i class="bi bi-tools text-primary fs-3"></i>
+                        </div>
+                        <h5 class="card-title mb-0">{{ _('Implementación Inicial') }}</h5>
+                    </div>
+                    <p class="card-text text-muted">{{ _('Auxiliares para la implementación inicial del sistema') }}</p>
+                    <div class="mt-auto">
+                        <a href="{{ url_for('implementation.index') }}" class="btn border btn-outline-primary w-100">
+                            <i class="bi bi-arrow-right-circle me-1"></i>{{ _('Acceder') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Parámetros de Cálculo -->
         <div class="col-md-6 col-lg-4 mb-4">

@@ -1,0 +1,45 @@
+{#-
+SPDX-License-Identifier: Apache-2.0
+SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
+-#}
+
+{% extends 'base.html' %}
+{% from 'macros.html' import render_field %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-currency-exchange me-2"></i>{{ _('Nuevo cambio salarial') }}</h2>
+        <a href="{{ url_for('employee.salary_changes_index', empleado_id=employee.id) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('Volver al historial') }}
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <p class="text-muted mb-4">
+                {{ _('Empleado:') }} <strong>{{ employee.codigo_empleado }} - {{ employee.primer_nombre }} {{ employee.primer_apellido }}</strong><br>
+                {{ _('Salario actual:') }}
+                <strong>
+                    {% if employee.moneda %}{{ employee.moneda.codigo }} {% endif %}{{ employee.salario_base }}
+                </strong>
+            </p>
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    <div class="col-md-4">{{ render_field(form.fecha_efectiva) }}</div>
+                    <div class="col-md-4">{{ render_field(form.salario_nuevo) }}</div>
+                    <div class="col-md-4">{{ render_field(form.moneda_nueva_id) }}</div>
+                    <div class="col-md-12">{{ render_field(form.motivo) }}</div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    {{ form.submit(class='btn btn-primary') }}
+                    <a href="{{ url_for('employee.salary_changes_index', empleado_id=employee.id) }}" class="btn btn-outline-secondary">{{ _('Cancelar') }}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,64 +2,63 @@ name: Unit Testing
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14"]
 
     steps:
-    - uses: actions/checkout@3d3c42e  # v7.0.1
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@5fda3b9  # v7.0.0
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r test.txt
-        python -m pip install -e .
-    - name: Check python package
-      run: |
-        pybabel compile -d coati_payroll/translations
-        python -m build
-        python -m twine check dist/*        
-    - name: Lint with flake8
-      run: |
-        flake8 coati_payroll
-        ruff check coati_payroll
-    - name: Lint with pylint
-      run: |
-        pylint -j 0 coati_payroll
-    - name: Type check with mypy
-      run: |
-        python -m mypy
-    - name: Test with pytest (regular tests)
-      env:
-        DEVELOPMENT: True
-        SECRET_KEY: "test-secret-key"
-      run: |
-        python -m pip install dramatiq[redis]
-        python -m pytest -x -q --cov=coati_payroll --cov-report=xml --cov-report=term-missing
-    - name: Test with pytest (validation tests)
-      env:
-        DEVELOPMENT: True
-        SECRET_KEY: "test-secret-key"
-      run: |
-        python -m pytest -m validation --cov=coati_payroll --cov-append --cov-report=xml --cov-report=term-missing
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@fb8b358  # v7.0.0
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r test.txt
+          python -m pip install -e .
+      - name: Check python package
+        run: |
+          pybabel compile -d coati_payroll/translations
+          python -m build
+          python -m twine check dist/*
+      - name: Lint with flake8
+        run: |
+          flake8 coati_payroll
+          ruff check coati_payroll
+      - name: Lint with pylint
+        run: |
+          pylint -j 0 coati_payroll
+      - name: Type check with mypy
+        run: |
+          python -m mypy
+      - name: Test with pytest (regular tests)
+        env:
+          DEVELOPMENT: True
+          SECRET_KEY: "test-secret-key"
+        run: |
+          python -m pip install dramatiq[redis]
+          python -m pytest -x -q --cov=coati_payroll --cov-report=xml --cov-report=term-missing
+      - name: Test with pytest (validation tests)
+        env:
+          DEVELOPMENT: True
+          SECRET_KEY: "test-secret-key"
+        run: |
+          python -m pytest -m validation --cov=coati_payroll --cov-append --cov-report=xml --cov-report=term-missing
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

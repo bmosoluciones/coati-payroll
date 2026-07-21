@@ -104,7 +104,16 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                         {% for nomina in nominas %}
                         <tr>
                             <td>
-                                <strong>{{ nomina.planilla.nombre if nomina.planilla else '-' }}</strong>
+                                {% if nomina.planilla and nomina.planilla_id %}
+                                    <strong>
+                                        <a href="{{ url_for('planilla.edit', planilla_id=nomina.planilla_id) }}" class="text-decoration-none">
+                                            {{ nomina.planilla.nombre }}
+                                        </a>
+                                    </strong>
+                                    <br><small class="text-muted">ID: {{ nomina.planilla_id }}</small>
+                                {% else %}
+                                    <strong>-</strong>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if nomina.planilla and nomina.planilla.empresa %}
@@ -149,10 +158,16 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             </td>
                             <td>{{ nomina.generado_por or '-' }}</td>
                             <td class="text-end">
-                                <a href="{{ url_for('planilla.ver_nomina', planilla_id=nomina.planilla_id, nomina_id=nomina.id) }}"
-                                   class="btn btn-sm btn-outline-primary" title="{{ _('Ver Detalle') }}">
-                                    <i class="bi bi-eye"></i>
-                                </a>
+                                {% if nomina.planilla_id %}
+                                    <a href="{{ url_for('planilla.ver_nomina', planilla_id=nomina.planilla_id, nomina_id=nomina.id) }}"
+                                       class="btn btn-sm btn-outline-primary" title="{{ _('Ver Detalle') }}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                {% else %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="{{ _('Sin planilla asociada') }}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
