@@ -649,21 +649,21 @@ class VacationService:
         dias_prorrata = min(dias_trabajados, dias_esperados)
         return self._quantize_amount(policy.accrual_rate * Decimal(dias_prorrata) / Decimal(dias_esperados))
 
-    def _calcular_acumulacion_proporcional(
-        self, empleado: Empleado, policy: VacationPolicy, nomina_empleado: NominaEmpleado
-    ) -> Decimal:
+    def _calcular_acumulacion_proporcional(self, policy: VacationPolicy | Empleado, *legacy_context) -> Decimal:
         """Calculate proportional accrual (based on worked days/hours).
 
         Args:
-            empleado: The employee
-            policy: The vacation policy
-            nomina_empleado: The payroll record
+            policy: The vacation policy. Legacy callers may still pass employee and
+                payroll context before the policy.
 
         Returns:
             Accrual amount
         """
         # For proportional accrual, calculate based on actual worked days/hours
         # This requires tracking in the payroll record
+
+        if not hasattr(policy, "accrual_basis"):
+            policy = legacy_context[0]
 
         dias_periodo = (self.periodo_fin - self.periodo_inicio).days + 1
 
