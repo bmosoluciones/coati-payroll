@@ -16,6 +16,7 @@ from coati_payroll.rbac import require_role
 from coati_payroll.vistas.constants import PER_PAGE
 
 user_bp = Blueprint("user", __name__, url_prefix="/user")
+USER_INDEX_ENDPOINT = "user.index"
 
 
 @user_bp.route("/", methods=["GET"])
@@ -57,7 +58,7 @@ def new():
         db.session.add(user)
         db.session.commit()
         flash(_("Usuario creado exitosamente."), "success")
-        return redirect(url_for("user.index"))
+        return redirect(url_for(USER_INDEX_ENDPOINT))
 
     return render_template("modules/user/form.html", form=form, title=_("Nuevo Usuario"))
 
@@ -69,7 +70,7 @@ def edit(id_: str):
     user = db.session.get(Usuario, id_)
     if not user:
         flash(_("Usuario no encontrado."), "error")
-        return redirect(url_for("user.index"))
+        return redirect(url_for(USER_INDEX_ENDPOINT))
 
     form = UserForm(obj=user)
 
@@ -86,7 +87,7 @@ def edit(id_: str):
 
         db.session.commit()
         flash(_("Usuario actualizado exitosamente."), "success")
-        return redirect(url_for("user.index"))
+        return redirect(url_for(USER_INDEX_ENDPOINT))
 
     # Don't show password in form
     form.password.data = ""
@@ -100,16 +101,16 @@ def delete(id_: str):
     user = db.session.get(Usuario, id_)
     if not user:
         flash(_("Usuario no encontrado."), "error")
-        return redirect(url_for("user.index"))
+        return redirect(url_for(USER_INDEX_ENDPOINT))
 
     if user.id == current_user.id:
         flash(_("No puedes eliminar tu propio usuario."), "error")
-        return redirect(url_for("user.index"))
+        return redirect(url_for(USER_INDEX_ENDPOINT))
 
     db.session.delete(user)
     db.session.commit()
     flash(_("Usuario eliminado exitosamente."), "success")
-    return redirect(url_for("user.index"))
+    return redirect(url_for(USER_INDEX_ENDPOINT))
 
 
 @user_bp.route("/profile", methods=["GET", "POST"])

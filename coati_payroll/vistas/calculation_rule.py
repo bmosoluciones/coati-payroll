@@ -22,6 +22,7 @@ from coati_payroll.formula_engine import (
 )
 
 calculation_rule_bp = Blueprint("calculation_rule", __name__, url_prefix="/calculation-rule")
+CALCULATION_RULE_INDEX_ENDPOINT = "calculation_rule.index"
 
 # Constants
 ERROR_RULE_NOT_FOUND = "Regla no encontrada"
@@ -102,7 +103,7 @@ def edit(id_: str):
     rule = db.session.get(ReglaCalculo, id_)
     if not rule:
         flash(_(ERROR_RULE_NOT_FOUND), "error")
-        return redirect(url_for("calculation_rule.index"))
+        return redirect(url_for(CALCULATION_RULE_INDEX_ENDPOINT))
 
     form = ReglaCalculoForm(obj=rule)
 
@@ -121,7 +122,7 @@ def edit(id_: str):
 
         db.session.commit()
         flash(_("Regla de cálculo actualizada exitosamente."), "success")
-        return redirect(url_for("calculation_rule.index"))
+        return redirect(url_for(CALCULATION_RULE_INDEX_ENDPOINT))
 
     return render_template(
         "modules/calculation_rule/form.html",
@@ -140,7 +141,7 @@ def edit_schema(id_: str):
 
     if not rule:
         flash(_(ERROR_RULE_NOT_FOUND), "error")
-        return redirect(url_for("calculation_rule.index"))
+        return redirect(url_for(CALCULATION_RULE_INDEX_ENDPOINT))
 
     # Get available data sources for the UI
     available_sources = get_available_sources_for_ui()
@@ -252,12 +253,12 @@ def delete(id_: str):
     rule = db.session.get(ReglaCalculo, id_)
     if not rule:
         flash(_(ERROR_RULE_NOT_FOUND), "error")
-        return redirect(url_for("calculation_rule.index"))
+        return redirect(url_for(CALCULATION_RULE_INDEX_ENDPOINT))
 
     db.session.delete(rule)
     db.session.commit()
     flash(_("Regla de cálculo eliminada exitosamente."), "success")
-    return redirect(url_for("calculation_rule.index"))
+    return redirect(url_for(CALCULATION_RULE_INDEX_ENDPOINT))
 
 
 @calculation_rule_bp.route("/duplicate/<string:id_>", methods=["POST"])
@@ -267,7 +268,7 @@ def duplicate(id_: str):
     rule = db.session.get(ReglaCalculo, id_)
     if not rule:
         flash(_(ERROR_RULE_NOT_FOUND), "error")
-        return redirect(url_for("calculation_rule.index"))
+        return redirect(url_for(CALCULATION_RULE_INDEX_ENDPOINT))
 
     # Create a new rule with incremented version
     new_rule = ReglaCalculo()
