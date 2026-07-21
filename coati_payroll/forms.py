@@ -42,6 +42,9 @@ from wtforms.validators import (
 from coati_payroll.enums import TipoUsuario
 from coati_payroll.i18n import _l as _
 
+CALCULATION_RULE_LABEL = "Regla de Cálculo"
+REPORT_UNIT_DESCRIPTION = "Unidad informativa para reportes/UI; no cambia el cálculo."
+
 
 class LoginForm(FlaskForm):
     """Formulario de inicio de sesión.
@@ -442,7 +445,7 @@ class PercepcionForm(FlaskForm):
             ("salary_percentage", _("Porcentaje del Salario Base")),
             ("gross_percentage", _("Porcentaje del Salario Bruto")),
             ("formula", _("Fórmula Personalizada")),
-            ("calculation_rule", _("Regla de Cálculo")),
+            ("calculation_rule", _(CALCULATION_RULE_LABEL)),
             ("hours", _("Por Horas")),
             ("days", _("Por Días")),
         ],
@@ -492,7 +495,7 @@ class PercepcionForm(FlaskForm):
             ("mes", _("Por Mes")),
         ],
         validators=[Optional()],
-        description=_("Unidad informativa para reportes/UI; no cambia el cálculo."),
+        description=_(REPORT_UNIT_DESCRIPTION),
     )
     gravable = BooleanField(
         _("Gravable"),
@@ -613,7 +616,7 @@ class DeduccionForm(FlaskForm):
             ("gross_percentage", _("Porcentaje del Salario Bruto")),
             ("porcentaje_gravable", _("Porcentaje del Salario Gravable")),
             ("formula", _("Fórmula Personalizada")),
-            ("calculation_rule", _("Regla de Cálculo")),
+            ("calculation_rule", _(CALCULATION_RULE_LABEL)),
             ("tabla", _("Tabla de Impuestos")),
         ],
         validators=[DataRequired()],
@@ -661,7 +664,7 @@ class DeduccionForm(FlaskForm):
             ("mes", _("Por Mes")),
         ],
         validators=[Optional()],
-        description=_("Unidad informativa para reportes/UI; no cambia el cálculo."),
+        description=_(REPORT_UNIT_DESCRIPTION),
     )
     antes_impuesto = BooleanField(
         _("Antes de Impuesto"),
@@ -989,7 +992,7 @@ class PrestacionForm(FlaskForm):
             ("salary_percentage", _("Porcentaje del Salario Base")),
             ("gross_percentage", _("Porcentaje del Salario Bruto")),
             ("formula", _("Fórmula Personalizada")),
-            ("calculation_rule", _("Regla de Cálculo")),
+            ("calculation_rule", _(CALCULATION_RULE_LABEL)),
             ("provision", _("Provisión Mensual")),
         ],
         validators=[DataRequired()],
@@ -1036,7 +1039,7 @@ class PrestacionForm(FlaskForm):
             ("mes", _("Por Mes")),
         ],
         validators=[Optional()],
-        description=_("Unidad informativa para reportes/UI; no cambia el cálculo."),
+        description=_(REPORT_UNIT_DESCRIPTION),
     )
     tope_aplicacion = DecimalField(
         _("Tope de Aplicación"),
