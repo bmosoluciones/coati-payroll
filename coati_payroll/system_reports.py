@@ -172,64 +172,42 @@ def employee_hires_terminations_report(parameters: Dict[str, Any]) -> List[Dict[
         - fecha_inicio: Start date
         - fecha_fin: End date
     """
-    fecha_inicio = parameters.get("fecha_inicio")
-    fecha_fin = parameters.get("fecha_fin")
+    fecha_inicio = _coerce_report_date(parameters.get("fecha_inicio"))
+    fecha_fin = _coerce_report_date(parameters.get("fecha_fin"))
+    hires = _employees_in_date_range(Empleado.fecha_alta, fecha_inicio, fecha_fin)
+    terminations = _employees_in_date_range(Empleado.fecha_baja, fecha_inicio, fecha_fin, required=True)
+    results = [_format_employment_event(emp, "Alta", emp.fecha_alta) for emp in hires]
+    results.extend(_format_employment_event(emp, "Baja", emp.fecha_baja) for emp in terminations)
+    return sorted(results, key=lambda item: item["Fecha"])
 
-    if isinstance(fecha_inicio, str):
-        fecha_inicio = datetime.fromisoformat(fecha_inicio).date()
-    if isinstance(fecha_fin, str):
-        fecha_fin = datetime.fromisoformat(fecha_fin).date()
 
-    # Get hires
-    hires_stmt = db.select(Empleado)
+def _coerce_report_date(value):
+    """Convert an ISO date value from report parameters when necessary."""
+    return datetime.fromisoformat(value).date() if isinstance(value, str) else value
+
+
+def _employees_in_date_range(field, fecha_inicio, fecha_fin, required: bool = False):
+    """Load employees whose date field falls within an optional range."""
+    statement = db.select(Empleado)
+    if required:
+        statement = statement.filter(field.isnot(None))
     if fecha_inicio:
-        hires_stmt = hires_stmt.filter(Empleado.fecha_alta >= fecha_inicio)
+        statement = statement.filter(field >= fecha_inicio)
     if fecha_fin:
-        hires_stmt = hires_stmt.filter(Empleado.fecha_alta <= fecha_fin)
+        statement = statement.filter(field <= fecha_fin)
+    return db.session.execute(statement).scalars().all()
 
-    hires = db.session.execute(hires_stmt).scalars().all()
 
-    # Get terminations
-    terminations_stmt = db.select(Empleado).filter(Empleado.fecha_baja.isnot(None))
-    if fecha_inicio:
-        terminations_stmt = terminations_stmt.filter(Empleado.fecha_baja >= fecha_inicio)
-    if fecha_fin:
-        terminations_stmt = terminations_stmt.filter(Empleado.fecha_baja <= fecha_fin)
-
-    terminations = db.session.execute(terminations_stmt).scalars().all()
-
-    results = []
-
-    # Add hires
-    for emp in hires:
-        results.append(
-            {
-                "Tipo": "Alta",
-                "Fecha": emp.fecha_alta.isoformat() if emp.fecha_alta else "",
-                "Código": emp.codigo_empleado,
-                "Nombre": f"{emp.primer_nombre} {emp.primer_apellido}",
-                "Cargo": emp.cargo or "",
-                "Área": emp.area or "",
-            }
-        )
-
-    # Add terminations
-    for emp in terminations:
-        results.append(
-            {
-                "Tipo": "Baja",
-                "Fecha": emp.fecha_baja.isoformat() if emp.fecha_baja else "",
-                "Código": emp.codigo_empleado,
-                "Nombre": f"{emp.primer_nombre} {emp.primer_apellido}",
-                "Cargo": emp.cargo or "",
-                "Área": emp.area or "",
-            }
-        )
-
-    # Sort by date
-    results.sort(key=lambda x: x["Fecha"])
-
-    return results
+def _format_employment_event(employee, event_type: str, event_date) -> dict[str, Any]:
+    """Build the common report row for a hire or termination."""
+    return {
+        "Tipo": event_type,
+        "Fecha": event_date.isoformat() if event_date else "",
+        "Código": employee.codigo_empleado,
+        "Nombre": f"{employee.primer_nombre} {employee.primer_apellido}",
+        "Cargo": employee.cargo or "",
+        "Área": employee.area or "",
+    }
 
 
 # ============================================================================
