@@ -9,7 +9,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from coati_payroll.model import Moneda
 
 
-def round_money(amount: Decimal | None, moneda: Moneda | None = None) -> Decimal:
+def round_money(amount: Decimal | None, moneda: Moneda | None = None) -> Decimal:  # noqa: ARG001
     """Round monetary amounts using the accounting policy.
 
     Args:

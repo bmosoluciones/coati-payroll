@@ -25,7 +25,7 @@ class SalaryCalculator:
         planilla: Planilla,
         periodo_inicio: date,
         periodo_fin: date,
-        fecha_calculo: date,
+        fecha_calculo: date,  # noqa: ARG002
         fecha_alta: date | None = None,
         fecha_baja: date | None = None,
         configuracion_snapshot: dict[str, Any] | None = None,
@@ -57,7 +57,6 @@ class SalaryCalculator:
         # Support both English and Spanish terms for periodicidad
         # "mensual" and "monthly" both mean monthly payroll
         # "quincenal" and "biweekly" both mean biweekly payroll
-        salario_periodo = salario_mensual
 
         if periodicidad in ("mensual", "monthly"):
             is_first_of_month = periodo_inicio.day == 1
