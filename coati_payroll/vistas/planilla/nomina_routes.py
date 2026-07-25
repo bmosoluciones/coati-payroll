@@ -1050,6 +1050,7 @@ def _aplicar_vacaciones_nomina(nomina: Nomina, planilla: Planilla, usuario: str 
         periodo_fin=nomina.periodo_fin,
         snapshot=vacation_snapshot,
         apply_side_effects=True,
+        nomina_id=nomina.id,
     )
 
     for nomina_empleado in nomina_empleados:

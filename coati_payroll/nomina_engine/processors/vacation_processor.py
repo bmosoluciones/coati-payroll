@@ -22,6 +22,7 @@ class VacationProcessor:
         warnings: WarningCollectorProtocol | None = None,
         apply_side_effects: bool = True,
         snapshot: dict | None = None,
+        nomina_id: str | None = None,
     ):
         self.planilla = planilla
         self.periodo_inicio = periodo_inicio
@@ -30,6 +31,7 @@ class VacationProcessor:
         self.warnings = warnings if warnings is not None else []
         self.apply_side_effects = apply_side_effects
         self.snapshot = snapshot
+        self.nomina_id = nomina_id
 
     def process_vacations(
         self, empleado: Empleado, emp_calculo: EmpleadoCalculo, nomina_empleado: NominaEmpleado
@@ -46,6 +48,7 @@ class VacationProcessor:
                 periodo_fin=self.periodo_fin,
                 apply_side_effects=self.apply_side_effects,
                 snapshot=self.snapshot,
+                nomina_id=self.nomina_id,
             )
 
             resumen_before = vacation_service.obtener_resumen_vacaciones(empleado)

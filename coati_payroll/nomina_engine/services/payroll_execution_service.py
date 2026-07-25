@@ -110,7 +110,9 @@ class PayrollExecutionService:
             return None, [], errors, warnings.to_list()
 
         # Capture configuration snapshots for recalculation consistency
-        snapshot = self.snapshot_service.capture_complete_snapshot(planilla, periodo_inicio, periodo_fin, fecha_calculo)
+        snapshot = self.snapshot_service.capture_complete_snapshot(
+            planilla, periodo_inicio, periodo_fin, fecha_calculo, excluded_nomina_id=excluded_nomina_id
+        )
         deducciones_snapshot = {
             deduccion["id"]: deduccion for deduccion in snapshot.get("catalogos", {}).get("deducciones", [])
         }
@@ -225,6 +227,7 @@ class PayrollExecutionService:
                 warnings,
                 apply_side_effects=False,
                 snapshot=vacation_snapshot,
+                nomina_id=nomina.id,
             )
 
             for emp_calculo in empleados_calculo:

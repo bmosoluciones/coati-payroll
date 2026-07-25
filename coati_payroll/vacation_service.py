@@ -58,6 +58,7 @@ class VacationService:
         periodo_fin: date,
         snapshot: dict | None = None,
         apply_side_effects: bool = True,
+        nomina_id: str | None = None,
     ):
         """Initialize vacation service.
 
@@ -67,12 +68,14 @@ class VacationService:
             periodo_fin: End date of payroll period
             snapshot: Optional snapshot data for reproducible processing
             apply_side_effects: Whether to write ledger entries and update balances
+            nomina_id: Optional Nomina ID to filter explicitly bound novelties
         """
         self.planilla = planilla
         self.periodo_inicio = periodo_inicio
         self.periodo_fin = periodo_fin
         self.snapshot = snapshot
         self.apply_side_effects = apply_side_effects
+        self.nomina_id = nomina_id
         if self.periodo_inicio and self.periodo_fin and self.periodo_inicio > self.periodo_fin:
             raise ValidationError(f"Período inválido: inicio {self.periodo_inicio} posterior a fin {self.periodo_fin}.")
 
@@ -379,17 +382,32 @@ class VacationService:
 
     def _empleado_tiene_vacaciones_en_periodo(self, empleado: Empleado) -> bool:
         from coati_payroll.model import db, NominaNovedad
+        from sqlalchemy import or_, and_
 
-        existe = db.session.execute(
-            db.select(db.func.count())
-            .select_from(NominaNovedad)
-            .filter(
-                NominaNovedad.empleado_id == empleado.id,
-                NominaNovedad.es_descanso_vacaciones.is_(True),
+        stmt = db.select(db.func.count()).select_from(NominaNovedad).filter(
+            NominaNovedad.empleado_id == empleado.id,
+            NominaNovedad.es_descanso_vacaciones.is_(True),
+        )
+
+        if self.nomina_id:
+            stmt = stmt.filter(
+                or_(
+                    NominaNovedad.nomina_id == self.nomina_id,
+                    and_(
+                        NominaNovedad.nomina_id.is_(None),
+                        NominaNovedad.fecha_novedad >= self.periodo_inicio,
+                        NominaNovedad.fecha_novedad <= self.periodo_fin,
+                    )
+                )
+            )
+        else:
+            stmt = stmt.filter(
+                NominaNovedad.nomina_id.is_(None),
                 NominaNovedad.fecha_novedad >= self.periodo_inicio,
                 NominaNovedad.fecha_novedad <= self.periodo_fin,
             )
-        ).scalar_one()
+
+        existe = db.session.execute(stmt).scalar_one()
         return existe > 0
 
     def obtener_resumen_vacaciones(self, empleado: Empleado) -> dict[str, Decimal | str] | None:
@@ -757,10 +775,26 @@ class VacationService:
                     PlanillaEmpleado.activo.is_(True),
                     NominaNovedad.empleado_id == empleado.id,
                     NominaNovedad.es_descanso_vacaciones.is_(True),
+                )
+            )
+            if self.nomina_id:
+                from sqlalchemy import or_, and_
+                stmt = stmt.filter(
+                    or_(
+                        NominaNovedad.nomina_id == self.nomina_id,
+                        and_(
+                            NominaNovedad.nomina_id.is_(None),
+                            NominaNovedad.fecha_novedad >= self.periodo_inicio,
+                            NominaNovedad.fecha_novedad <= self.periodo_fin,
+                        )
+                    )
+                )
+            else:
+                stmt = stmt.filter(
+                    NominaNovedad.nomina_id.is_(None),
                     NominaNovedad.fecha_novedad >= self.periodo_inicio,
                     NominaNovedad.fecha_novedad <= self.periodo_fin,
                 )
-            )
         if self.apply_side_effects:
             stmt = stmt.with_for_update()
         return db.session.execute(stmt).scalars().all()
