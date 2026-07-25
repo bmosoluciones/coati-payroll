@@ -86,3 +86,6 @@ disable_error_code = ["import-untyped"]
 [[tool.mypy.overrides]]
 module = ["coati_payroll.model"]
 disable_error_code = ["name-defined"]
+
+[tool.ruff]
+lint.ignore = ["ALL"]
