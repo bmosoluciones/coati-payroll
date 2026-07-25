@@ -569,7 +569,9 @@ class PayrollExecutionService:
             empresa_primer_mes_nomina=bootstrap_context.get("primer_mes_nomina"),
             empresa_primer_anio_nomina=bootstrap_context.get("primer_anio_nomina"),
         )
-        emp_calculo.vacaciones_resumen = vacation_processor.process_vacations(emp_calculo.empleado, emp_calculo, nomina_empleado)
+        emp_calculo.vacaciones_resumen = vacation_processor.process_vacations(
+            emp_calculo.empleado, emp_calculo, nomina_empleado
+        )
 
     def _resolve_company_bootstrap_context(
         self,
