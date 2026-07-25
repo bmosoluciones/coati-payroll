@@ -564,9 +564,7 @@ def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: st
     monto_por_concepto: dict[str, Decimal] = {}
     for detalle in detalles:
         concepto_key = _concepto_key_from_detalle(detalle)
-        monto_por_concepto[concepto_key] = monto_por_concepto.get(concepto_key, Decimal(0)) + _to_decimal(
-            detalle.monto
-        )
+        monto_por_concepto[concepto_key] = monto_por_concepto.get(concepto_key, Decimal(0)) + _to_decimal(detalle.monto)
 
     monto_novedad_referencia: dict[str, dict[str, Any]] = {}
     for novedad in novedades_aplicadas:

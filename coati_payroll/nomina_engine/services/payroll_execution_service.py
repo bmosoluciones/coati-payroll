@@ -204,9 +204,7 @@ class PayrollExecutionService:
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
                 # Capture all payroll engine and formula errors
-                errors.append(
-                    f"Error procesando empleado {empleado.primer_nombre} {empleado.primer_apellido}: {e!s}"
-                )
+                errors.append(f"Error procesando empleado {empleado.primer_nombre} {empleado.primer_apellido}: {e!s}")
             except Exception as e:
                 # Capture any unexpected error to prevent 500 errors
                 errors.append(

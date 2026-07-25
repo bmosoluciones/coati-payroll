@@ -1036,3 +1036,30 @@ def test_consecutive_payroll_vacation_novelty_no_cross_processing(app, db_sessio
         usage_ids = {u.id for u in usage_a}
         assert novedad_a.id in usage_ids
         assert novedad_floating.id in usage_ids
+
+        # Test _empleado_tiene_vacaciones_en_periodo
+        assert service_b._empleado_tiene_vacaciones_en_periodo(empleado) is True
+        assert service_a._empleado_tiene_vacaciones_en_periodo(empleado) is True
+
+        # Test with a third service having NO matching novelties (different period)
+        service_c = VacationService(
+            planilla=planilla,
+            periodo_inicio=date(2025, 2, 1),
+            periodo_fin=date(2025, 2, 15),
+            nomina_id="NOMINA_C_003",
+            apply_side_effects=False,
+        )
+        assert service_c._empleado_tiene_vacaciones_en_periodo(empleado) is False
+        assert len(service_c._build_vacation_usage_query(empleado)) == 0
+
+        # Test with no nomina_id (e.g. general service) - should only match floating
+        service_none = VacationService(
+            planilla=planilla,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            nomina_id=None,
+            apply_side_effects=False,
+        )
+        assert service_none._empleado_tiene_vacaciones_en_periodo(empleado) is True
+        assert len(service_none._build_vacation_usage_query(empleado)) == 1
+        assert service_none._build_vacation_usage_query(empleado)[0].id == novedad_floating.id
