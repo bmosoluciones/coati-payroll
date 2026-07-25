@@ -5,16 +5,16 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Optional
 
 from coati_payroll.model import NominaNovedad
+
 from .base_repository import BaseRepository
 
 
 class NoveltyRepository(BaseRepository[NominaNovedad]):
     """Repository for NominaNovedad operations."""
 
-    def get_by_id(self, novelty_id: str) -> Optional[NominaNovedad]:
+    def get_by_id(self, novelty_id: str) -> NominaNovedad | None:
         """Get novelty by ID."""
         return self.session.get(NominaNovedad, novelty_id)
 
@@ -22,11 +22,9 @@ class NoveltyRepository(BaseRepository[NominaNovedad]):
         self, empleado_id: str, periodo_inicio: date, periodo_fin: date, nomina_id: str | None = None
     ) -> list[NominaNovedad]:
         """Get novelties for employee within period, filtering by specific nomina if provided."""
-        from sqlalchemy import select, or_, and_
+        from sqlalchemy import and_, or_, select
 
-        stmt = select(NominaNovedad).filter(
-            NominaNovedad.empleado_id == empleado_id
-        )
+        stmt = select(NominaNovedad).filter(NominaNovedad.empleado_id == empleado_id)
 
         if nomina_id:
             condition = or_(
@@ -35,7 +33,7 @@ class NoveltyRepository(BaseRepository[NominaNovedad]):
                     NominaNovedad.nomina_id.is_(None),
                     NominaNovedad.fecha_novedad >= periodo_inicio,
                     NominaNovedad.fecha_novedad <= periodo_fin,
-                )
+                ),
             )
             stmt = stmt.filter(condition)
         else:
@@ -44,12 +42,7 @@ class NoveltyRepository(BaseRepository[NominaNovedad]):
                 NominaNovedad.fecha_novedad <= periodo_fin,
             )
 
-        return list(
-            self.session.execute(stmt)
-            .unique()
-            .scalars()
-            .all()
-        )
+        return list(self.session.execute(stmt).unique().scalars().all())
 
     def save(self, novelty: NominaNovedad) -> NominaNovedad:
         """Save novelty."""

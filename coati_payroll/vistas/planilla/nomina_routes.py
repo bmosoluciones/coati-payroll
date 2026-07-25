@@ -3,41 +3,48 @@
 """Routes for nomina execution and management."""
 
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from types import SimpleNamespace
 from typing import Any, cast
+
 from flask import abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from coati_payroll.audit_helpers import anular_nomina as registrar_anulacion_nomina
-from coati_payroll.log import log
-from coati_payroll.model import (
-    db,
-    Planilla,
-    Nomina,
-    NominaEmpleado,
-    NominaDetalle,
-    NominaNovedad,
-    NominaProgress,
-    ComprobanteContable,
-    ComprobanteContableLinea,
-    Empleado,
-    Percepcion,
-    Deduccion,
-    PlanillaEmpleado,
-    VacationNovelty,
-    VacationNominaNovedad,
-    VacationLedger,
-)
 from coati_payroll.enums import NominaEstado, NovedadEstado, VacacionEstado
 from coati_payroll.i18n import _
-from coati_payroll.nomina_engine.processors.accounting_processor import AccountingProcessor
+from coati_payroll.log import log
+from coati_payroll.model import (
+    ComprobanteContable,
+    ComprobanteContableLinea,
+    Deduccion,
+    Empleado,
+    Nomina,
+    NominaDetalle,
+    NominaEmpleado,
+    NominaNovedad,
+    NominaProgress,
+    Percepcion,
+    Planilla,
+    PlanillaEmpleado,
+    VacationLedger,
+    VacationNominaNovedad,
+    VacationNovelty,
+    db,
+)
+from coati_payroll.nomina_engine.processors.accounting_processor import (
+    AccountingProcessor,
+)
 from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
-from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.queue.tasks import retry_failed_nomina
-from coati_payroll.vistas.planilla import planilla_bp
-from coati_payroll.vistas.planilla.services import NominaService, NovedadService, NominaComparisonService
+from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vacation_service import VacationService
+from coati_payroll.vistas.planilla import planilla_bp
+from coati_payroll.vistas.planilla.services import (
+    NominaComparisonService,
+    NominaService,
+    NovedadService,
+)
 
 VACATION_APPLICATION_TEMPLATE = "modules/planilla/aplicar_vacaciones.html"
 
@@ -456,13 +463,13 @@ def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: st
 
     def _to_decimal(value: Any) -> Decimal:
         if value is None or value == "":
-            return Decimal("0")
+            return Decimal(0)
         if isinstance(value, Decimal):
             return value
         try:
             return Decimal(str(value))
         except (ArithmeticError, TypeError, ValueError):
-            return Decimal("0")
+            return Decimal(0)
 
     comprobante = db.session.execute(db.select(ComprobanteContable).filter_by(nomina_id=nomina_id)).scalar_one_or_none()
     if comprobante:
@@ -482,7 +489,7 @@ def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: st
         ).all()
         for concepto, monto_total in vacation_liability_rows:
             monto_provision = _to_decimal(monto_total)
-            if monto_provision <= Decimal("0"):
+            if monto_provision <= Decimal(0):
                 continue
             prestaciones.append(
                 SimpleNamespace(
@@ -536,7 +543,7 @@ def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: st
     for novedad in novedades_aplicadas:
         tipo_valor = novedad.tipo_valor or "sin_tipo"
         conteo_tipo_valor[tipo_valor] = conteo_tipo_valor.get(tipo_valor, 0) + 1
-        acumulado_tipo_valor[tipo_valor] = acumulado_tipo_valor.get(tipo_valor, Decimal("0")) + _to_decimal(
+        acumulado_tipo_valor[tipo_valor] = acumulado_tipo_valor.get(tipo_valor, Decimal(0)) + _to_decimal(
             novedad.valor_cantidad
         )
 
@@ -557,7 +564,7 @@ def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: st
     monto_por_concepto: dict[str, Decimal] = {}
     for detalle in detalles:
         concepto_key = _concepto_key_from_detalle(detalle)
-        monto_por_concepto[concepto_key] = monto_por_concepto.get(concepto_key, Decimal("0")) + _to_decimal(
+        monto_por_concepto[concepto_key] = monto_por_concepto.get(concepto_key, Decimal(0)) + _to_decimal(
             detalle.monto
         )
 
@@ -622,16 +629,16 @@ def ver_nomina_empleado(planilla_id: str, nomina_id: str, nomina_empleado_id: st
                 ]
                 if pendientes_sin_monto:
                     pesos = [
-                        max(_to_decimal(novedades_por_id[nid].valor_cantidad), Decimal("0"))
+                        max(_to_decimal(novedades_por_id[nid].valor_cantidad), Decimal(0))
                         for nid in pendientes_sin_monto
                     ]
                     suma_pesos = sum(pesos)
 
                     if suma_pesos <= 0:
-                        pesos = [Decimal("1")] * len(pendientes_sin_monto)
+                        pesos = [Decimal(1)] * len(pendientes_sin_monto)
                         suma_pesos = Decimal(str(len(pendientes_sin_monto)))
 
-                    acumulado = Decimal("0")
+                    acumulado = Decimal(0)
                     for idx, nid in enumerate(pendientes_sin_monto):
                         if idx < len(pendientes_sin_monto) - 1:
                             asignado = (residuo * pesos[idx] / suma_pesos).quantize(
@@ -880,7 +887,7 @@ def aplicar_nomina(planilla_id: str, nomina_id: str):
 
         # Actualizar novedades que corresponden a este período o nómina
         if empleado_ids:
-            from sqlalchemy import or_, and_
+            from sqlalchemy import and_, or_
 
             condition = or_(
                 NominaNovedad.nomina_id == nomina.id,
@@ -982,7 +989,9 @@ def _regenerar_comprobante_contable_nomina(
     usuario: str | None,
 ):
     """Regenerate the audit voucher with current persisted side effects."""
-    from coati_payroll.nomina_engine.services.accounting_voucher_service import AccountingVoucherService
+    from coati_payroll.nomina_engine.services.accounting_voucher_service import (
+        AccountingVoucherService,
+    )
 
     accounting_service = AccountingVoucherService(db.session)
     fecha_calculo = nomina.fecha_calculo_original or nomina.periodo_fin

@@ -12,29 +12,28 @@ from __future__ import annotations
 # Standard library
 # <-------------------------------------------------------------------------> #
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP, ROUND_UP, ROUND_DOWN
+from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
 # <-------------------------------------------------------------------------> #
 # Third party libraries
 # <-------------------------------------------------------------------------> #
-
 # <-------------------------------------------------------------------------> #
 # Local modules
 # <-------------------------------------------------------------------------> #
-from coati_payroll.enums import VacationLedgerType, AccrualMethod, AccrualFrequency
+from coati_payroll.enums import AccrualFrequency, AccrualMethod, VacationLedgerType
 from coati_payroll.log import log
-from coati_payroll.nomina_engine.validators import ValidationError, NominaEngineError
+from coati_payroll.nomina_engine.validators import NominaEngineError, ValidationError
 
 if TYPE_CHECKING:
     from coati_payroll.model import (
-        Empleado,
-        Planilla,
-        VacationPolicy,
-        VacationAccount,
-        NominaEmpleado,
         ConfiguracionCalculos,
+        Empleado,
+        NominaEmpleado,
+        Planilla,
+        VacationAccount,
+        VacationPolicy,
     )
 
 
@@ -126,7 +125,7 @@ class VacationService:
         Returns:
             ConfiguracionCalculos instance with appropriate values
         """
-        from coati_payroll.model import db, ConfiguracionCalculos
+        from coati_payroll.model import ConfiguracionCalculos, db
 
         if self.snapshot and self.snapshot.get("configuracion"):
             snapshot_config = self._config_from_snapshot(self.snapshot["configuracion"])
@@ -193,7 +192,7 @@ class VacationService:
         )
 
     def _obtener_balance(self, account: VacationAccount) -> Decimal:
-        from coati_payroll.model import db, VacationLedger
+        from coati_payroll.model import VacationLedger, db
 
         balance = db.session.execute(
             db.select(db.func.coalesce(db.func.sum(VacationLedger.quantity), 0)).filter(
@@ -209,7 +208,7 @@ class VacationService:
 
     def _resolve_bound_policy_account(self, empleado, filtros_base):
         """Resolve vacation account via planilla-bound policy."""
-        from coati_payroll.model import db, VacationAccount, VacationPolicy
+        from coati_payroll.model import VacationAccount, VacationPolicy, db
 
         bound_accounts = (
             db.session.execute(
@@ -283,7 +282,7 @@ class VacationService:
 
     def _resolve_scoped_account(self, empleado, filtros_base):
         """Resolve vacation account via scope-based fallback."""
-        from coati_payroll.model import db, VacationAccount, VacationPolicy
+        from coati_payroll.model import VacationAccount, VacationPolicy, db
 
         scopes = [
             (
@@ -350,7 +349,7 @@ class VacationService:
         return self._resolve_scoped_account(empleado, filtros_base)
 
     def _validar_empleado_en_planilla(self, empleado: Empleado) -> None:
-        from coati_payroll.model import db, PlanillaEmpleado
+        from coati_payroll.model import PlanillaEmpleado, db
 
         if not self.planilla:
             raise ValidationError("No hay planilla activa para validar el empleado.")
@@ -381,12 +380,17 @@ class VacationService:
                 raise ValidationError(f"Policy {policy.codigo}: accrual_basis inválido ({policy.accrual_basis}).")
 
     def _empleado_tiene_vacaciones_en_periodo(self, empleado: Empleado) -> bool:
-        from coati_payroll.model import db, NominaNovedad
-        from sqlalchemy import or_, and_
+        from sqlalchemy import and_, or_
 
-        stmt = db.select(db.func.count()).select_from(NominaNovedad).filter(
-            NominaNovedad.empleado_id == empleado.id,
-            NominaNovedad.es_descanso_vacaciones.is_(True),
+        from coati_payroll.model import NominaNovedad, db
+
+        stmt = (
+            db.select(db.func.count())
+            .select_from(NominaNovedad)
+            .filter(
+                NominaNovedad.empleado_id == empleado.id,
+                NominaNovedad.es_descanso_vacaciones.is_(True),
+            )
         )
 
         if self.nomina_id:
@@ -397,7 +401,7 @@ class VacationService:
                         NominaNovedad.nomina_id.is_(None),
                         NominaNovedad.fecha_novedad >= self.periodo_inicio,
                         NominaNovedad.fecha_novedad <= self.periodo_fin,
-                    )
+                    ),
                 )
             )
         else:
@@ -437,7 +441,7 @@ class VacationService:
         Returns:
             The amount of vacation accrued
         """
-        from coati_payroll.model import db, VacationAccount, VacationLedger
+        from coati_payroll.model import VacationAccount, VacationLedger, db
 
         self._validar_empleado_en_planilla(empleado)
 
@@ -525,7 +529,7 @@ class VacationService:
 
     def _eligible_for_accrual(self, empleado, nomina_empleado, account, policy) -> bool:
         """Check policy, leave, idempotency, and seniority prerequisites."""
-        from coati_payroll.model import db, VacationLedger
+        from coati_payroll.model import VacationLedger, db
 
         if policy.unit_type not in ("days", "hours"):
             raise ValidationError(f"Tipo de unidad inválida en policy {policy.codigo}: {policy.unit_type}.")
@@ -586,7 +590,7 @@ class VacationService:
         amount = self._quantize_amount(amount)
         if not policy.partial_units_allowed:
             rounding = self.ROUNDING_RULES.get(policy.rounding_rule, ROUND_HALF_UP)
-            amount = amount.quantize(Decimal("1"), rounding=rounding)
+            amount = amount.quantize(Decimal(1), rounding=rounding)
         return amount
 
     def _calcular_acumulacion(
@@ -756,7 +760,7 @@ class VacationService:
 
     def _build_vacation_usage_query(self, empleado):
         """Build query for vacation-related novedades."""
-        from coati_payroll.model import db, NominaNovedad
+        from coati_payroll.model import NominaNovedad, db
 
         if self.snapshot and self.snapshot.get("vacation_novelty_ids"):
             vacation_novelty_ids = self.snapshot["vacation_novelty_ids"]
@@ -778,7 +782,8 @@ class VacationService:
                 )
             )
             if self.nomina_id:
-                from sqlalchemy import or_, and_
+                from sqlalchemy import and_, or_
+
                 stmt = stmt.filter(
                     or_(
                         NominaNovedad.nomina_id == self.nomina_id,
@@ -786,7 +791,7 @@ class VacationService:
                             NominaNovedad.nomina_id.is_(None),
                             NominaNovedad.fecha_novedad >= self.periodo_inicio,
                             NominaNovedad.fecha_novedad <= self.periodo_fin,
-                        )
+                        ),
                     )
                 )
             else:
@@ -801,8 +806,8 @@ class VacationService:
 
     def _get_vacation_novelty(self, nomina_novedad):
         """Get vacation novelty with optional row locking."""
-        from coati_payroll.model import db, VacationNovelty
         from coati_payroll.enums import VacacionEstado
+        from coati_payroll.model import VacationNovelty, db
 
         if not nomina_novedad.vacation_novelty_id:
             return None
@@ -840,7 +845,7 @@ class VacationService:
         units = self._quantize_amount(Decimal(str(units)))
         if not policy.partial_units_allowed:
             rounding = self.ROUNDING_RULES.get(policy.rounding_rule, ROUND_HALF_UP)
-            units = units.quantize(Decimal("1"), rounding=rounding)
+            units = units.quantize(Decimal(1), rounding=rounding)
             if units <= 0:
                 raise ValidationError(
                     f"Vacaciones inválidas para empleado {empleado.codigo_empleado}: unidades redondeadas <= 0."
@@ -850,7 +855,7 @@ class VacationService:
     def _process_single_vacation_usage(self, vac_novelty, empleado, policy, usuario):
         """Process a single vacation usage entry."""
         from coati_payroll.enums import VacacionEstado
-        from coati_payroll.model import db, VacationAccount, VacationLedger
+        from coati_payroll.model import VacationAccount, VacationLedger, db
 
         account = vac_novelty.account
         existing_usage = (

@@ -11,15 +11,15 @@ from typing import Any
 
 from coati_payroll.model import (
     ConfiguracionCalculos,
-    Percepcion,
     Deduccion,
-    Prestacion,
-    Planilla,
-    TipoCambio,
-    VacationPolicy,
-    VacationNovelty,
     NominaNovedad,
+    Percepcion,
+    Planilla,
     PlanillaEmpleado,
+    Prestacion,
+    TipoCambio,
+    VacationNovelty,
+    VacationPolicy,
     db,
 )
 
