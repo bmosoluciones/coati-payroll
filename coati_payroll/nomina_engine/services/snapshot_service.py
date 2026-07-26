@@ -11,15 +11,15 @@ from typing import Any
 
 from coati_payroll.model import (
     ConfiguracionCalculos,
-    Percepcion,
     Deduccion,
-    Prestacion,
-    Planilla,
-    TipoCambio,
-    VacationPolicy,
-    VacationNovelty,
     NominaNovedad,
+    Percepcion,
+    Planilla,
     PlanillaEmpleado,
+    Prestacion,
+    TipoCambio,
+    VacationNovelty,
+    VacationPolicy,
     db,
 )
 
@@ -310,7 +310,13 @@ class SnapshotService:
 
         return snapshot
 
-    def capture_vacation_snapshot(self, planilla: Planilla, periodo_inicio: date, periodo_fin: date) -> dict[str, Any]:
+    def capture_vacation_snapshot(
+        self,
+        planilla: Planilla,
+        periodo_inicio: date,
+        periodo_fin: date,
+        excluded_nomina_id: str | None = None,
+    ) -> dict[str, Any]:
         """Capture vacation-specific snapshot data for reproducible processing."""
         snapshot: dict[str, Any] = {"vacation_policies": [], "vacation_novelty_ids": []}
 
@@ -352,6 +358,13 @@ class SnapshotService:
             for policy in policies
         ]
 
+        condition = NominaNovedad.nomina_id.is_(None)
+        if excluded_nomina_id:
+            condition = db.or_(
+                NominaNovedad.nomina_id.is_(None),
+                NominaNovedad.nomina_id == excluded_nomina_id,
+            )
+
         novelties = (
             self.session.execute(
                 db.select(VacationNovelty.id)
@@ -363,6 +376,7 @@ class SnapshotService:
                     NominaNovedad.es_descanso_vacaciones.is_(True),
                     NominaNovedad.fecha_novedad >= periodo_inicio,
                     NominaNovedad.fecha_novedad <= periodo_fin,
+                    condition,
                 )
             )
             .scalars()
@@ -372,7 +386,12 @@ class SnapshotService:
         return snapshot
 
     def capture_complete_snapshot(
-        self, planilla: Planilla, periodo_inicio: date, periodo_fin: date, fecha_calculo: date
+        self,
+        planilla: Planilla,
+        periodo_inicio: date,
+        periodo_fin: date,
+        fecha_calculo: date,
+        excluded_nomina_id: str | None = None,
     ) -> dict[str, Any]:
         """Capture complete snapshot of all configuration data.
 
@@ -381,12 +400,15 @@ class SnapshotService:
             periodo_inicio: Payroll period start
             periodo_fin: Payroll period end
             fecha_calculo: Calculation date
+            excluded_nomina_id: Optional Nomina ID to ignore in snapshot generation
 
         Returns:
             Complete snapshot dictionary
         """
         catalogos = self.capture_catalogs_snapshot(planilla)
-        vacaciones = self.capture_vacation_snapshot(planilla, periodo_inicio, periodo_fin)
+        vacaciones = self.capture_vacation_snapshot(
+            planilla, periodo_inicio, periodo_fin, excluded_nomina_id=excluded_nomina_id
+        )
         catalogos["vacaciones"] = vacaciones
 
         return {

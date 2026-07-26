@@ -934,3 +934,132 @@ def test_calcular_acumulacion_annual_frequency(app, db_session, planilla):
 
         # Should return full annual rate
         assert accrual == Decimal("15.00")
+
+
+def test_consecutive_payroll_vacation_novelty_no_cross_processing(app, db_session, planilla, empleado):
+    """Verify that a vacation novelty bound to one payroll is not cross-processed or loaded by a consecutive run."""
+    with app.app_context():
+        from coati_payroll.model import NominaNovedad, PlanillaEmpleado, VacationNovelty
+        from coati_payroll.enums import NovedadEstado
+
+        periodo_inicio = date(2025, 1, 1)
+        periodo_fin = date(2025, 1, 15)
+
+        # Make sure employee is active in the planilla
+        from coati_payroll.model import db
+        pe = db_session.execute(
+            db.select(PlanillaEmpleado).filter_by(planilla_id=planilla.id, empleado_id=empleado.id)
+        ).scalars().first()
+        if not pe:
+            pe = PlanillaEmpleado(
+                planilla_id=planilla.id,
+                empleado_id=empleado.id,
+                activo=True,
+                creado_por="test",
+            )
+            db_session.add(pe)
+        else:
+            pe.activo = True
+        db_session.commit()
+
+        # Create two consecutive/overlapping Nominas
+        nomina_a = Nomina(
+            id="NOMINA_A_001",
+            planilla_id=planilla.id,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            generado_por="test_user",
+            estado="draft",
+        )
+        nomina_b = Nomina(
+            id="NOMINA_B_002",
+            planilla_id=planilla.id,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            generado_por="test_user",
+            estado="draft",
+        )
+        db_session.add_all([nomina_a, nomina_b])
+        db_session.commit()
+
+        # Create a vacation novelty bound explicitly to Nomina A
+        novedad_a = NominaNovedad(
+            nomina_id=nomina_a.id,
+            empleado_id=empleado.id,
+            codigo_concepto="VAC",
+            tipo_valor="dias",
+            valor_cantidad=Decimal("5.00"),
+            fecha_novedad=date(2025, 1, 5),
+            es_descanso_vacaciones=True,
+            estado=NovedadEstado.PENDIENTE,
+            creado_por="test_user",
+        )
+        # Create a floating vacation novelty (not bound to any nomina_id)
+        novedad_floating = NominaNovedad(
+            nomina_id=None,
+            empleado_id=empleado.id,
+            codigo_concepto="VAC",
+            tipo_valor="dias",
+            valor_cantidad=Decimal("3.00"),
+            fecha_novedad=date(2025, 1, 10),
+            es_descanso_vacaciones=True,
+            estado=NovedadEstado.PENDIENTE,
+            creado_por="test_user",
+        )
+        db_session.add_all([novedad_a, novedad_floating])
+        db_session.commit()
+
+        # Instantiate VacationService for Nomina B - it should NOT load novedad_a, but should load novedad_floating
+        service_b = VacationService(
+            planilla=planilla,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            nomina_id=nomina_b.id,
+            apply_side_effects=False,
+        )
+
+        usage_b = service_b._build_vacation_usage_query(empleado)
+        assert len(usage_b) == 1
+        assert usage_b[0].id == novedad_floating.id
+
+        # Instantiate VacationService for Nomina A - it should load BOTH novelty_a and novelty_floating
+        service_a = VacationService(
+            planilla=planilla,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            nomina_id=nomina_a.id,
+            apply_side_effects=False,
+        )
+
+        usage_a = service_a._build_vacation_usage_query(empleado)
+        assert len(usage_a) == 2
+        usage_ids = {u.id for u in usage_a}
+        assert novedad_a.id in usage_ids
+        assert novedad_floating.id in usage_ids
+
+        # Test _empleado_tiene_vacaciones_en_periodo
+        assert service_b._empleado_tiene_vacaciones_en_periodo(empleado) is True
+        assert service_a._empleado_tiene_vacaciones_en_periodo(empleado) is True
+
+        # Test with a third service having NO matching novelties (different period)
+        service_c = VacationService(
+            planilla=planilla,
+            periodo_inicio=date(2025, 2, 1),
+            periodo_fin=date(2025, 2, 15),
+            nomina_id="NOMINA_C_003",
+            apply_side_effects=False,
+        )
+        assert service_c._empleado_tiene_vacaciones_en_periodo(empleado) is False
+        assert len(service_c._build_vacation_usage_query(empleado)) == 0
+
+        # Test with no nomina_id (e.g. general service) - should only match floating
+        service_none = VacationService(
+            planilla=planilla,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            nomina_id=None,
+            apply_side_effects=False,
+        )
+        assert service_none._empleado_tiene_vacaciones_en_periodo(empleado) is True
+        assert len(service_none._build_vacation_usage_query(empleado)) == 1
+        assert service_none._build_vacation_usage_query(empleado)[0].id == novedad_floating.id

@@ -73,7 +73,7 @@ class NovedadService:
                 NominaNovedad.nomina_id.is_(None),
                 NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
                 NominaNovedad.fecha_novedad <= nomina.periodo_fin,
-            )
+            ),
         )
 
         novedades = (

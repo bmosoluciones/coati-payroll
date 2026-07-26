@@ -45,6 +45,7 @@ class EmpleadoCalculo:
         self.salario_neto_inasistencia = Decimal("0.00")
         self.inasistencia_codigos_descuento: set[str] = set()
         self.variables_calculo: dict[str, Any] = {}
+        self.vacaciones_resumen: dict[str, Any] | None = None
 
 
 # Alias for backward compatibility

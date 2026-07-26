@@ -4,40 +4,41 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
-from typing import Any, cast
 from types import SimpleNamespace
+from typing import Any, cast
 
-from coati_payroll.model import db, Planilla, Empleado, Nomina
 from coati_payroll.enums import NominaEstado
 from coati_payroll.formula_engine import FormulaEngineError
 from coati_payroll.log import log
+from coati_payroll.model import Empleado, Nomina, Planilla, db
+
+from ..calculators.benefit_calculator import BenefitCalculator
+from ..calculators.concept_calculator import ConceptCalculator
+from ..calculators.deduction_calculator import DeductionCalculator
+from ..calculators.exchange_rate_calculator import ExchangeRateCalculator
+from ..calculators.perception_calculator import PerceptionCalculator
+from ..calculators.salary_calculator import SalaryCalculator
 from ..domain.employee_calculation import EmpleadoCalculo
-from ..repositories.planilla_repository import PlanillaRepository
+from ..processors.accounting_processor import AccountingProcessor
+from ..processors.accumulation_processor import AccumulationProcessor
+from ..processors.loan_processor import LoanProcessor
+from ..processors.novelty_processor import NoveltyProcessor
+from ..processors.vacation_processor import VacationProcessor
+from ..repositories.acumulado_repository import AcumuladoRepository
 from ..repositories.config_repository import ConfigRepository
 from ..repositories.exchange_rate_repository import ExchangeRateRepository
 from ..repositories.novelty_repository import NoveltyRepository
-from ..repositories.acumulado_repository import AcumuladoRepository
-from ..validators.planilla_validator import PlanillaValidator
-from ..validators.employee_validator import EmployeeValidator
-from ..validators import ValidationError, NominaEngineError
-from ..calculators.salary_calculator import SalaryCalculator
-from ..calculators.exchange_rate_calculator import ExchangeRateCalculator
-from ..calculators.concept_calculator import ConceptCalculator
-from ..calculators.perception_calculator import PerceptionCalculator
-from ..calculators.deduction_calculator import DeductionCalculator
-from ..calculators.benefit_calculator import BenefitCalculator
-from ..processors.loan_processor import LoanProcessor
-from ..processors.accumulation_processor import AccumulationProcessor
-from ..processors.vacation_processor import VacationProcessor
-from ..processors.novelty_processor import NoveltyProcessor
-from ..processors.accounting_processor import AccountingProcessor
-from ..services.employee_processing_service import EmployeeProcessingService
-from ..services.snapshot_service import SnapshotService
+from ..repositories.planilla_repository import PlanillaRepository
 from ..results.warning_collector import WarningCollector
 from ..services.accounting_voucher_service import AccountingVoucherService
+from ..services.employee_processing_service import EmployeeProcessingService
+from ..services.snapshot_service import SnapshotService
 from ..utils.rounding import round_money
+from ..validators import NominaEngineError, ValidationError
+from ..validators.employee_validator import EmployeeValidator
+from ..validators.planilla_validator import PlanillaValidator
 
 
 class PayrollExecutionService:
@@ -110,7 +111,9 @@ class PayrollExecutionService:
             return None, [], errors, warnings.to_list()
 
         # Capture configuration snapshots for recalculation consistency
-        snapshot = self.snapshot_service.capture_complete_snapshot(planilla, periodo_inicio, periodo_fin, fecha_calculo)
+        snapshot = self.snapshot_service.capture_complete_snapshot(
+            planilla, periodo_inicio, periodo_fin, fecha_calculo, excluded_nomina_id=excluded_nomina_id
+        )
         deducciones_snapshot = {
             deduccion["id"]: deduccion for deduccion in snapshot.get("catalogos", {}).get("deducciones", [])
         }
@@ -201,14 +204,12 @@ class PayrollExecutionService:
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
                 # Capture all payroll engine and formula errors
-                errors.append(
-                    f"Error procesando empleado {empleado.primer_nombre} {empleado.primer_apellido}: {str(e)}"
-                )
+                errors.append(f"Error procesando empleado {empleado.primer_nombre} {empleado.primer_apellido}: {e!s}")
             except Exception as e:
                 # Capture any unexpected error to prevent 500 errors
                 errors.append(
                     f"Error inesperado procesando empleado {empleado.primer_nombre} {empleado.primer_apellido}: "
-                    f"{type(e).__name__}: {str(e)}"
+                    f"{type(e).__name__}: {e!s}"
                 )
 
         # Calculate totals
@@ -225,6 +226,7 @@ class PayrollExecutionService:
                 warnings,
                 apply_side_effects=False,
                 snapshot=vacation_snapshot,
+                nomina_id=nomina.id,
             )
 
             for emp_calculo in empleados_calculo:
@@ -242,7 +244,7 @@ class PayrollExecutionService:
             loan_processor.apply_pending_effects()
 
             # Update planilla last execution
-            planilla.ultima_ejecucion = datetime.now(timezone.utc)
+            planilla.ultima_ejecucion = datetime.now(UTC)
 
             # Generate accounting voucher
             try:
@@ -251,7 +253,7 @@ class PayrollExecutionService:
             except Exception as e:
                 # Don't fail the payroll if voucher generation fails
                 error_message = (
-                    "Advertencia al generar comprobante contable de auditoría: " f"{type(e).__name__}: {str(e)}"
+                    "Advertencia al generar comprobante contable de auditoría: " f"{type(e).__name__}: {e!s}"
                 )
                 warnings.append(error_message)
                 log.error(
@@ -315,7 +317,7 @@ class PayrollExecutionService:
         not just as flash messages.
         """
         log_entries: list[dict[str, Any]] = []
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         # Log successful employee processing
         for emp_calculo in empleados_calculo:
@@ -565,10 +567,8 @@ class PayrollExecutionService:
             empresa_primer_mes_nomina=bootstrap_context.get("primer_mes_nomina"),
             empresa_primer_anio_nomina=bootstrap_context.get("primer_anio_nomina"),
         )
-        setattr(
-            emp_calculo,
-            "vacaciones_resumen",
-            vacation_processor.process_vacations(emp_calculo.empleado, emp_calculo, nomina_empleado),
+        emp_calculo.vacaciones_resumen = vacation_processor.process_vacations(
+            emp_calculo.empleado, emp_calculo, nomina_empleado
         )
 
     def _resolve_company_bootstrap_context(

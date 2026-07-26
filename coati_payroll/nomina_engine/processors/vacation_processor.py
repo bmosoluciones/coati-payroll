@@ -4,8 +4,9 @@
 
 from __future__ import annotations
 
-from coati_payroll.model import Planilla, Empleado, NominaEmpleado
 from coati_payroll.log import log
+from coati_payroll.model import Empleado, NominaEmpleado, Planilla
+
 from ..domain.employee_calculation import EmpleadoCalculo
 from ..results.warning_collector import WarningCollectorProtocol
 
@@ -22,6 +23,7 @@ class VacationProcessor:
         warnings: WarningCollectorProtocol | None = None,
         apply_side_effects: bool = True,
         snapshot: dict | None = None,
+        nomina_id: str | None = None,
     ):
         self.planilla = planilla
         self.periodo_inicio = periodo_inicio
@@ -30,12 +32,16 @@ class VacationProcessor:
         self.warnings = warnings if warnings is not None else []
         self.apply_side_effects = apply_side_effects
         self.snapshot = snapshot
+        self.nomina_id = nomina_id
 
     def process_vacations(
         self, empleado: Empleado, emp_calculo: EmpleadoCalculo, nomina_empleado: NominaEmpleado
     ) -> dict | None:
         """Process vacation accrual and usage for an employee."""
-        from coati_payroll.nomina_engine.validators import ValidationError, NominaEngineError
+        from coati_payroll.nomina_engine.validators import (
+            NominaEngineError,
+            ValidationError,
+        )
 
         try:
             from coati_payroll.vacation_service import VacationService
@@ -46,6 +52,7 @@ class VacationProcessor:
                 periodo_fin=self.periodo_fin,
                 apply_side_effects=self.apply_side_effects,
                 snapshot=self.snapshot,
+                nomina_id=self.nomina_id,
             )
 
             resumen_before = vacation_service.obtener_resumen_vacaciones(empleado)
@@ -77,6 +84,6 @@ class VacationProcessor:
             log.error("Error procesando vacaciones para empleado %s: %s", empleado.codigo_empleado, str(e))
             self.warnings.append(
                 f"No se pudieron procesar vacaciones para {empleado.primer_nombre} "
-                f"{empleado.primer_apellido}: {str(e)}"
+                f"{empleado.primer_apellido}: {e!s}"
             )
             return None

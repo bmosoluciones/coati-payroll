@@ -95,12 +95,14 @@ def _get_plugin_metadata(plugin_id: str) -> dict[str, Any]:
         mod = load_plugin_module(plugin_id)
         info = getattr(mod, "PLUGIN_INFO", None) or getattr(mod, "INFO", None)
         if isinstance(info, dict):
-            meta.update({
-                "description": info.get("description"),
-                "maintainer": info.get("maintainer"),
-                "contact": info.get("contact"),
-                "version": info.get("version", meta.get("version")),
-            })
+            meta.update(
+                {
+                    "description": info.get("description"),
+                    "maintainer": info.get("maintainer"),
+                    "contact": info.get("contact"),
+                    "version": info.get("version", meta.get("version")),
+                }
+            )
         else:
             meta.setdefault("version", getattr(mod, "__version__", meta.get("version")))
             meta["description"] = meta.get("description") or (
