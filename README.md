@@ -69,7 +69,7 @@ as-is, without warranties of fitness for any particular purpose.
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/williamjmorenor/coati-payroll.git
+git clone https://github.com/bmosoluciones/coati-payroll.git
 cd coati-payroll
 ```
 
