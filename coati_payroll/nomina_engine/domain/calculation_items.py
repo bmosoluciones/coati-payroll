@@ -26,7 +26,7 @@ class PercepcionItem(NamedTuple):
     codigo: str
     nombre: str
     monto: Decimal
-    orden: int
+    prioridad: int
     gravable: bool
     percepcion_id: str | None = None
 
@@ -37,5 +37,5 @@ class PrestacionItem(NamedTuple):
     codigo: str
     nombre: str
     monto: Decimal
-    orden: int
+    prioridad: int
     prestacion_id: str | None = None

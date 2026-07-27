@@ -62,7 +62,7 @@ class BenefitCalculator:
                     codigo=prestacion.codigo,
                     nombre=prestacion.nombre,
                     monto=monto,
-                    orden=planilla_prestacion.orden or 0,
+                    prioridad=planilla_prestacion.orden or 0,
                     prestacion_id=prestacion.id,
                 )
                 prestaciones.append(item)

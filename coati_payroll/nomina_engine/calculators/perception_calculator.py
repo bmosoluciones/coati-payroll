@@ -57,7 +57,7 @@ class PerceptionCalculator:
                     codigo=percepcion.codigo,
                     nombre=percepcion.nombre,
                     monto=monto,
-                    orden=planilla_percepcion.orden or 0,
+                    prioridad=planilla_percepcion.orden or 0,
                     gravable=percepcion.gravable,
                     percepcion_id=percepcion.id,
                 )

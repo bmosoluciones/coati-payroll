@@ -22,8 +22,10 @@ class EmpleadoCalculo:
     def __init__(self, empleado: Empleado, planilla: Planilla):
         self.empleado = empleado
         self.planilla = planilla
-        self.salario_base = Decimal(str(empleado.salario_base or 0))
-        self.salario_mensual = Decimal(str(empleado.salario_base or 0))
+        salario_raw = empleado.salario_base
+        salario_decimal = Decimal(str(salario_raw)) if salario_raw is not None else Decimal("0.00")
+        self.salario_base = salario_decimal
+        self.salario_mensual = salario_decimal
         self.percepciones: list[PercepcionItem] = []
         self.deducciones: list[DeduccionItem] = []
         self.prestaciones: list[PrestacionItem] = []
@@ -39,9 +41,6 @@ class EmpleadoCalculo:
         self.inasistencia_horas = Decimal("0.00")
         self.inasistencia_descuento = Decimal("0.00")
         self.novedades: dict[str, Decimal] = {}
-        self.inasistencia_dias = Decimal("0.00")
-        self.inasistencia_horas = Decimal("0.00")
-        self.inasistencia_descuento = Decimal("0.00")
         self.salario_neto_inasistencia = Decimal("0.00")
         self.inasistencia_codigos_descuento: set[str] = set()
         self.variables_calculo: dict[str, Any] = {}

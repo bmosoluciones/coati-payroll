@@ -14,7 +14,12 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class PayrollContext:
-    """Immutable context for payroll execution."""
+    """Context for payroll execution.
+
+    Note: While the dataclass is frozen (field reassignment raises AttributeError),
+    the errors and warnings lists are mutable. Append operations are allowed for
+    collecting validation results during processing.
+    """
 
     planilla_id: str
     periodo_inicio: date
