@@ -13,6 +13,7 @@ from coati_payroll.enums import NominaEstado
 from coati_payroll.formula_engine import FormulaEngineError
 from coati_payroll.log import log
 from coati_payroll.model import Empleado, Nomina, Planilla, db
+from sqlalchemy import IntegrityError, OperationalError
 
 from ..calculators.benefit_calculator import BenefitCalculator
 from ..calculators.concept_calculator import ConceptCalculator
@@ -39,6 +40,7 @@ from ..utils.rounding import round_money
 from ..validators import NominaEngineError, ValidationError
 from ..validators.employee_validator import EmployeeValidator
 from ..validators.planilla_validator import PlanillaValidator
+from ..validators.period_validator import PeriodValidator
 
 
 class PayrollExecutionService:
@@ -56,6 +58,7 @@ class PayrollExecutionService:
 
         # Initialize validators
         self.planilla_validator = PlanillaValidator(self.planilla_repo)
+        self.period_validator = PeriodValidator()
         self.employee_validator = EmployeeValidator()
 
         # Initialize calculators (warnings list will be set later)
@@ -108,6 +111,12 @@ class PayrollExecutionService:
         validation_result = self.planilla_validator.validate(context)
         if not validation_result.is_valid:
             errors.extend(validation_result.errors)
+            return None, [], errors, warnings.to_list()
+
+        # Validate period boundaries
+        period_result = self.period_validator.validate(context)
+        if not period_result.is_valid:
+            errors.extend(period_result.errors)
             return None, [], errors, warnings.to_list()
 
         # Capture configuration snapshots for recalculation consistency
@@ -211,8 +220,25 @@ class PayrollExecutionService:
             except (NominaEngineError, FormulaEngineError) as e:
                 # Capture all payroll engine and formula errors
                 errors.append(f"Error procesando empleado {empleado.primer_nombre} {empleado.primer_apellido}: {e!s}")
-            except Exception as e:
-                # Capture any unexpected error to prevent 500 errors
+            except (IntegrityError, OperationalError) as e:
+                # Database integrity/connection errors — these are serious and should not be swallowed
+                log.error(
+                    "Error de BD procesando empleado %s %s: %s",
+                    empleado.primer_nombre,
+                    empleado.primer_apellido,
+                    str(e),
+                    exc_info=True,
+                )
+                raise
+            except (ValueError, TypeError, AttributeError) as e:
+                # Capture programming/data errors that should not crash the entire run
+                log.error(
+                    "Error de datos procesando empleado %s %s: %s",
+                    empleado.primer_nombre,
+                    empleado.primer_apellido,
+                    str(e),
+                    exc_info=True,
+                )
                 errors.append(
                     f"Error inesperado procesando empleado {empleado.primer_nombre} {empleado.primer_apellido}: "
                     f"{type(e).__name__}: {e!s}"
@@ -222,7 +248,7 @@ class PayrollExecutionService:
         self._calculate_totals(nomina, empleados_calculo)
 
         if not errors:
-            vacation_snapshot = snapshot.get("vacaciones", {}).copy()
+            vacation_snapshot = snapshot.get("catalogos", {}).get("vacaciones", {}).copy()
             vacation_snapshot["configuracion"] = snapshot.get("configuracion")
             vacation_processor = VacationProcessor(
                 planilla,
