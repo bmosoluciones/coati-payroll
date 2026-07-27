@@ -2154,3 +2154,441 @@ class TestConceptCalculatorFormulaMethods:
             assert monto == Decimal("200.00")
             assert len(warnings) == 0
 
+
+class TestDeductionsCalculationImprovements:
+    """Tests for deduction and accumulated variables calculation improvements."""
+
+    def test_non_initial_period_with_acumulado_anual(self, app, db_session):
+        """Test that non-initial period with an existing AcumuladoAnual record loads values correctly and does not overwrite them."""
+        from coati_payroll.model import Planilla, TipoPlanilla, Moneda, Empresa, Empleado, AcumuladoAnual
+        from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
+        from coati_payroll.nomina_engine.repositories.acumulado_repository import AcumuladoRepository
+        from coati_payroll.nomina_engine.services.employee_processing_service import EmployeeProcessingService
+        from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
+
+        with app.app_context():
+            moneda = Moneda(codigo="NIO", nombre="Córdoba", simbolo="C$", activo=True)
+            db_session.add(moneda)
+
+            # Company first payroll period is Jan 2024
+            empresa = Empresa(
+                codigo="TEST_ACC_EX",
+                razon_social="Test Acc Ex Corp",
+                ruc="1234567-8",
+                primer_mes_nomina=1,
+                primer_anio_nomina=2024
+            )
+            db_session.add(empresa)
+            db_session.flush()
+
+            tipo_planilla = TipoPlanilla(
+                codigo="TEST_TP_EX",
+                descripcion="Test TP Ex",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=1,
+                dia_inicio_fiscal=1,
+            )
+            db_session.add(tipo_planilla)
+            db_session.flush()
+
+            planilla = Planilla(
+                nombre="Test Planilla Acc Ex",
+                tipo_planilla_id=tipo_planilla.id,
+                empresa_id=empresa.id,
+                moneda_id=moneda.id,
+                mes_inicio_fiscal=1,
+                activo=True,
+            )
+            db_session.add(planilla)
+            db_session.flush()
+
+            empleado = Empleado(
+                codigo_empleado="EMP_ACC_EX_01",
+                primer_nombre="Jane",
+                primer_apellido="Smith",
+                identificacion_personal="001-010180-0005E",
+                fecha_alta=date(2023, 6, 1),
+                salario_base=Decimal("20000.00"),
+                salario_acumulado=Decimal("0.00"),
+                impuesto_acumulado=Decimal("0.00"),
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(empleado)
+            db_session.flush()
+
+            # Create an actual AcumuladoAnual record for period fiscal start Jan 2024
+            acumulado_db = AcumuladoAnual(
+                empleado_id=empleado.id,
+                tipo_planilla_id=tipo_planilla.id,
+                empresa_id=empresa.id,
+                periodo_fiscal_inicio=date(2024, 1, 1),
+                periodo_fiscal_fin=date(2024, 12, 31),
+                salario_bruto_acumulado=Decimal("120000.00"),
+                salario_gravable_acumulado=Decimal("110000.00"),
+                deducciones_antes_impuesto_acumulado=Decimal("8000.00"),
+                impuesto_retenido_acumulado=Decimal("5000.00"),
+                periodos_procesados=6,
+                ultimo_periodo_procesado=date(2024, 6, 30)
+            )
+            db_session.add(acumulado_db)
+            db_session.flush()
+            db_session.commit()
+
+            emp_calculo = EmpleadoCalculo(empleado, planilla)
+            emp_calculo.salario_base = Decimal("20000.00")
+            emp_calculo.salario_mensual = Decimal("20000.00")
+            emp_calculo.salario_bruto = Decimal("20000.00")
+            emp_calculo.salario_neto_inasistencia = Decimal("20000.00")
+            emp_calculo.salario_gravable = Decimal("20000.00")
+            emp_calculo.total_percepciones = Decimal("0.00")
+            emp_calculo.total_deducciones = Decimal("0.00")
+            emp_calculo.variables_calculo = {}
+
+            config_repo = ConfigRepository(db_session)
+            acumulado_repo = AcumuladoRepository(db_session)
+            proc_service = EmployeeProcessingService(config_repo, acumulado_repo)
+
+            # Non-initial period: July 2024
+            variables = proc_service.build_calculation_variables(
+                emp_calculo=emp_calculo,
+                planilla=planilla,
+                periodo_inicio=date(2024, 7, 1),
+                periodo_fin=date(2024, 7, 31),
+                fecha_calculo=date(2024, 7, 31),
+                bootstrap_context={"is_initial_period": False}
+            )
+
+            # Values must be loaded from accumulated_db exactly! No overwriting to 0!
+            assert variables["salario_bruto_acumulado"] == Decimal("120000.00")
+            assert variables["salario_gravable_acumulado"] == Decimal("110000.00")
+            assert variables["deducciones_antes_impuesto_acumulado"] == Decimal("8000.00")
+            assert variables["ir_retenido_acumulado"] == Decimal("5000.00")
+            assert variables["periodos_procesados"] == Decimal("6")
+            assert variables["meses_trabajados"] == Decimal("6")  # reference July -> 6 months elapsed transcurridos before July
+            assert variables["salario_neto_acumulado"] == Decimal("112000.00")  # 120000 - 8000
+
+    def test_initial_period_accumulated_variables_defaults(self, app, db_session):
+        """Test defaults and initial period values for accumulated variables."""
+        from coati_payroll.model import Planilla, TipoPlanilla, Moneda, Empresa, Empleado
+        from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
+        from coati_payroll.nomina_engine.repositories.acumulado_repository import AcumuladoRepository
+        from coati_payroll.nomina_engine.services.employee_processing_service import EmployeeProcessingService
+        from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
+
+        with app.app_context():
+            moneda = Moneda(codigo="NIO", nombre="Córdoba", simbolo="C$", activo=True)
+            db_session.add(moneda)
+
+            # Let's say company first payroll period is Jan 2024
+            empresa = Empresa(
+                codigo="TEST_ACC",
+                razon_social="Test Acc Corp",
+                ruc="1234567-9",
+                primer_mes_nomina=1,
+                primer_anio_nomina=2024
+            )
+            db_session.add(empresa)
+            db_session.flush()
+
+            tipo_planilla = TipoPlanilla(
+                codigo="TEST_TP",
+                descripcion="Test TP",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=1,
+                dia_inicio_fiscal=1,
+            )
+            db_session.add(tipo_planilla)
+            db_session.flush()
+
+            planilla = Planilla(
+                nombre="Test Planilla Acc",
+                tipo_planilla_id=tipo_planilla.id,
+                empresa_id=empresa.id,
+                moneda_id=moneda.id,
+                mes_inicio_fiscal=1,
+                activo=True,
+            )
+            db_session.add(planilla)
+            db_session.flush()
+
+            # Employee with starting historical accumulated values
+            empleado = Empleado(
+                codigo_empleado="EMP_ACC_01",
+                primer_nombre="John",
+                primer_apellido="Doe",
+                identificacion_personal="001-010180-0002B",
+                fecha_alta=date(2023, 6, 1),
+                salario_base=Decimal("15000.00"),
+                salario_acumulado=Decimal("90000.00"),  # starts with 90k accumulated salary
+                impuesto_acumulado=Decimal("4500.00"),   # starts with 4.5k accumulated tax
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(empleado)
+            db_session.flush()
+            db_session.commit()
+
+            emp_calculo = EmpleadoCalculo(empleado, planilla)
+            emp_calculo.salario_base = Decimal("15000.00")
+            emp_calculo.salario_mensual = Decimal("15000.00")
+            emp_calculo.salario_bruto = Decimal("15000.00")
+            emp_calculo.salario_neto_inasistencia = Decimal("15000.00")
+            emp_calculo.salario_gravable = Decimal("15000.00")
+            emp_calculo.total_percepciones = Decimal("0.00")
+            emp_calculo.total_deducciones = Decimal("0.00")
+            emp_calculo.variables_calculo = {}
+
+            config_repo = ConfigRepository(db_session)
+            acumulado_repo = AcumuladoRepository(db_session)
+            proc_service = EmployeeProcessingService(config_repo, acumulado_repo)
+
+            # Calculate for initial company period: Jan 2024
+            variables = proc_service.build_calculation_variables(
+                emp_calculo=emp_calculo,
+                planilla=planilla,
+                periodo_inicio=date(2024, 1, 1),
+                periodo_fin=date(2024, 1, 31),
+                fecha_calculo=date(2024, 1, 31),
+            )
+
+            # Assert that progressive tax accumulated variables got populated from initial fields!
+            assert variables["salario_acumulado"] == Decimal("90000.00")
+            assert variables["impuesto_acumulado"] == Decimal("4500.00")
+            assert variables["salario_bruto_acumulado"] == Decimal("90000.00")
+            assert variables["salario_gravable_acumulado"] == Decimal("90000.00")
+            assert variables["impuesto_retenido_acumulado"] == Decimal("4500.00")
+            assert variables["deducciones_antes_impuesto_acumulado"] == Decimal("0.00")
+            assert variables["salario_neto_acumulado"] == Decimal("90000.00")
+            assert variables["meses_trabajados"] == Decimal("0.00")
+
+            # Calculate for non-initial company period with no AcumuladoAnual record
+            variables_feb = proc_service.build_calculation_variables(
+                emp_calculo=emp_calculo,
+                planilla=planilla,
+                periodo_inicio=date(2024, 2, 1),
+                periodo_fin=date(2024, 2, 29),
+                fecha_calculo=date(2024, 2, 29),
+                bootstrap_context={"is_initial_period": False}
+            )
+
+            # Should default to 0.00 and NOT cause KeyError or crash
+            assert variables_feb["salario_bruto_acumulado"] == Decimal("0.00")
+            assert variables_feb["salario_gravable_acumulado"] == Decimal("0.00")
+            assert variables_feb["deducciones_antes_impuesto_acumulado"] == Decimal("0.00")
+            assert variables_feb["salario_neto_acumulado"] == Decimal("0.00")
+            assert variables_feb["meses_trabajados"] == Decimal("1.00")
+
+    def test_dynamic_total_deducciones_during_calculation(self, app, db_session):
+        """Test that sequential formulas receive up-to-date total_deducciones during calculation."""
+        from coati_payroll.model import Planilla, TipoPlanilla, Moneda, Empresa, Empleado
+        from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
+        from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCalculator
+        from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
+        from coati_payroll.nomina_engine.domain.calculation_items import DeduccionItem
+
+        with app.app_context():
+            moneda = Moneda(codigo="NIO", nombre="Córdoba", simbolo="C$", activo=True)
+            db_session.add(moneda)
+
+            empresa = Empresa(codigo="TEST_DED_01", razon_social="Test Ded Corp", ruc="1234567")
+            db_session.add(empresa)
+            db_session.flush()
+
+            tipo_planilla = TipoPlanilla(
+                codigo="TEST_TP",
+                descripcion="Test TP",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=1,
+                dia_inicio_fiscal=1,
+            )
+            db_session.add(tipo_planilla)
+            db_session.flush()
+
+            planilla = Planilla(
+                nombre="Test Planilla",
+                tipo_planilla_id=tipo_planilla.id,
+                empresa_id=empresa.id,
+                moneda_id=moneda.id,
+                activo=True,
+            )
+            db_session.add(planilla)
+            db_session.flush()
+
+            empleado = Empleado(
+                codigo_empleado="EMP_DED_01",
+                primer_nombre="John",
+                primer_apellido="Smith",
+                identificacion_personal="001-010180-0003C",
+                fecha_alta=date(2024, 1, 1),
+                salario_base=Decimal("10000.00"),
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(empleado)
+            db_session.flush()
+            db_session.commit()
+
+            emp_calculo = EmpleadoCalculo(empleado, planilla)
+            emp_calculo.salario_base = Decimal("10000.00")
+            emp_calculo.salario_mensual = Decimal("10000.00")
+            emp_calculo.salario_bruto = Decimal("10000.00")
+            emp_calculo.total_percepciones = Decimal("0.00")
+            emp_calculo.total_deducciones = Decimal("0.00")
+            emp_calculo.variables_calculo = {
+                "salario_bruto_acumulado": Decimal("0.00"),
+                "salario_gravable_acumulado": Decimal("0.00"),
+                "deducciones_antes_impuesto_acumulado": Decimal("0.00"),
+                "periodos_procesados": Decimal("0.00"),
+                "meses_trabajados": Decimal("0.00"),
+                "salario_neto_acumulado": Decimal("0.00")
+            }
+
+            # Prepopulate one deduction already applied in deduction sequence
+            ded1 = DeduccionItem(
+                codigo="DED1",
+                nombre="First Deduction",
+                monto=Decimal("1200.00"),
+                prioridad=1,
+                es_obligatoria=True,
+            )
+            emp_calculo.deducciones.append(ded1)
+
+            # A formula that references total_deducciones
+            formula = {
+                "inputs": [
+                    {"name": "total_deducciones", "type": "decimal", "default": 0},
+                ],
+                "steps": [
+                    {
+                        "name": "double_deductions",
+                        "type": "calculation",
+                        "formula": "total_deducciones * 2",
+                    },
+                ],
+                "output": "double_deductions",
+            }
+
+            config_repo = ConfigRepository(db_session)
+            warnings = []
+            calculator = ConceptCalculator(config_repo, warnings)
+
+            monto = calculator.calculate(
+                emp_calculo=emp_calculo,
+                formula_tipo="formula",
+                monto_default=None,
+                porcentaje=None,
+                formula=formula,
+                monto_override=None,
+                porcentaje_override=None,
+                codigo_concepto="DED2",
+            )
+
+            assert monto == Decimal("2400.00")
+            assert len(warnings) == 0
+
+    def test_deduction_amount_clamping_for_negative_balance(self, app, db_session):
+        """Test that deductions are clamped and never result in negative deduction amounts."""
+        from coati_payroll.model import Planilla, TipoPlanilla, Moneda, Empresa, Empleado, Deduccion, PlanillaDeduccion
+        from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
+        from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCalculator
+        from coati_payroll.nomina_engine.calculators.deduction_calculator import DeductionCalculator
+        from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
+
+        with app.app_context():
+            moneda = Moneda(codigo="NIO", nombre="Córdoba", simbolo="C$", activo=True)
+            db_session.add(moneda)
+
+            empresa = Empresa(codigo="TEST_CLAMP", razon_social="Test Clamp Corp", ruc="1234567")
+            db_session.add(empresa)
+            db_session.flush()
+
+            tipo_planilla = TipoPlanilla(
+                codigo="TEST_TP",
+                descripcion="Test TP",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=1,
+                dia_inicio_fiscal=1,
+            )
+            db_session.add(tipo_planilla)
+            db_session.flush()
+
+            planilla = Planilla(
+                nombre="Test Planilla",
+                tipo_planilla_id=tipo_planilla.id,
+                empresa_id=empresa.id,
+                moneda_id=moneda.id,
+                activo=True,
+            )
+            db_session.add(planilla)
+            db_session.flush()
+
+            # Create a deduction
+            deduccion = Deduccion(
+                codigo="DED_CLAMP",
+                nombre="Clamp Deduction",
+                formula_tipo="fixed",
+                monto_default=Decimal("500.00"),
+                activo=True,
+            )
+            db_session.add(deduccion)
+            db_session.flush()
+
+            planilla_ded = PlanillaDeduccion(
+                planilla_id=planilla.id,
+                deduccion_id=deduccion.id,
+                prioridad=1,
+                es_obligatoria=True,
+                activo=True,
+            )
+            db_session.add(planilla_ded)
+            db_session.flush()
+
+            empleado = Empleado(
+                codigo_empleado="EMP_CLAMP_01",
+                primer_nombre="Clamp",
+                primer_apellido="User",
+                identificacion_personal="001-010180-0004D",
+                fecha_alta=date(2024, 1, 1),
+                salario_base=Decimal("1000.00"),
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(empleado)
+            db_session.flush()
+            db_session.commit()
+
+            emp_calculo = EmpleadoCalculo(empleado, planilla)
+            emp_calculo.salario_base = Decimal("0.00")
+            emp_calculo.salario_mensual = Decimal("0.00")
+            emp_calculo.salario_bruto = Decimal("-50.00")
+            emp_calculo.salario_neto_inasistencia = Decimal("-50.00")
+            emp_calculo.total_percepciones = Decimal("0.00")
+            emp_calculo.total_deducciones = Decimal("0.00")
+            emp_calculo.variables_calculo = {}
+
+            config_repo = ConfigRepository(db_session)
+            warnings = []
+            concept_calc = ConceptCalculator(config_repo, warnings)
+            deduction_calc = DeductionCalculator(concept_calc, warnings)
+
+            ded_items = deduction_calc.calculate(
+                emp_calculo=emp_calculo,
+                planilla=planilla,
+                fecha_calculo=date(2024, 1, 31),
+            )
+
+            assert len(ded_items) == 1
+            assert ded_items[0].monto == Decimal("0.00")

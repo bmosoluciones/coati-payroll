@@ -200,7 +200,9 @@ class ConceptCalculator:
         inputs = {**emp_calculo.variables_calculo}
         inputs["salario_bruto"] = emp_calculo.salario_bruto
         inputs["total_percepciones"] = emp_calculo.total_percepciones
-        inputs["total_deducciones"] = emp_calculo.total_deducciones
+        inputs["total_deducciones"] = max(
+            emp_calculo.total_deducciones, sum((d.monto for d in emp_calculo.deducciones), Decimal("0.00"))
+        )
         self._add_schema_inputs(inputs, schema)
         deducciones_antes_impuesto_periodo = self._calculate_pre_tax_deductions(emp_calculo)
         inputs["deducciones_antes_impuesto_periodo"] = deducciones_antes_impuesto_periodo

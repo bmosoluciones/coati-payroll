@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 
 from coati_payroll.model import Planilla
@@ -62,7 +63,7 @@ class DeductionCalculator:
             )
 
             if monto > 0:
-                monto_aplicar = min(monto, saldo_disponible)
+                monto_aplicar = max(Decimal("0.00"), min(monto, saldo_disponible))
 
                 if monto_aplicar <= 0 and not planilla_deduccion.es_obligatoria:
                     self.warnings.append(
