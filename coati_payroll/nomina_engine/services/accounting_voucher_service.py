@@ -225,16 +225,29 @@ class AccountingVoucherService:
 
     def _check_is_loan_advance(self, detalle, empleado) -> tuple[bool, str | None]:
         """Check if a detail line represents a loan/advance deduction."""
-        if not detalle.deduccion_id:
+        if detalle.deduccion_id:
+            deduccion = self.session.get(Deduccion, detalle.deduccion_id)
+            if not deduccion:
+                return False, None
+            adelantos = (
+                self.session.execute(db.select(Adelanto).filter_by(empleado_id=empleado.id, deduccion_id=deduccion.id))
+                .scalars()
+                .all()
+            )
+        elif detalle.codigo and detalle.codigo.startswith("ADELANTO_"):
+            adelantos = (
+                self.session.execute(
+                    db.select(Adelanto).filter(
+                        Adelanto.empleado_id == empleado.id,
+                        Adelanto.deduccion_id.is_(None),
+                    )
+                )
+                .scalars()
+                .all()
+            )
+        else:
             return False, None
-        deduccion = self.session.get(Deduccion, detalle.deduccion_id)
-        if not deduccion:
-            return False, None
-        adelantos = (
-            self.session.execute(db.select(Adelanto).filter_by(empleado_id=empleado.id, deduccion_id=deduccion.id))
-            .scalars()
-            .all()
-        )
+
         if not adelantos:
             return False, None
         cuenta_control_prestamo = None
