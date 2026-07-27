@@ -32,11 +32,17 @@ class SalaryCalculator:
         rounding: bool = True,
     ) -> Decimal:
         """Calculate salary for the pay period based on actual days."""
+        from ..validators import ValidationError
+
         if not planilla or not planilla.tipo_planilla:
-            return salario_mensual
+            raise ValidationError(
+                "No se puede calcular salario: planilla o tipo_planilla no disponibles."
+            )
 
         if not periodo_fin or not periodo_inicio:
-            return salario_mensual
+            raise ValidationError(
+                "No se puede calcular salario: periodo_inicio o periodo_fin no disponibles."
+            )
 
         dias_periodo = (periodo_fin - periodo_inicio).days + 1
 
@@ -69,6 +75,10 @@ class SalaryCalculator:
             else:
                 config = self._get_config(planilla.empresa_id, configuracion_snapshot)
                 dias_base = Decimal(str(config.dias_mes_nomina))
+                if dias_base <= 0:
+                    raise ValidationError(
+                        "Configuración inválida: dias_mes_nomina debe ser mayor a 0."
+                    )
                 salario_diario = salario_mensual / dias_base
                 salario_periodo = salario_diario * Decimal(str(dias_periodo))
 
@@ -80,6 +90,10 @@ class SalaryCalculator:
         else:
             config = self._get_config(planilla.empresa_id, configuracion_snapshot)
             dias_base = Decimal(str(config.dias_mes_nomina))
+            if dias_base <= 0:
+                raise ValidationError(
+                    "Configuración inválida: dias_mes_nomina debe ser mayor a 0."
+                )
             salario_diario = salario_mensual / dias_base
             salario_periodo = salario_diario * Decimal(str(dias_periodo))
 
@@ -108,6 +122,12 @@ class SalaryCalculator:
 
     def calculate_hourly_rate(self, salario_mensual: Decimal, config: ConfiguracionCalculos) -> Decimal:
         """Calculate hourly rate from monthly salary."""
+        from ..validators import ValidationError
+
         dias_base = Decimal(str(config.dias_mes_nomina))
         horas_dia = Decimal(str(config.horas_jornada_diaria))
+        if dias_base <= 0 or horas_dia <= 0:
+            raise ValidationError(
+                "Configuración inválida: dias_mes_nomina y horas_jornada_diaria deben ser mayores a 0."
+            )
         return (salario_mensual / dias_base / horas_dia).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
