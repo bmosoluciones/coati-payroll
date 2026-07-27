@@ -151,6 +151,7 @@ class AccountingProcessor:
                 anio=periodo_anio,
                 mes=periodo_mes,
                 moneda_id=moneda_id,
+                empresa_id=planilla.empresa_id,
                 monto_transaccion=monto_transaccion,
                 saldo_anterior=saldo_anterior,
                 saldo_nuevo=saldo_nuevo,
