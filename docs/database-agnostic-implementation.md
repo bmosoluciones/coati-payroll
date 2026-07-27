@@ -61,7 +61,7 @@ Tests for automatic database URL correction:
 
 - ✅ `postgres://` → `postgresql+pg8000://`
 - ✅ `postgresql://` → `postgresql+pg8000://`
-- ✅ `mysql://` → `mysql+pymysql://`
+- ✅ `mysql://` → `mysql+mysqlconnector://`
 - ✅ `mariadb://` → `mariadb+mariadbconnector://`
 - ✅ `sqlite://` remains unchanged
 - ✅ SSL mode handling for Heroku PostgreSQL
@@ -171,7 +171,7 @@ The `config.py` module automatically corrects database URLs:
 ```python
 # config.py handles this automatically
 "postgres://..." → "postgresql+pg8000://..."
-"mysql://..." → "mysql+pymysql://..."
+"mysql://..." → "mysql+mysqlconnector://..."
 ```
 
 ### 5. Timezone-Aware Datetimes

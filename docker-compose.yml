@@ -120,7 +120,7 @@ services:
       # Database connection (PostgreSQL)
       DATABASE_URL: postgresql://coati:${DB_PASSWORD:-changeme}@postgres:5432/coati_payroll
       # For MySQL, use:
-      # DATABASE_URL: mysql+pymysql://coati:${DB_PASSWORD:-changeme}@mysql:3306/coati_payroll
+      # DATABASE_URL: mysql+mysqlconnector://coati:${DB_PASSWORD:-changeme}@mysql:3306/coati_payroll
       
       # Queue configuration
       QUEUE_ENABLED: 1
@@ -173,7 +173,7 @@ services:
       # Database connection (PostgreSQL)
       DATABASE_URL: postgresql://coati:${DB_PASSWORD:-changeme}@postgres:5432/coati_payroll
       # For MySQL, use:
-      # DATABASE_URL: mysql+pymysql://coati:${DB_PASSWORD:-changeme}@mysql:3306/coati_payroll
+      # DATABASE_URL: mysql+mysqlconnector://coati:${DB_PASSWORD:-changeme}@mysql:3306/coati_payroll
       
       # Admin credentials (change these!)
       ADMIN_USER: ${ADMIN_USER:-admin}
