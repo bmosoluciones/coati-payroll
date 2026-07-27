@@ -66,20 +66,20 @@ class DeductionCalculator:
                 monto_aplicar = max(Decimal("0.00"), min(monto, saldo_disponible))
 
                 if monto_aplicar <= 0:
-                    if planilla_deduccion.es_obligatoria:
+                    if not planilla_deduccion.es_obligatoria:
+                        self.warnings.append(
+                            f"Empleado {emp_calculo.empleado.primer_nombre} "
+                            f"{emp_calculo.empleado.primer_apellido}: "
+                            f"Deducción {deduccion.codigo} omitida por saldo insuficiente."
+                        )
+                        continue
+                    else:
                         self.warnings.append(
                             f"Empleado {emp_calculo.empleado.primer_nombre} "
                             f"{emp_calculo.empleado.primer_apellido}: "
                             f"Deducción obligatoria {deduccion.codigo} no se pudo aplicar "
                             f"(saldo insuficiente: {saldo_disponible})."
                         )
-                    else:
-                        self.warnings.append(
-                            f"Empleado {emp_calculo.empleado.primer_nombre} "
-                            f"{emp_calculo.empleado.primer_apellido}: "
-                            f"Deducción {deduccion.codigo} omitida por saldo insuficiente."
-                        )
-                    continue
 
                 item = DeduccionItem(
                     codigo=deduccion.codigo,

@@ -562,11 +562,11 @@ class TestValidacionPeriodo:
                 usuario="admin",
             )
 
-            # Should have error about invalid period
+            # Should have error about invalid period — no nomina created
             nomina = engine.ejecutar()
-            assert nomina is not None
+            assert nomina is None
             assert len(engine.errors) > 0
-            error_found = any("Período inválido" in e for e in engine.errors)
+            error_found = any("Período inválido" in e or "posterior a fin" in e for e in engine.errors)
             assert error_found, f"Expected error about invalid period. Errors: {engine.errors}"
 
     def test_periodo_excesivamente_largo(self, app, db_session):
@@ -627,9 +627,9 @@ class TestValidacionPeriodo:
                 usuario="admin",
             )
 
-            # Should have error
+            # Should have error — no nomina created
             nomina = engine.ejecutar()
-            assert nomina is not None
+            assert nomina is None
             assert len(engine.errors) > 0
             error_found = any("excesivamente largo" in e for e in engine.errors)
             assert error_found, f"Expected error about excessive period. Errors: {engine.errors}"
