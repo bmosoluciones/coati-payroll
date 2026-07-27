@@ -165,6 +165,29 @@ class EmployeeProcessingService:
             variables["salario_neto_acumulado"] = Decimal(str(acumulado.salario_bruto_acumulado or 0)) - Decimal(
                 str(acumulado.deducciones_antes_impuesto_acumulado or 0)
             )
+        else:
+            # Define default values for progressive tax calculations (when acumulado is None)
+            salario_bruto_default = salario_base_acumulado if es_periodo_inicial else Decimal("0.00")
+            deducciones_antes_impuesto_default = Decimal("0.00")
+
+            variables["salario_bruto_acumulado"] = salario_bruto_default
+            variables["salario_gravable_acumulado"] = salario_base_acumulado if es_periodo_inicial else Decimal("0.00")
+            variables["deducciones_antes_impuesto_acumulado"] = deducciones_antes_impuesto_default
+            variables["impuesto_retenido_acumulado"] = (
+                impuesto_base_acumulado if es_periodo_inicial else Decimal("0.00")
+            )
+            variables["periodos_procesados"] = Decimal("0.00")
+            if tipo_planilla and (tipo_planilla.periodicidad or "").lower() in ("mensual", "monthly"):
+                meses_previos = self._calculate_elapsed_fiscal_months_before_period(
+                    fecha_referencia=periodo_fin,
+                    fecha_alta=fecha_alta,
+                    mes_inicio_fiscal=mes_inicio_fiscal,
+                    dia_inicio_fiscal=tipo_planilla.dia_inicio_fiscal,
+                )
+                variables["meses_trabajados"] = Decimal(str(meses_previos))
+            else:
+                variables["meses_trabajados"] = Decimal("0.00")
+            variables["salario_neto_acumulado"] = salario_bruto_default - deducciones_antes_impuesto_default
 
         # Include initial accumulated values from employee
         variables["salario_inicial_acumulado"] = salario_base_acumulado
