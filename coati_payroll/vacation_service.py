@@ -75,7 +75,7 @@ class VacationService:
         self.snapshot = snapshot
         self.apply_side_effects = apply_side_effects
         self.nomina_id = nomina_id
-        self._temp_accrued = {}
+        self._temp_accrued: dict[str, Decimal] = {}
         if self.periodo_inicio and self.periodo_fin and self.periodo_inicio > self.periodo_fin:
             raise ValidationError(f"Período inválido: inicio {self.periodo_inicio} posterior a fin {self.periodo_fin}.")
 
