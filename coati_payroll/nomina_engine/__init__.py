@@ -40,7 +40,6 @@ from .domain import (
 # Export results
 from .results import (
     ValidationResult,
-    ErrorResult,
     PayrollResult,
 )
 
@@ -65,7 +64,6 @@ __all__ = [
     "EmployeeCalculation",
     # Results
     "ValidationResult",
-    "ErrorResult",
     "PayrollResult",
     # Exceptions
     "NominaEngineError",
