@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.10.3] - 2026-06-10
 
+### Fixed
+
+- Corregido el parser de reducción con fórmulas JSON (Jason) para permitir el uso de constantes de cadena no numéricas (como literales de fecha en days_between) sin lanzar errores de conversión decimal.
+
 ### Changed
 
 - Maintenance release.

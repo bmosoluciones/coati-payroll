@@ -308,6 +308,35 @@ class TestSecurityValidation:
         with pytest.raises(CalculationError):
             engine.execute({})
 
+    def test_date_functions_with_literal_strings(self):
+        """Test that date functions (days_between, max_date, min_date) work with literal string dates."""
+        schema_days = {
+            "inputs": [],
+            "steps": [{"name": "days", "type": "calculation", "formula": 'days_between("2026-01-01", "2026-01-10")'}],
+            "output": "days",
+        }
+        engine = FormulaEngine(schema_days)
+        result = engine.execute({})
+        assert result["output"] == "9.00"
+
+        schema_max = {
+            "inputs": [],
+            "steps": [{"name": "max_d", "type": "calculation", "formula": 'max_date("2026-01-01", "2026-01-10")'}],
+            "output": "max_d",
+        }
+        engine = FormulaEngine(schema_max)
+        result = engine.execute({})
+        assert result["output"] == "2026-01-10"
+
+        schema_min = {
+            "inputs": [],
+            "steps": [{"name": "min_d", "type": "calculation", "formula": 'min_date("2026-01-01", "2026-01-10")'}],
+            "output": "min_d",
+        }
+        engine = FormulaEngine(schema_min)
+        result = engine.execute({})
+        assert result["output"] == "2026-01-01"
+
     def test_reject_attribute_access(self):
         """Test that attribute access is rejected."""
         schema = {
