@@ -247,7 +247,7 @@ class NominaComparisonService:
             "variacion_total_bruto": resumen_totales["variacion_total_bruto"],
         }
         calidad = cls._build_calidad(
-            nomina_base_id=nomina_base.id, nomina_actual_id=nomina_actual.id, empleados_actual_total=len(ids_actual)
+            nomina_base=nomina_base, nomina_actual=nomina_actual, empleados_actual_total=len(ids_actual)
         )
         cambios_estructurales = cls._build_cambios_estructurales(nomina_base=nomina_base, nomina_actual=nomina_actual)
         indice_estabilidad = cls._build_indice_estabilidad(
@@ -282,7 +282,7 @@ class NominaComparisonService:
                 "outliers_neto": outliers_neto,
             },
             "conceptos": conceptos,
-            "vacaciones": cls._comparar_reglas_vacaciones(nomina_base.id, nomina_actual.id),
+            "vacaciones": cls._comparar_reglas_vacaciones(nomina_base, nomina_actual),
             "parametros": {
                 "outlier_delta_abs": cls._money(cls.OUTLIER_DELTA_ABS),
                 "outlier_delta_pct": cls._percent(cls.OUTLIER_DELTA_PCT),
@@ -621,20 +621,27 @@ class NominaComparisonService:
         return drivers
 
     @classmethod
-    def _comparar_reglas_vacaciones(cls, nomina_base_id: str, nomina_actual_id: str) -> dict[str, Any]:
-        def aggregate(nomina_id: str) -> dict[str, Decimal]:
-            rows = db.session.execute(
-                db.select(NominaNovedad.codigo_concepto, NominaNovedad.valor_cantidad).filter(
-                    NominaNovedad.nomina_id == nomina_id, NominaNovedad.es_descanso_vacaciones.is_(True)
-                )
-            ).all()
+    def _comparar_reglas_vacaciones(cls, nomina_base: Nomina, nomina_actual: Nomina) -> dict[str, Any]:
+        def aggregate(nomina: Nomina) -> dict[str, Decimal]:
+            stmt = db.select(NominaNovedad.codigo_concepto, NominaNovedad.valor_cantidad).filter(
+                db.or_(
+                    NominaNovedad.nomina_id == nomina.id,
+                    db.and_(
+                        NominaNovedad.nomina_id.is_(None),
+                        NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
+                        NominaNovedad.fecha_novedad <= nomina.periodo_fin,
+                    ),
+                ),
+                NominaNovedad.es_descanso_vacaciones.is_(True),
+            )
+            rows = db.session.execute(stmt).all()
             grouped: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
             for codigo_concepto, cantidad in rows:
                 grouped[codigo_concepto or "SIN_CODIGO"] += cls._to_decimal(cantidad)
             return grouped
 
-        base = aggregate(nomina_base_id)
-        actual = aggregate(nomina_actual_id)
+        base = aggregate(nomina_base)
+        actual = aggregate(nomina_actual)
         reglas = sorted(set(base.keys()) | set(actual.keys()))
         return {
             "total_reglas": len(reglas),
@@ -801,17 +808,22 @@ class NominaComparisonService:
         }
 
     @classmethod
-    def _build_calidad(cls, nomina_base_id: str, nomina_actual_id: str, empleados_actual_total: int) -> dict[str, Any]:
-        empleados_base = set(
-            db.session.execute(db.select(NominaNovedad.empleado_id).filter(NominaNovedad.nomina_id == nomina_base_id))
-            .scalars()
-            .all()
-        )
-        empleados_actual = set(
-            db.session.execute(db.select(NominaNovedad.empleado_id).filter(NominaNovedad.nomina_id == nomina_actual_id))
-            .scalars()
-            .all()
-        )
+    def _build_calidad(cls, nomina_base: Nomina, nomina_actual: Nomina, empleados_actual_total: int) -> dict[str, Any]:
+        def get_empleados(nomina: Nomina) -> set[str]:
+            stmt = db.select(NominaNovedad.empleado_id).filter(
+                db.or_(
+                    NominaNovedad.nomina_id == nomina.id,
+                    db.and_(
+                        NominaNovedad.nomina_id.is_(None),
+                        NominaNovedad.fecha_novedad >= nomina.periodo_inicio,
+                        NominaNovedad.fecha_novedad <= nomina.periodo_fin,
+                    ),
+                )
+            )
+            return set(db.session.execute(stmt).scalars().all())
+
+        empleados_base = get_empleados(nomina_base)
+        empleados_actual = get_empleados(nomina_actual)
         total = Decimal(empleados_actual_total or 1)
         return {
             "empleados_con_novedades_base": len(empleados_base),
