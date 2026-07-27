@@ -938,6 +938,7 @@ def aplicar_nomina(planilla_id: str, nomina_id: str):
 def anular_nomina(planilla_id: str, nomina_id: str):
     """Void a nomina when it has not been applied/paid."""
     nomina = db.get_or_404(Nomina, nomina_id)
+    planilla = db.get_or_404(Planilla, planilla_id)
 
     if nomina.planilla_id != planilla_id:
         flash(_(ERROR_NOMINA_NO_PERTENECE), "error")
@@ -962,7 +963,7 @@ def anular_nomina(planilla_id: str, nomina_id: str):
         razon_anulacion = _("Nómina anulada por el usuario.")
 
     try:
-        if not registrar_anulacion_nomina(nomina, current_user.usuario, razon_anulacion):
+        if not NominaService.anular_nomina(nomina, planilla, current_user.usuario, razon_anulacion):
             flash(_("No se pudo anular la nómina."), "error")
             return redirect(url_for(ROUTE_VER_NOMINA, planilla_id=planilla_id, nomina_id=nomina_id))
 
