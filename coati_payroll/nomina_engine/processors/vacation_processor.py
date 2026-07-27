@@ -86,4 +86,4 @@ class VacationProcessor:
                 f"No se pudieron procesar vacaciones para {empleado.primer_nombre} "
                 f"{empleado.primer_apellido}: {e!s}"
             )
-            return None
+            raise
