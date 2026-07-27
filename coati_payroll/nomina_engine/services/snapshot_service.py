@@ -101,31 +101,35 @@ class SnapshotService:
         monedas_usadas = {emp.moneda_id for emp in empleados if emp.moneda_id}
         monedas_usadas.add(planilla.moneda_id)
 
-        # Get exchange rates for each currency
-        for moneda_id in monedas_usadas:
-            if moneda_id == planilla.moneda_id:
-                rates[moneda_id] = {"tasa": "1.00", "fecha": fecha_calculo.isoformat()}
-            else:
-                tipo_cambio = (
-                    self.session.execute(
-                        db.select(TipoCambio)
-                        .filter(
-                            TipoCambio.moneda_origen_id == moneda_id,
-                            TipoCambio.moneda_destino_id == planilla.moneda_id,
-                            TipoCambio.fecha <= fecha_calculo,
-                        )
-                        .order_by(TipoCambio.fecha.desc())
+        # Get exchange rates for all non-planilla currencies in a single query
+        monedas_a_consultar = [m for m in monedas_usadas if m != planilla.moneda_id]
+        if monedas_a_consultar:
+            tipo_cambios = (
+                self.session.execute(
+                    db.select(TipoCambio)
+                    .filter(
+                        TipoCambio.moneda_origen_id.in_(monedas_a_consultar),
+                        TipoCambio.moneda_destino_id == planilla.moneda_id,
+                        TipoCambio.fecha <= fecha_calculo,
                     )
-                    .scalars()
-                    .first()
+                    .order_by(TipoCambio.moneda_origen_id, TipoCambio.fecha.desc())
                 )
-
-                if tipo_cambio:
-                    rates[moneda_id] = {
-                        "tasa": str(tipo_cambio.tasa),
-                        "fecha": tipo_cambio.fecha.isoformat(),
-                        "moneda_destino_id": tipo_cambio.moneda_destino_id,
+                .scalars()
+                .all()
+            )
+            # Keep only the latest rate per origin currency
+            seen: set[str] = set()
+            for tc in tipo_cambios:
+                if tc.moneda_origen_id not in seen:
+                    seen.add(tc.moneda_origen_id)
+                    rates[tc.moneda_origen_id] = {
+                        "tasa": str(tc.tasa),
+                        "fecha": tc.fecha.isoformat(),
+                        "moneda_destino_id": tc.moneda_destino_id,
                     }
+
+        # Add planilla's own currency at 1.00
+        rates[planilla.moneda_id] = {"tasa": "1.00", "fecha": fecha_calculo.isoformat()}
 
         return rates
 
@@ -415,6 +419,5 @@ class SnapshotService:
             "configuracion": self.capture_configuration_snapshot(planilla.empresa_id),
             "tipos_cambio": self.capture_exchange_rates_snapshot(planilla, fecha_calculo),
             "catalogos": catalogos,
-            "vacaciones": vacaciones,
             "fecha_captura": fecha_calculo.isoformat(),
         }
