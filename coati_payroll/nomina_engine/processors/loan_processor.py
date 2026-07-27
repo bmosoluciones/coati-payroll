@@ -247,7 +247,18 @@ class LoanProcessor:
         if self.apply_side_effects or not self._pending_actions:
             return
 
+        from coati_payroll.log import log
+
         for adelanto, monto, requires_interest in self._pending_actions:
-            if requires_interest and self.calcular_interes:
-                self._calculate_interest(adelanto)
-            self._record_payment(adelanto, monto)
+            try:
+                if requires_interest and self.calcular_interes:
+                    self._calculate_interest(adelanto)
+                self._record_payment(adelanto, monto)
+            except Exception as e:
+                log.error(
+                    "Error aplicando efecto pendiente para adelanto %s: %s",
+                    adelanto.id,
+                    str(e),
+                    exc_info=True,
+                )
+                raise
