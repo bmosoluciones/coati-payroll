@@ -376,6 +376,43 @@ class DramatiqDriverTestCase(unittest.TestCase):
         mock_ctx.pop.assert_called_once()
         self.assertIsNone(getattr(middleware._local, "ctx", None))
 
+    def test_flask_app_context_middleware_get_app_success(self) -> None:
+        from coati_payroll.queue.drivers.dramatiq_driver import FlaskAPPContextMiddleware
+
+        middleware = FlaskAPPContextMiddleware()
+
+        mock_app = MagicMock()
+        mock_create_app = MagicMock(return_value=mock_app)
+
+        # Stub coati_payroll.create_app on the sys.modules stub
+        import sys
+        coati_mod = sys.modules["coati_payroll"]
+        coati_mod.create_app = mock_create_app
+
+        app = middleware._get_app()
+
+        self.assertIs(app, mock_app)
+        mock_create_app.assert_called_once_with(None)
+
+        # Subsequent calls should return the cached app
+        app_cached = middleware._get_app()
+        self.assertIs(app_cached, mock_app)
+        self.assertEqual(mock_create_app.call_count, 1)
+
+    def test_flask_app_context_middleware_get_app_failure(self) -> None:
+        from coati_payroll.queue.drivers.dramatiq_driver import FlaskAPPContextMiddleware
+
+        middleware = FlaskAPPContextMiddleware()
+
+        mock_create_app = MagicMock(side_effect=RuntimeError("creation failed"))
+
+        import sys
+        coati_mod = sys.modules["coati_payroll"]
+        coati_mod.create_app = mock_create_app
+
+        with self.assertRaises(RuntimeError):
+            middleware._get_app()
+
 
 if __name__ == "__main__":
     unittest.main()
