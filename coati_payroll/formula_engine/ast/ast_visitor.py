@@ -34,7 +34,7 @@ from typing import Any
 # <-------------------------------------------------------------------------> #
 # Local modules
 # <-------------------------------------------------------------------------> #
-from ..exceptions import CalculationError
+from ..exceptions import CalculationError, ValidationError
 from .safe_operators import SAFE_FUNCTIONS, SAFE_OPERATORS
 from .type_converter import to_decimal
 
@@ -124,19 +124,33 @@ class SafeASTVisitor(ASTVisitor):
                     "Only Constant, Name, BinOp, UnaryOp, and Call nodes are allowed."
                 )
 
-    def visit_constant(self, node: ast.Constant) -> Decimal:
-        """Visit a constant node (numeric literal).
+    def visit_constant(self, node: ast.Constant) -> Any:
+        """Visit a constant node (numeric literal or string/boolean/None).
 
         Args:
-            node: AST Constant node containing a numeric value
+            node: AST Constant node
 
         Returns:
-            The constant value as a Decimal
+            The constant value as a Decimal (if numeric/boolean), or as-is (if string/None)
 
         Raises:
-            CalculationError: If the constant cannot be converted to Decimal
+            CalculationError: If the constant cannot be converted to Decimal when expected
         """
-        return to_decimal(node.value)
+        val = node.value
+        if isinstance(val, (int, float)):
+            return to_decimal(val)
+        if isinstance(val, bool):
+            return to_decimal(val)
+        if val is None:
+            return None
+        if isinstance(val, str):
+            # Try to convert to Decimal if it's a numeric string, otherwise keep as string
+            try:
+                return to_decimal(val)
+            except ValidationError:
+                return val
+        # Any other type (like list or dict if constructible) should be passed to to_decimal to raise ValidationError
+        return to_decimal(val)
 
     def visit_name(self, node: ast.Name) -> Any:  # Changed from Decimal to Any
         """Visit a variable name node.
