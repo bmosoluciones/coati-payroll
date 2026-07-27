@@ -180,7 +180,7 @@ if isinstance(database_url_base, str):
                 cleaned = urlunparse(parsed._replace(query=new_query))
                 DATABASE_URL_CORREGIDA = "postgresql+pg8000" + cleaned[8:]
             case "mysql":
-                DATABASE_URL_CORREGIDA = "mysql+pymysql" + DATABASE_URL_BASE[5:]
+                DATABASE_URL_CORREGIDA = "mysql+mysqlconnector" + DATABASE_URL_BASE[5:]
             case "mariadb":
                 DATABASE_URL_CORREGIDA = "mariadb+mariadbconnector" + DATABASE_URL_BASE[7:]
 

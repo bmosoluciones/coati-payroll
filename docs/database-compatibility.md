@@ -227,7 +227,7 @@ Set the `DATABASE_URL` environment variable:
 # MySQL
 export DATABASE_URL="mysql://coati_user:password@localhost/coati_payroll"
 
-# Application automatically converts to: mysql+pymysql://...
+# Application automatically converts to: mysql+mysqlconnector://...
 
 # MariaDB
 export DATABASE_URL="mariadb://coati_user:password@localhost/coati_payroll"
@@ -251,7 +251,7 @@ The application automatically corrects database URLs to use the appropriate driv
 |-------------|------------------|-------------|
 | `postgres://` | `postgresql+pg8000://` | pg8000 |
 | `postgresql://` | `postgresql+pg8000://` | pg8000 |
-| `mysql://` | `mysql+pymysql://` | PyMySQL |
+| `mysql://` | `mysql+mysqlconnector://` | mysql-connector-python |
 | `mariadb://` | `mariadb+mariadbconnector://` | MariaDB Connector |
 | `sqlite://` | (unchanged) | sqlite3 |
 
