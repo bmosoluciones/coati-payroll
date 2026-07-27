@@ -37,12 +37,12 @@ class AccumulationProcessor:
         tipo_planilla = planilla.tipo_planilla
         empleado = emp_calculo.empleado
 
-        # Calculate fiscal period
-        anio = periodo_inicio.year
+        # Calculate fiscal period based on period end (when earnings are realized)
+        anio = periodo_fin.year
         mes_inicio = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal)
         dia_inicio = tipo_planilla.dia_inicio_fiscal
 
-        if periodo_inicio.month < mes_inicio:
+        if periodo_fin.month < mes_inicio:
             anio -= 1
 
         periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
