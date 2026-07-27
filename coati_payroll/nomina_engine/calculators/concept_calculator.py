@@ -65,9 +65,9 @@ class ConceptCalculator:
         # Ensure calculated amounts are never negative
         if monto_calculado < 0:
             self.warnings.append(
-                f"Concepto '{codigo_concepto or 'desconocido'}': ConfiguraciÃ³n incorrecta resultÃ³ en "
+                f"Concepto '{codigo_concepto or 'desconocido'}': Configuración incorrecta resultó en "
                 f"monto negativo ({monto_calculado}). Ajustando a 0.00. "
-                f"Verifique la configuraciÃ³n del concepto (porcentaje o monto)."
+                f"Verifique la configuración del concepto (porcentaje o monto)."
             )
             return Decimal("0.00")
 
@@ -101,7 +101,7 @@ class ConceptCalculator:
         """Dispatch formula calculation to the appropriate strategy."""
         match formula_tipo:
             case FormulaType.FIJO:
-                return Decimal(str(monto_default or 0))
+                return Decimal(str(monto_default or 0)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             case FormulaType.PORCENTAJE_SALARIO | FormulaType.PORCENTAJE:
                 return self._calculate_percentage(emp_calculo.salario_base, porcentaje)
             case FormulaType.PORCENTAJE_BRUTO:
@@ -149,6 +149,12 @@ class ConceptCalculator:
         config = self._get_config(emp_calculo.planilla.empresa_id)
         dias_base = Decimal(str(config.dias_mes_nomina))
         horas_dia = Decimal(str(config.horas_jornada_diaria))
+        if dias_base <= 0 or horas_dia <= 0:
+            self.warnings.append(
+                f"Concepto '{codigo_concepto}': Configuración inválida (dias_mes_nomina={dias_base}, "
+                f"horas_jornada_diaria={horas_dia}). Retornando 0.00."
+            )
+            return Decimal("0.00")
         tasa_hora = (base / dias_base / horas_dia).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
         # Apply percentage
@@ -184,6 +190,12 @@ class ConceptCalculator:
         # Calculate daily rate using configuration
         config = self._get_config(emp_calculo.planilla.empresa_id)
         dias_base = Decimal(str(config.dias_mes_nomina))
+        if dias_base <= 0:
+            self.warnings.append(
+                f"Concepto '{codigo_concepto}': Configuración inválida (dias_mes_nomina={dias_base}). "
+                f"Retornando 0.00."
+            )
+            return Decimal("0.00")
         tasa_dia = (base / dias_base).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
         # Apply percentage
