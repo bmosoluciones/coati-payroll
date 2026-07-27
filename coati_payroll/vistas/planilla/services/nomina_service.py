@@ -161,26 +161,25 @@ class NominaService:
         from coati_payroll.enums import AdelantoEstado
 
         # 1. Revert payments
-        abonos = db.session.execute(
-            db.select(AdelantoAbono).where(AdelantoAbono.nomina_id == nomina.id)
-        ).scalars().all()
+        abonos = (
+            db.session.execute(db.select(AdelantoAbono).where(AdelantoAbono.nomina_id == nomina.id)).scalars().all()
+        )
 
         for abono in abonos:
             adelanto = db.session.get(Adelanto, abono.adelanto_id)
             if adelanto:
                 # Add back the paid amount to the balance
-                adelanto.saldo_pendiente = (
-                    Decimal(str(adelanto.saldo_pendiente or 0))
-                    + Decimal(str(abono.monto_abonado or 0))
+                adelanto.saldo_pendiente = Decimal(str(adelanto.saldo_pendiente or 0)) + Decimal(
+                    str(abono.monto_abonado or 0)
                 )
                 if adelanto.saldo_pendiente > 0 and adelanto.estado == AdelantoEstado.PAGADO:
                     adelanto.estado = AdelantoEstado.APROBADO
             db.session.delete(abono)
 
         # 2. Revert interest calculations
-        intereses = db.session.execute(
-            db.select(InteresAdelanto).where(InteresAdelanto.nomina_id == nomina.id)
-        ).scalars().all()
+        intereses = (
+            db.session.execute(db.select(InteresAdelanto).where(InteresAdelanto.nomina_id == nomina.id)).scalars().all()
+        )
 
         for interes in intereses:
             adelanto = db.session.get(Adelanto, interes.adelanto_id)
@@ -188,11 +187,11 @@ class NominaService:
                 # Subtract the calculated interest from balance and accumulated interest
                 adelanto.saldo_pendiente = max(
                     Decimal("0.00"),
-                    Decimal(str(adelanto.saldo_pendiente or 0)) - Decimal(str(interes.interes_calculado or 0))
+                    Decimal(str(adelanto.saldo_pendiente or 0)) - Decimal(str(interes.interes_calculado or 0)),
                 )
                 adelanto.interes_acumulado = max(
                     Decimal("0.00"),
-                    Decimal(str(adelanto.interes_acumulado or 0)) - Decimal(str(interes.interes_calculado or 0))
+                    Decimal(str(adelanto.interes_acumulado or 0)) - Decimal(str(interes.interes_calculado or 0)),
                 )
                 # Restore previous calculation date
                 adelanto.fecha_ultimo_calculo_interes = interes.fecha_desde
@@ -204,9 +203,11 @@ class NominaService:
         from coati_payroll.model import VacationNominaNovedad, VacationNovelty, NominaNovedad
         from coati_payroll.enums import VacacionEstado
 
-        bridges = db.session.execute(
-            db.select(VacationNominaNovedad).where(VacationNominaNovedad.nomina_id == nomina.id)
-        ).scalars().all()
+        bridges = (
+            db.session.execute(db.select(VacationNominaNovedad).where(VacationNominaNovedad.nomina_id == nomina.id))
+            .scalars()
+            .all()
+        )
 
         for bridge in bridges:
             vacation = db.session.get(VacationNovelty, bridge.vacation_novelty_id)
@@ -611,6 +612,7 @@ class NominaService:
             # Re-link previous VacationNominaNovedad records to the new recalculated payroll.
             if not is_mock_id:
                 from coati_payroll.model import VacationNominaNovedad
+
                 db.session.execute(
                     db.update(VacationNominaNovedad)
                     .where(VacationNominaNovedad.nomina_id == nomina_original_id)
