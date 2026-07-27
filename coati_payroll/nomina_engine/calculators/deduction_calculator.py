@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any, cast
+
 
 from coati_payroll.model import Planilla
 from ..domain.employee_calculation import EmpleadoCalculo
@@ -25,7 +25,7 @@ class DeductionCalculator:
         """Calculate all deductions for an employee, applying priority order."""
         emp_calculo.deducciones = []
         saldo_disponible = emp_calculo.salario_bruto
-        
+
         # Sort planilla deductions by priority (lower number = higher priority)
         planilla_deducciones = list(planilla.planilla_deducciones)
         planilla_deducciones.sort(key=lambda x: getattr(x, "prioridad", 100))
