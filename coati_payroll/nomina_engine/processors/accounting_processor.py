@@ -116,6 +116,7 @@ class AccountingProcessor:
                     .filter(
                         PrestacionAcumulada.empleado_id == empleado.id,
                         PrestacionAcumulada.prestacion_id == prestacion.id,
+                        PrestacionAcumulada.empresa_id == planilla.empresa_id,
                     )
                     .order_by(
                         PrestacionAcumulada.fecha_transaccion.desc(),
@@ -253,6 +254,7 @@ class AccountingProcessor:
                 .where(
                     PrestacionAcumulada.empleado_id == empleado_id,
                     PrestacionAcumulada.prestacion_id == prestacion_id,
+                    PrestacionAcumulada.empresa_id == planilla.empresa_id,
                 )
                 .order_by(PrestacionAcumulada.fecha_transaccion.desc(), PrestacionAcumulada.creado.desc())
                 .limit(1)
