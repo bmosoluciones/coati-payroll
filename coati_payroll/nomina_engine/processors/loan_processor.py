@@ -73,7 +73,8 @@ class LoanProcessor:
             if monto_cuota <= 0:
                 continue
 
-            monto_aplicar = min(monto_cuota, saldo_disponible)
+            saldo_pendiente = Decimal(str(prestamo.saldo_pendiente or 0))
+            monto_aplicar = min(monto_cuota, saldo_pendiente, saldo_disponible)
 
             item = DeduccionItem(
                 codigo=f"PRESTAMO_{prestamo.id[:8]}",
@@ -124,7 +125,8 @@ class LoanProcessor:
                 break
 
             monto_cuota = Decimal(str(adelanto.monto_por_cuota or adelanto.saldo_pendiente))
-            monto_aplicar = min(monto_cuota, saldo_disponible)
+            saldo_pendiente = Decimal(str(adelanto.saldo_pendiente or 0))
+            monto_aplicar = min(monto_cuota, saldo_pendiente, saldo_disponible)
 
             item = DeduccionItem(
                 codigo=f"ADELANTO_{adelanto.id[:8]}",
