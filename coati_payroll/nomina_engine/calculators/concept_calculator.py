@@ -80,9 +80,9 @@ class ConceptCalculator:
         porcentaje_override: Decimal | None,
     ) -> Decimal | None:
         """Calculate a value from an explicit override, when provided."""
-        if monto_override:
+        if monto_override is not None:
             return Decimal(str(monto_override))
-        if porcentaje_override:
+        if porcentaje_override is not None:
             return (emp_calculo.salario_base * Decimal(str(porcentaje_override)) / Decimal("100")).quantize(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
