@@ -31,7 +31,10 @@ try:
         def _get_app(self):
             if self._app is None:
                 try:
-                    from coati_payroll import create_app
+                    import importlib
+
+                    module = importlib.import_module("coati_payroll")
+                    create_app = module.create_app
 
                     # Create the Flask application instance once.
                     self._app = create_app(None)
