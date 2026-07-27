@@ -32,9 +32,10 @@ class ExchangeRateRepository(BaseRepository[TipoCambio]):
                     TipoCambio.fecha <= fecha,
                 )
                 .order_by(TipoCambio.fecha.desc())
+                .limit(1)
             )
-            .unique()
-            .scalar_one_or_none()
+            .scalars()
+            .first()
         )
 
         if tipo_cambio:
