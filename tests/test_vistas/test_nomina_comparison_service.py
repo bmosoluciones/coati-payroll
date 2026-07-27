@@ -288,3 +288,97 @@ def test_compare_or_cached_handles_integrity_error_on_concurrent_insert(monkeypa
     assert fake_session.rollback_called is True
     assert payload['is_cached'] is True
     assert payload['from'] == 'cache'
+
+
+def test_build_calidad_includes_floating_novelties(monkeypatch) -> None:
+    # Arrange
+    nomina_base = SimpleNamespace(id="NOM-BASE", periodo_inicio=date(2026, 1, 1), periodo_fin=date(2026, 1, 15))
+    nomina_actual = SimpleNamespace(id="NOM-ACT", periodo_inicio=date(2026, 1, 16), periodo_fin=date(2026, 1, 31))
+
+    executed_stmts = []
+
+    class FakeScalars:
+        def __init__(self, items) -> None:
+            self.items = items
+        def all(self):
+            return self.items
+
+    class FakeResult:
+        def __init__(self, items) -> None:
+            self.items = items
+        def scalars(self):
+            return FakeScalars(self.items)
+
+    class FakeSession:
+        def execute(self, stmt):
+            executed_stmts.append(stmt)
+            if "NOM-BASE" in str(stmt.compile(compile_kwargs={"literal_binds": True})):
+                return FakeResult(["EMP-1", "EMP-2"])
+            else:
+                return FakeResult(["EMP-2", "EMP-3", "EMP-4"])
+
+    from coati_payroll.vistas.planilla.services import nomina_comparison_service as module
+    monkeypatch.setattr(module.db, 'session', FakeSession())
+
+    # Act
+    res = NominaComparisonService._build_calidad(nomina_base, nomina_actual, 10)
+
+    # Assert
+    assert res["empleados_con_novedades_base"] == 2
+    assert res["empleados_con_novedades_actual"] == 3
+    assert res["porcentaje_actual"] == 30.0  # 3 / 10 * 100
+    assert len(executed_stmts) == 2
+
+    # Verify the query conditions compiled correctly
+    sql0 = str(executed_stmts[0].compile(compile_kwargs={"literal_binds": True}))
+    assert "nomina_novedad.nomina_id = 'NOM-BASE'" in sql0
+    assert "nomina_novedad.nomina_id IS NULL" in sql0
+    assert "nomina_novedad.fecha_novedad >= '2026-01-01'" in sql0
+    assert "nomina_novedad.fecha_novedad <= '2026-01-15'" in sql0
+
+
+def test_comparar_reglas_vacaciones_includes_floating_vacations(monkeypatch) -> None:
+    # Arrange
+    nomina_base = SimpleNamespace(id="NOM-BASE", periodo_inicio=date(2026, 1, 1), periodo_fin=date(2026, 1, 15))
+    nomina_actual = SimpleNamespace(id="NOM-ACT", periodo_inicio=date(2026, 1, 16), periodo_fin=date(2026, 1, 31))
+
+    executed_stmts = []
+
+    class FakeResult:
+        def __init__(self, items) -> None:
+            self.items = items
+        def all(self):
+            return self.items
+
+    class FakeSession:
+        def execute(self, stmt):
+            executed_stmts.append(stmt)
+            sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+            if "NOM-BASE" in sql:
+                # Base rule: 10 days for VAC
+                return FakeResult([("VAC", Decimal("10"))])
+            else:
+                # Actual rule: 15 days for VAC and 5 for EXTRA
+                return FakeResult([("VAC", Decimal("15")), ("EXTRA", Decimal("5"))])
+
+    from coati_payroll.vistas.planilla.services import nomina_comparison_service as module
+    monkeypatch.setattr(module.db, 'session', FakeSession())
+
+    # Act
+    res = NominaComparisonService._comparar_reglas_vacaciones(nomina_base, nomina_actual)
+
+    # Assert
+    assert res["total_reglas"] == 2
+    reglas_by_code = {r["codigo_concepto"]: r for r in res["reglas"]}
+    assert reglas_by_code["VAC"]["cantidad_base"] == 10.0
+    assert reglas_by_code["VAC"]["cantidad_actual"] == 15.0
+    assert reglas_by_code["VAC"]["variacion"] == 5.0
+    assert reglas_by_code["EXTRA"]["cantidad_base"] == 0.0
+    assert reglas_by_code["EXTRA"]["cantidad_actual"] == 5.0
+    assert reglas_by_code["EXTRA"]["variacion"] == 5.0
+
+    # Verify compiling SQL
+    sql0 = str(executed_stmts[0].compile(compile_kwargs={"literal_binds": True})).lower()
+    assert "nomina_novedad.nomina_id = 'nom-base'" in sql0
+    assert "nomina_novedad.nomina_id is null" in sql0
+    assert "es_descanso_vacaciones is true" in sql0 or "es_descanso_vacaciones = true" in sql0 or "es_descanso_vacaciones is" in sql0
