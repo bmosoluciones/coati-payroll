@@ -10,7 +10,6 @@ from typing import Any, cast
 from flask import abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from coati_payroll.audit_helpers import anular_nomina as registrar_anulacion_nomina
 from coati_payroll.enums import NominaEstado, NovedadEstado, VacacionEstado
 from coati_payroll.i18n import _
 from coati_payroll.log import log

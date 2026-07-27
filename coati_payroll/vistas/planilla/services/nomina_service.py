@@ -169,7 +169,10 @@ class NominaService:
             adelanto = db.session.get(Adelanto, abono.adelanto_id)
             if adelanto:
                 # Add back the paid amount to the balance
-                adelanto.saldo_pendiente = Decimal(str(adelanto.saldo_pendiente or 0)) + Decimal(str(abono.monto_abonado or 0))
+                adelanto.saldo_pendiente = (
+                    Decimal(str(adelanto.saldo_pendiente or 0))
+                    + Decimal(str(abono.monto_abonado or 0))
+                )
                 if adelanto.saldo_pendiente > 0 and adelanto.estado == AdelantoEstado.PAGADO:
                     adelanto.estado = AdelantoEstado.APROBADO
             db.session.delete(abono)
@@ -531,11 +534,8 @@ class NominaService:
             NominaEmpleado,
             NominaDetalle,
             NominaNovedad,
-            AdelantoAbono,
             ComprobanteContable,
             PrestacionAcumulada,
-            VacationLedger,
-            VacationAccount,
         )
         from coati_payroll.vistas.planilla.services.nomina_comparison_service import NominaComparisonService
 
