@@ -36,7 +36,7 @@ from __future__ import annotations
 import ast
 import operator
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Callable
 
 # <-------------------------------------------------------------------------> #
@@ -272,6 +272,20 @@ COMPARISON_OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
     "!=": operator.ne,
 }
 
+def _safe_round(value: Any, ndigits: Any = 0) -> Decimal:
+    """Round a value using ROUND_HALF_UP (financial rounding).
+
+    Unlike Python's built-in round() which uses banker's rounding (half-even),
+    this function uses ROUND_HALF_UP to ensure consistency with the rest of
+    the payroll calculation engine.
+    """
+    d = Decimal(str(value))
+    if ndigits is None:
+        ndigits = 0
+    quantizer = Decimal(10) ** -int(ndigits)
+    return d.quantize(quantizer, rounding=ROUND_HALF_UP)
+
+
 # Safe functions for calculations - WHITELIST ONLY
 # These are the ONLY functions allowed in formula expressions.
 # Adding functions here requires security review.
@@ -279,7 +293,7 @@ SAFE_FUNCTIONS: dict[str, Callable[..., Any]] = {
     "min": min,
     "max": max,
     "abs": abs,
-    "round": round,
+    "round": _safe_round,
     # Date calculation functions (security reviewed)
     "days_between": _safe_days_between,
     "max_date": _safe_max_date,
