@@ -39,6 +39,8 @@ class NoveltyProcessor:
         for novedad in nomina_novedades:
             codigo = novedad.codigo_concepto
             valor = Decimal(str(novedad.valor_cantidad or 0))
+            if valor < 0:
+                valor = Decimal("0.00")
             novedades[codigo] = novedades.get(codigo, Decimal("0")) + valor
 
             if novedad.es_inasistencia and novedad.descontar_pago_inasistencia:
