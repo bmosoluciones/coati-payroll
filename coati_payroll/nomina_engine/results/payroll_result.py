@@ -37,6 +37,8 @@ class PayrollResult:
         self.errors.extend(errors)
 
     def set_success(self, nomina: Nomina, calculations: list["EmpleadoCalculo"]) -> None:
-        """Set the result as successful."""
+        """Set the result as successful, clearing any previous errors/warnings."""
         self.nomina = nomina
         self.employee_calculations = calculations
+        self.errors.clear()
+        self.warnings.clear()
