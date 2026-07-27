@@ -1,4 +1,5 @@
-# SPDX-License-Identifier: Apache-2.0 \r\n # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 # Copyright 2025 - 2026 BMO Soluciones, S.A.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
