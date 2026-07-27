@@ -12,6 +12,61 @@ from coati_payroll.queue.driver import QueueDriver
 # Error messages
 ERROR_DRAMATIQ_NOT_AVAILABLE = "Dramatiq driver not available"
 
+try:
+    import threading
+    import dramatiq
+
+    class FlaskAPPContextMiddleware(dramatiq.Middleware):
+        """Dramatiq middleware that manages the Flask application context for each task.
+
+        This ensures that when tasks are executed in background threads, they
+        have access to the Flask app context and `db.session` works correctly.
+        """
+
+        def __init__(self):
+            super().__init__()
+            self._local = threading.local()
+            self._app = None
+
+        def _get_app(self):
+            if self._app is None:
+                try:
+                    import importlib
+
+                    module = importlib.import_module("coati_payroll")
+                    create_app = module.create_app
+
+                    # Create the Flask application instance once.
+                    self._app = create_app(None)
+                except Exception as e:
+                    log.error("Failed to create Flask app inside Dramatiq middleware: %s", e)
+                    raise
+            return self._app
+
+        def before_process_message(self, broker, message):
+            app = self._get_app()
+            if app is not None:
+                ctx = app.app_context()
+                ctx.push()
+                self._local.ctx = ctx
+
+        def after_process_message(self, broker, message, *, result=None, exception=None):
+            ctx = getattr(self._local, "ctx", None)
+            if ctx is not None:
+                ctx.pop()
+                self._local.ctx = None
+
+        def after_skip_message(self, broker, message):
+            ctx = getattr(self._local, "ctx", None)
+            if ctx is not None:
+                ctx.pop()
+                self._local.ctx = None
+
+except ImportError:
+    # Fallback/stub for environments where dramatiq is not installed or mocked
+    class FlaskAPPContextMiddleware:  # type: ignore
+        pass
+
 
 class DramatiqDriver(QueueDriver):
     """Queue driver using Dramatiq with Redis backend.
@@ -65,6 +120,7 @@ class DramatiqDriver(QueueDriver):
             broker.add_middleware(Retries(max_retries=3, min_backoff=15000, max_backoff=86400000))
             broker.add_middleware(TimeLimit(time_limit=3600000))  # 1 hour max
             broker.add_middleware(AgeLimit(max_age=86400000))  # 24 hours max age
+            broker.add_middleware(FlaskAPPContextMiddleware())
 
             results_cls = cast(Any, getattr(dramatiq_middleware, "Results", None))
             redis_backend_cls = cast(Any, getattr(dramatiq_results, "RedisBackend", None))

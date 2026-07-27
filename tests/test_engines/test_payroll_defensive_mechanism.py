@@ -434,3 +434,23 @@ class TestProcessLargePayrollRollback:
                 db_session.refresh(nomina)
                 assert nomina.estado == NominaEstado.GENERADO_CON_ERRORES
                 assert len(nomina.errores_calculo) > 0
+
+
+class TestTrackingSessionIsolation:
+    """Tests for tracking session isolation in tasks.py."""
+
+    def test_get_tracking_session_no_engine(self, app):
+        with app.app_context():
+            with patch("coati_payroll.queue.tasks.db") as mock_db:
+                mock_db.engine = None
+                mock_db.session = "fallback_session"
+                session = tasks._get_tracking_session()
+                assert session == "fallback_session"
+                tasks._release_tracking_session(session)
+
+    def test_get_tracking_session_with_engine(self, app):
+        with app.app_context():
+            # Real engine exists, should return a new Session
+            session = tasks._get_tracking_session()
+            assert session is not tasks.db.session
+            tasks._release_tracking_session(session)
