@@ -7,7 +7,7 @@ import sys
 import types
 import unittest
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 class DummyLogger:
@@ -175,7 +175,12 @@ class DramatiqDriverTestCase(unittest.TestCase):
         driver = self.DramatiqDriver(redis_url="redis://example")
 
         self.assertTrue(driver.is_available())
-        self.assertEqual(len(driver._broker.middlewares), 4)
+        self.assertEqual(len(driver._broker.middlewares), 5)
+
+        # Verify the custom Flask app context middleware is registered
+        from coati_payroll.queue.drivers.dramatiq_driver import FlaskAPPContextMiddleware
+        self.assertTrue(any(isinstance(m, FlaskAPPContextMiddleware) for m in driver._broker.middlewares))
+
         self.assertEqual(fake_modules["set_broker_calls"], [driver._broker])
 
         actor = DummyActor()
@@ -331,6 +336,45 @@ class DramatiqDriverTestCase(unittest.TestCase):
         self.assertEqual(summary["progress_percentage"], 25.0)
 
         self.assertEqual(driver.get_bulk_results([])["progress_percentage"], 0)
+
+    def test_flask_app_context_middleware_lifecycle(self) -> None:
+        from coati_payroll.queue.drivers.dramatiq_driver import FlaskAPPContextMiddleware
+
+        middleware = FlaskAPPContextMiddleware()
+
+        # Mock Flask app and app_context
+        mock_ctx = MagicMock()
+        mock_app = MagicMock()
+        mock_app.app_context.return_value = mock_ctx
+
+        # Override _get_app to return our mock_app
+        middleware._get_app = lambda: mock_app
+
+        # Call before_process_message
+        middleware.before_process_message(None, None)
+        mock_app.app_context.assert_called_once()
+        mock_ctx.push.assert_called_once()
+
+        # Call after_process_message
+        middleware.after_process_message(None, None)
+        mock_ctx.pop.assert_called_once()
+        self.assertIsNone(getattr(middleware._local, "ctx", None))
+
+    def test_flask_app_context_middleware_skip_message(self) -> None:
+        from coati_payroll.queue.drivers.dramatiq_driver import FlaskAPPContextMiddleware
+
+        middleware = FlaskAPPContextMiddleware()
+
+        mock_ctx = MagicMock()
+        mock_app = MagicMock()
+        mock_app.app_context.return_value = mock_ctx
+
+        middleware._get_app = lambda: mock_app
+
+        middleware.before_process_message(None, None)
+        middleware.after_skip_message(None, None)
+        mock_ctx.pop.assert_called_once()
+        self.assertIsNone(getattr(middleware._local, "ctx", None))
 
 
 if __name__ == "__main__":

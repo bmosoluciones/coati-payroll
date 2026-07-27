@@ -128,17 +128,22 @@ def _is_recoverable_error(error: Exception) -> bool:
 
 
 def _get_tracking_session():
-    if hasattr(db, "create_scoped_session"):
-        return db.create_scoped_session()
-    return db.session
+    """Get a separate SQLAlchemy session for tracking progress.
+
+    We use a completely independent session bound to the same engine
+    to avoid committing or dirtying the main db.session transaction.
+    """
+    if not hasattr(db, "engine") or db.engine is None:
+        return db.session
+    from sqlalchemy.orm import sessionmaker
+
+    Session = sessionmaker(bind=db.engine)
+    return Session()
 
 
 def _release_tracking_session(tracking_session) -> None:
     if tracking_session is not db.session:
-        if hasattr(tracking_session, "remove"):
-            tracking_session.remove()
-        else:
-            tracking_session.close()
+        tracking_session.close()
 
 
 def _resolve_job_id(nomina: NominaModel, job_id: str | None) -> str:
