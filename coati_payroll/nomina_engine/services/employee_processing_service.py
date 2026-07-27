@@ -167,9 +167,12 @@ class EmployeeProcessingService:
             )
         else:
             # Define default values for progressive tax calculations (when acumulado is None)
-            variables["salario_bruto_acumulado"] = salario_base_acumulado if es_periodo_inicial else Decimal("0.00")
+            salario_bruto_default = salario_base_acumulado if es_periodo_inicial else Decimal("0.00")
+            deducciones_antes_impuesto_default = Decimal("0.00")
+
+            variables["salario_bruto_acumulado"] = salario_bruto_default
             variables["salario_gravable_acumulado"] = salario_base_acumulado if es_periodo_inicial else Decimal("0.00")
-            variables["deducciones_antes_impuesto_acumulado"] = Decimal("0.00")
+            variables["deducciones_antes_impuesto_acumulado"] = deducciones_antes_impuesto_default
             variables["impuesto_retenido_acumulado"] = (
                 impuesto_base_acumulado if es_periodo_inicial else Decimal("0.00")
             )
@@ -184,9 +187,7 @@ class EmployeeProcessingService:
                 variables["meses_trabajados"] = Decimal(str(meses_previos))
             else:
                 variables["meses_trabajados"] = Decimal("0.00")
-            variables["salario_neto_acumulado"] = (
-                variables["salario_bruto_acumulado"] - variables["deducciones_antes_impuesto_acumulado"]
-            )
+            variables["salario_neto_acumulado"] = salario_bruto_default - deducciones_antes_impuesto_default
 
         # Include initial accumulated values from employee
         variables["salario_inicial_acumulado"] = salario_base_acumulado
