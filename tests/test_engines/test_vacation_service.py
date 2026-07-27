@@ -1063,3 +1063,112 @@ def test_consecutive_payroll_vacation_novelty_no_cross_processing(app, db_sessio
         assert service_none._empleado_tiene_vacaciones_en_periodo(empleado) is True
         assert len(service_none._build_vacation_usage_query(empleado)) == 1
         assert service_none._build_vacation_usage_query(empleado)[0].id == novedad_floating.id
+
+
+def test_dry_run_vacation_accrual_and_usage_same_period(app, db_session, planilla, empleado, periodic_policy, moneda):
+    """
+    Test that an employee with zero initial vacation balance who accrues vacation (1.25)
+    and takes vacation (1.00) in the same period can successfully be calculated
+    in dry-run mode (apply_side_effects=False) without triggering NominaEngineError.
+    """
+    with app.app_context():
+        from coati_payroll.model import db, NominaNovedad, VacationNovelty, PlanillaEmpleado
+        from coati_payroll.enums import NovedadEstado, VacacionEstado
+
+        periodo_inicio = date(2025, 1, 1)
+        periodo_fin = date(2025, 1, 30)
+
+        # Ensure employee is active in the planilla and has a valid fecha_alta for the test period
+        empleado.fecha_alta = date(2024, 1, 1)
+        pe = db_session.execute(
+            db.select(PlanillaEmpleado).filter_by(planilla_id=planilla.id, empleado_id=empleado.id)
+        ).scalars().first()
+        if not pe:
+            pe = PlanillaEmpleado(
+                planilla_id=planilla.id,
+                empleado_id=empleado.id,
+                activo=True,
+                creado_por="test",
+            )
+            db_session.add(pe)
+        else:
+            pe.activo = True
+
+        # Create VacationAccount with current_balance = 0
+        account = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=periodic_policy.id,
+            current_balance=Decimal("0.0000"),
+            activo=True,
+            creado_por="test_system",
+        )
+        db_session.add(account)
+        db_session.flush()
+
+        # Create a Nomina
+        nomina = Nomina(
+            id="NOMINA_TEST_SAME_PERIOD",
+            planilla_id=planilla.id,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            generado_por="test_user",
+            estado="draft",
+        )
+        db_session.add(nomina)
+        db_session.flush()
+
+        # Create NominaEmpleado
+        nomina_empleado = NominaEmpleado(
+            nomina_id=nomina.id,
+            empleado_id=empleado.id,
+            sueldo_base_historico=Decimal("1000.00"),
+            moneda_origen_id=moneda.id,
+        )
+        db_session.add(nomina_empleado)
+        db_session.flush()
+
+        # Create VacationNovelty with units = 1.00 (within limits of 1.25 accrual)
+        vac_novelty = VacationNovelty(
+            empleado_id=empleado.id,
+            account_id=account.id,
+            start_date=date(2025, 1, 5),
+            end_date=date(2025, 1, 10),
+            units=Decimal("1.0000"),
+            estado=VacacionEstado.APROBADO,
+        )
+        db_session.add(vac_novelty)
+        db_session.flush()
+
+        # Create linked NominaNovedad
+        novedad = NominaNovedad(
+            nomina_id=nomina.id,
+            empleado_id=empleado.id,
+            codigo_concepto="VAC",
+            tipo_valor="dias",
+            valor_cantidad=Decimal("1.0000"),
+            fecha_novedad=date(2025, 1, 5),
+            es_descanso_vacaciones=True,
+            vacation_novelty_id=vac_novelty.id,
+            estado=NovedadEstado.PENDIENTE,
+            creado_por="test_user",
+        )
+        db_session.add(novedad)
+        db_session.commit()
+
+        # Instantiate VacationService with apply_side_effects=False
+        service = VacationService(
+            planilla=planilla,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            nomina_id=nomina.id,
+            apply_side_effects=False,
+        )
+
+        # Step 1: Accumulate vacation (calculated accrual = 1.25, but not committed to DB)
+        accrued = service.acumular_vacaciones_empleado(empleado, nomina_empleado, "test_user")
+        assert accrued > Decimal("0.00")
+
+        # Step 2: Process usage. This should succeed without NominaEngineError because
+        # accrued vacation is tracked temporarily.
+        used = service.procesar_novedades_vacaciones(empleado, "test_user")
+        assert used == Decimal("1.0000")

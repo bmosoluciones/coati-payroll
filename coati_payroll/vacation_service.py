@@ -75,6 +75,7 @@ class VacationService:
         self.snapshot = snapshot
         self.apply_side_effects = apply_side_effects
         self.nomina_id = nomina_id
+        self._temp_accrued = {}
         if self.periodo_inicio and self.periodo_fin and self.periodo_inicio > self.periodo_fin:
             raise ValidationError(f"Período inválido: inicio {self.periodo_inicio} posterior a fin {self.periodo_fin}.")
 
@@ -481,6 +482,7 @@ class VacationService:
             return Decimal("0.00")
 
         if not self.apply_side_effects:
+            self._temp_accrued[empleado.id] = accrual_amount
             log.trace(
                 "Accrual calculated (no side effects) for employee %s policy=%s amount=%s balance_before=%s",
                 empleado.codigo_empleado,
@@ -883,7 +885,7 @@ class VacationService:
             ).scalar_one()
             balance_before = self._recalcular_balance(account)
         else:
-            balance_before = self._obtener_balance(account)
+            balance_before = self._obtener_balance(account) + self._temp_accrued.get(empleado.id, Decimal("0.00"))
 
         if not policy.allow_negative and balance_before - units < 0:
             raise NominaEngineError(
