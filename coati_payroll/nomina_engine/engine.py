@@ -99,31 +99,33 @@ class NominaEngine:
         if not self.validar_planilla():
             return None
 
-        # Execute payroll using service
-        nomina, empleados_calculo, errors, warnings = self.execution_service.execute_payroll(
-            self.planilla,
-            self.periodo_inicio,
-            self.periodo_fin,
-            self.fecha_calculo,
-            self.usuario,
-            excluded_nomina_id=self.excluded_nomina_id,
-        )
+        try:
+            # Execute payroll using service
+            nomina, empleados_calculo, errors, warnings = self.execution_service.execute_payroll(
+                self.planilla,
+                self.periodo_inicio,
+                self.periodo_fin,
+                self.fecha_calculo,
+                self.usuario,
+                excluded_nomina_id=self.excluded_nomina_id,
+            )
 
-        self.nomina = nomina
-        self.empleados_calculo = empleados_calculo
-        self.errors = errors
-        self.warnings = warnings
+            self.nomina = nomina
+            self.empleados_calculo = empleados_calculo
+            self.errors = errors
+            self.warnings = warnings
 
-        if nomina and not self.errors:
-            # Commit the transaction only when there are no errors
-            db.session.commit()
-        elif nomina and self.errors:
-            # Commit ERROR nomina for audit trail (without side effects)
-            # This preserves the failed payroll record and logs for debugging/retry
-            db.session.commit()
-        else:
-            # Rollback if nomina creation itself failed
+            if nomina and not self.errors:
+                db.session.commit()
+            elif nomina and self.errors:
+                # Commit ERROR nomina for audit trail only — no side effects
+                # were applied (they are deferred to after validation passes).
+                db.session.commit()
+            else:
+                db.session.rollback()
+        except Exception:
             db.session.rollback()
+            raise
 
         return nomina
 
@@ -134,6 +136,7 @@ def ejecutar_nomina(
     periodo_fin: date,
     fecha_calculo: date | None = None,
     usuario: str | None = None,
+    excluded_nomina_id: str | None = None,
 ) -> tuple[Nomina | None, list[str], list[str]]:
     """Execute a payroll run for a planilla.
 
@@ -183,6 +186,7 @@ def ejecutar_nomina(
         periodo_fin=periodo_fin,
         fecha_calculo=fecha_calculo,
         usuario=usuario,
+        excluded_nomina_id=excluded_nomina_id,
     )
 
     nomina = engine.ejecutar()
