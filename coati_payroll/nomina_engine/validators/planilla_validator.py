@@ -103,24 +103,27 @@ class PlanillaValidator(BaseValidator):
         """
         conceptos_borrador = obtener_conceptos_en_borrador(planilla.id)
 
-        if conceptos_borrador["percepciones"]:
-            percepciones_nombres = [p.nombre for p in conceptos_borrador["percepciones"]]
+        percepciones = conceptos_borrador.get("percepciones", [])
+        if percepciones:
+            percepciones_nombres = [p.nombre for p in percepciones]
             result.add_warning(
                 f"ADVERTENCIA: {len(percepciones_nombres)} percepción(es) en estado BORRADOR: "
                 f"{', '.join(percepciones_nombres)}. "
                 "Valide cuidadosamente los resultados de la nómina."
             )
 
-        if conceptos_borrador["deducciones"]:
-            deducciones_nombres = [d.nombre for d in conceptos_borrador["deducciones"]]
+        deducciones = conceptos_borrador.get("deducciones", [])
+        if deducciones:
+            deducciones_nombres = [d.nombre for d in deducciones]
             result.add_warning(
                 f"ADVERTENCIA: {len(deducciones_nombres)} deducción(es) en estado BORRADOR: "
                 f"{', '.join(deducciones_nombres)}. "
                 "Valide cuidadosamente los resultados de la nómina."
             )
 
-        if conceptos_borrador["prestaciones"]:
-            prestaciones_nombres = [p.nombre for p in conceptos_borrador["prestaciones"]]
+        prestaciones = conceptos_borrador.get("prestaciones", [])
+        if prestaciones:
+            prestaciones_nombres = [p.nombre for p in prestaciones]
             result.add_warning(
                 f"ADVERTENCIA: {len(prestaciones_nombres)} prestación(es) en estado BORRADOR: "
                 f"{', '.join(prestaciones_nombres)}. "

@@ -33,11 +33,6 @@ class EmployeeValidator(BaseValidator):
             result.add_error(f"Empleado {empleado.codigo_empleado} no está activo")
 
         if empleado.fecha_alta:
-            if empleado.fecha_alta > date.today():
-                result.add_error(
-                    f"Empleado {empleado.codigo_empleado}: fecha de ingreso ({empleado.fecha_alta}) "
-                    f"es posterior a la fecha actual"
-                )
             if empleado.fecha_alta > periodo_fin:
                 result.add_error(
                     f"Empleado {empleado.codigo_empleado}: fecha de ingreso ({empleado.fecha_alta}) "
@@ -46,18 +41,25 @@ class EmployeeValidator(BaseValidator):
         else:
             result.add_error(f"Empleado {empleado.codigo_empleado} no tiene fecha de ingreso definida")
 
-        if empleado.fecha_baja and empleado.fecha_baja < periodo_inicio:
-            result.add_error(
-                f"Empleado {empleado.codigo_empleado}: fecha de salida ({empleado.fecha_baja}) "
-                f"es anterior al inicio del período ({periodo_inicio})"
-            )
+        if empleado.fecha_baja:
+            if empleado.fecha_baja < periodo_inicio:
+                result.add_error(
+                    f"Empleado {empleado.codigo_empleado}: fecha de salida ({empleado.fecha_baja}) "
+                    f"es anterior al inicio del período ({periodo_inicio})"
+                )
+            if empleado.fecha_alta and empleado.fecha_baja < empleado.fecha_alta:
+                result.add_error(
+                    f"Empleado {empleado.codigo_empleado}: fecha de salida ({empleado.fecha_baja}) "
+                    f"es anterior a la fecha de ingreso ({empleado.fecha_alta})"
+                )
 
         if not empleado.identificacion_personal:
             result.add_error(f"Empleado {empleado.codigo_empleado} no tiene identificación personal")
 
-        if empleado.salario_base <= Decimal("0.00"):
+        salario = empleado.salario_base
+        if salario is None or salario <= Decimal("0.00"):
             result.add_error(
-                f"Empleado {empleado.codigo_empleado} tiene salario base inválido ({empleado.salario_base})"
+                f"Empleado {empleado.codigo_empleado} tiene salario base inválido ({salario})"
             )
 
         if not empleado.empresa_id:

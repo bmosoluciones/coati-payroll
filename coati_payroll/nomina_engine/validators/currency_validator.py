@@ -24,7 +24,7 @@ class CurrencyValidator(BaseValidator):
         return result
 
     def validate_exchange_rate(self, moneda_origen_id: str, moneda_destino_id: str, fecha: date) -> ValidationResult:
-        """Validate that exchange rate exists for currency pair."""
+        """Validate that exchange rate exists for currency pair and is positive."""
         result = ValidationResult()
 
         if moneda_origen_id == moneda_destino_id:
@@ -34,6 +34,11 @@ class CurrencyValidator(BaseValidator):
         if rate is None:
             result.add_error(
                 f"No se encontró tipo de cambio de {moneda_origen_id} a {moneda_destino_id} para la fecha {fecha}"
+            )
+        elif rate <= 0:
+            result.add_error(
+                f"Tipo de cambio inválido de {moneda_origen_id} a {moneda_destino_id}: {rate} "
+                f"(debe ser un valor positivo)"
             )
 
         return result
