@@ -642,7 +642,7 @@ async function saveSchema() {
         const schemaToSave = collectSchemaFromEditor();
         const ruleId = document.body.dataset.ruleId;
 
-        const response = await fetch(`/calculation_rule/${ruleId}/save_schema`, {
+        const response = await fetch(`/calculation-rule/api/save-schema/${ruleId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -671,7 +671,7 @@ async function testCalculation() {
 
         const ruleId = document.body.dataset.ruleId;
 
-        const response = await fetch(`/calculation_rule/${ruleId}/test_schema`, {
+        const response = await fetch(`/calculation-rule/api/test-schema/${ruleId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -823,7 +823,7 @@ async function validateJsonSchema(jsonData) {
     // Validate with backend FormulaEngine
     try {
         const ruleId = document.body.dataset.ruleId;
-        const response = await fetch(`/calculation_rule/${ruleId}/validate_schema_api`, {
+        const response = await fetch(`/calculation-rule/api/validate-schema/${ruleId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
