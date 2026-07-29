@@ -957,6 +957,18 @@ class Nomina(database.Model, BaseTabla):
         foreign_keys="NominaComparacion.nomina_base_id",
     )
 
+    @property
+    def codigo_nomina(self) -> str:
+        return self.id
+
+    @property
+    def descripcion(self) -> str:
+        return f"Nómina {self.id}"
+
+    @property
+    def fecha_pago(self) -> date:
+        return self.periodo_fin
+
 
 class NominaComparacion(database.Model, BaseTabla):
     """Cached comparison between two payroll runs in the same planilla."""
@@ -2166,6 +2178,20 @@ class VacationPolicy(database.Model, BaseTabla):
     # Relationships
     accounts = database.relationship("VacationAccount", back_populates="policy")
 
+    @property
+    def accrued_days(self) -> Decimal:
+        return sum((entry.quantity for entry in self.ledger_entries if entry.entry_type == "accrual"), Decimal("0.0"))
+
+    @property
+    def used_days(self) -> Decimal:
+        return sum(
+            (abs(entry.quantity) for entry in self.ledger_entries if entry.entry_type == "usage"), Decimal("0.0")
+        )
+
+    @property
+    def balance_days(self) -> Decimal:
+        return self.current_balance
+
 
 class VacationAccount(database.Model, BaseTabla):
     """Vacation account per employee.
@@ -2203,6 +2229,20 @@ class VacationAccount(database.Model, BaseTabla):
 
     # Relationships
     ledger_entries = database.relationship("VacationLedger", back_populates="account", order_by="VacationLedger.fecha")
+
+    @property
+    def accrued_days(self) -> Decimal:
+        return sum((entry.quantity for entry in self.ledger_entries if entry.entry_type == "accrual"), Decimal("0.0"))
+
+    @property
+    def used_days(self) -> Decimal:
+        return sum(
+            (abs(entry.quantity) for entry in self.ledger_entries if entry.entry_type == "usage"), Decimal("0.0")
+        )
+
+    @property
+    def balance_days(self) -> Decimal:
+        return self.current_balance
 
 
 class VacationLedger(database.Model, BaseTabla):

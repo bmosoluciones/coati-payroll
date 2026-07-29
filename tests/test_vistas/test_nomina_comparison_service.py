@@ -382,3 +382,115 @@ def test_comparar_reglas_vacaciones_includes_floating_vacations(monkeypatch) -> 
     assert "nomina_novedad.nomina_id = 'nom-base'" in sql0
     assert "nomina_novedad.nomina_id is null" in sql0
     assert "es_descanso_vacaciones is true" in sql0 or "es_descanso_vacaciones = true" in sql0 or "es_descanso_vacaciones is" in sql0
+
+
+# ============================================================================
+# EXTENDED NOMINA COMPARISON SERVICE COVERAGE TESTS
+# ============================================================================
+
+
+def _create_planilla(db_session):
+    from coati_payroll.model import Planilla, TipoPlanilla, Moneda, Empresa
+    tipo = TipoPlanilla(codigo="MENSUAL", descripcion="Mensual", dias=30, periodicidad="mensual")
+    moneda = Moneda(codigo="USD", nombre="Dólar")
+    empresa = Empresa(codigo="EMP", razon_social="Test Corp", ruc="123")
+    db_session.add_all([tipo, moneda, empresa])
+    db_session.flush()
+
+    planilla = Planilla(
+        nombre="Test Planilla",
+        tipo_planilla_id=tipo.id,
+        moneda_id=moneda.id,
+        empresa_id=empresa.id,
+        periodo_fiscal_inicio=date(2024, 1, 1),
+        periodo_fiscal_fin=date(2024, 12, 31),
+        activo=True,
+    )
+    db_session.add(planilla)
+    db_session.flush()
+    return planilla
+
+
+def test_transferir_comparativas_edge_cases(app, db_session):
+    """Test transferir_comparativas with various duplicate or deleted conditions."""
+    from coati_payroll.model import NominaComparacion, Nomina
+    from coati_payroll.vistas.planilla.services.nomina_comparison_service import NominaComparisonService
+
+    with app.app_context():
+        planilla = _create_planilla(db_session)
+
+        n_orig = Nomina(id="NOM_ORIGINAL", planilla_id=planilla.id, periodo_inicio=date(2025,1,1), periodo_fin=date(2025,1,15))
+        n_new = Nomina(id="NOM_NUEVA", planilla_id=planilla.id, periodo_inicio=date(2025,1,1), periodo_fin=date(2025,1,15))
+        n_other = Nomina(id="NOM_OTRA", planilla_id=planilla.id, periodo_inicio=date(2025,1,16), periodo_fin=date(2025,1,31))
+        db_session.add_all([n_orig, n_new, n_other])
+        db_session.flush()
+
+        # Create primary comparison
+        comp = NominaComparacion(
+            planilla_id=planilla.id,
+            nomina_base_id=n_orig.id,
+            nomina_actual_id=n_other.id,
+            resumen_json={"es_calculo_actual": True}
+        )
+        db_session.add(comp)
+        db_session.commit()
+
+        # Run transfer
+        NominaComparisonService.refresh_after_recalculo(
+            planilla_id=planilla.id,
+            nomina_original_id=n_orig.id,
+            nomina_nueva_id=n_new.id
+        )
+
+        assert comp.nomina_base_id == n_new.id
+        assert comp.resumen_json["es_calculo_actual"] is False
+
+
+def test_cargar_conceptos_catalogo(app, db_session):
+    """Test _comparar_componentes_planilla correctly fetches lists of rules and concepts."""
+    from coati_payroll.model import Percepcion, Deduccion, Prestacion, ReglaCalculo, PlanillaIngreso, PlanillaDeduccion, PlanillaPrestacion
+    from coati_payroll.vistas.planilla.services.nomina_comparison_service import NominaComparisonService
+
+    with app.app_context():
+        planilla = _create_planilla(db_session)
+
+        perc = Percepcion(codigo="P_TEST", nombre="Perc Test")
+        ded = Deduccion(codigo="D_TEST", nombre="Ded Test")
+        pres = Prestacion(codigo="PR_TEST", nombre="Pres Test")
+        reg = ReglaCalculo(codigo="R_TEST", nombre="Rule Test", vigente_desde=date(2025,1,1))
+        db_session.add_all([perc, ded, pres, reg])
+        db_session.flush()
+
+        db_session.add(PlanillaIngreso(planilla_id=planilla.id, percepcion_id=perc.id))
+        db_session.add(PlanillaDeduccion(planilla_id=planilla.id, deduccion_id=ded.id))
+        db_session.add(PlanillaPrestacion(planilla_id=planilla.id, prestacion_id=pres.id))
+        from coati_payroll.model import PlanillaReglaCalculo
+        db_session.add(PlanillaReglaCalculo(planilla_id=planilla.id, regla_calculo_id=reg.id, orden=1))
+        db_session.commit()
+
+        conceptos = NominaComparisonService._comparar_componentes_planilla(planilla.id)
+        assert "P_TEST" in conceptos["percepciones"]
+        assert "D_TEST" in conceptos["deducciones"]
+        assert "PR_TEST" in conceptos["prestaciones"]
+        assert "R_TEST" in conceptos["reglas_calculo"]
+
+
+def test_get_nominas_disponibles_and_default(app, db_session):
+    """Test get_nominas_disponibles and default base selection."""
+    from coati_payroll.model import Nomina
+    from coati_payroll.vistas.planilla.services.nomina_comparison_service import NominaComparisonService
+
+    with app.app_context():
+        planilla = _create_planilla(db_session)
+
+        n1 = Nomina(id="NOM_1", planilla_id=planilla.id, estado="generado", periodo_inicio=date(2025,1,1), periodo_fin=date(2025,1,15))
+        n2 = Nomina(id="NOM_2", planilla_id=planilla.id, estado="generado", periodo_inicio=date(2025,1,16), periodo_fin=date(2025,1,31))
+        db_session.add_all([n1, n2])
+        db_session.commit()
+
+        disp = NominaComparisonService.get_nominas_disponibles(planilla.id, excluir_nomina_id="NOM_1")
+        assert len(disp) == 1
+        assert disp[0].id == "NOM_2"
+
+        default_base = NominaComparisonService.get_nomina_base_default(n2)
+        assert default_base is not None

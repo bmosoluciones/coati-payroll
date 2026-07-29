@@ -406,3 +406,184 @@ def test_payroll_by_period_report_structure():
     assert metadata["name"] == "Nómina por Período"
     assert metadata["category"] == "payroll"
     assert "parameters" in metadata
+
+
+# ============================================================================
+# EXTENDED SYSTEM REPORTS COVERAGE TESTS
+# ============================================================================
+
+
+def test_payroll_by_period_report_filters_and_coercion(app, db_session):
+    """Test date conversion and filtering in payroll_by_period_report."""
+    from coati_payroll.model import Nomina
+
+    with app.app_context():
+        # Create a Nomina record
+        nomina = Nomina(
+            id="NOM-2026-07",
+            periodo_inicio=date(2026, 7, 1),
+            periodo_fin=date(2026, 7, 31),
+            estado="Borrador",
+            planilla_id="PLANILLA_XYZ",
+            total_bruto=1000.0,
+            total_deducciones=200.0,
+            total_neto=800.0,
+        )
+        db_session.add(nomina)
+        db_session.commit()
+
+        report_func = get_system_report("payroll_by_period")
+
+        # Call with date ISO strings and planilla_id filter
+        params = {
+            "periodo_inicio": "2026-07-01",
+            "periodo_fin": "2026-07-31",
+            "planilla_id": "PLANILLA_XYZ"
+        }
+        results = report_func(params)
+        assert len(results) == 1
+        assert results[0]["Código"] == "NOM-2026-07"
+        assert results[0]["Total Neto"] == 800.0
+
+
+def test_payroll_employee_detail_report_empty_and_success(app, db_session):
+    """Test payroll_employee_detail_report under empty and valid scenarios."""
+    from coati_payroll.model import NominaEmpleado, Empleado, Empresa
+
+    with app.app_context():
+        report_func = get_system_report("payroll_employee_detail")
+
+        # Test empty/None parameters
+        assert report_func({}) == []
+        assert report_func({"nomina_id": ""}) == []
+
+        # Create valid test data
+        empresa = create_company(db_session, "COMP_EMP_DETAIL", "Comp", "J009")
+        emp = create_employee(db_session, empresa_id=empresa.id, primer_nombre="John", primer_apellido="Doe")
+        db_session.commit()
+
+        nomina_emp = NominaEmpleado(
+            nomina_id="NOM_EMP_DETAIL_ID",
+            empleado_id=emp.id,
+            sueldo_base_historico=1500.0,
+            total_ingresos=200.0,
+            salario_bruto=1700.0,
+            total_deducciones=100.0,
+            salario_neto=1600.0,
+        )
+        db_session.add(nomina_emp)
+        db_session.commit()
+
+        # Test with valid ID
+        results = report_func({"nomina_id": "NOM_EMP_DETAIL_ID"})
+        assert len(results) == 1
+        assert results[0]["Nombre"] == "John Doe"
+        assert results[0]["Salario Neto"] == 1600.0
+
+
+def test_payroll_perceptions_deductions_summaries(app, db_session):
+    """Test aggregated perceptions and deductions reports."""
+    from coati_payroll.model import NominaDetalle, NominaEmpleado, Empresa
+    from coati_payroll.enums import TipoDetalle
+
+    with app.app_context():
+        perceptions_func = get_system_report("payroll_perceptions_summary")
+        deductions_func = get_system_report("payroll_deductions_summary")
+
+        # Empty parameters
+        assert perceptions_func({}) == []
+        assert deductions_func({}) == []
+
+        # Create employee, NominaEmpleado, and NominaDetalle
+        empresa = create_company(db_session, "COMP_SUMM", "Comp", "J012")
+        emp = create_employee(db_session, empresa_id=empresa.id, primer_nombre="Summ", primer_apellido="Test")
+        db_session.commit()
+
+        nomina_emp = NominaEmpleado(
+            nomina_id="NOM_SUMM_ID",
+            empleado_id=emp.id,
+            sueldo_base_historico=1000.0,
+            salario_bruto=1000.0,
+            total_deducciones=0.0,
+            salario_neto=1000.0,
+        )
+        db_session.add(nomina_emp)
+        db_session.commit()
+
+        # Create details linked to NominaEmpleado
+        det1 = NominaDetalle(
+            nomina_empleado_id=nomina_emp.id,
+            codigo="PERC_01",
+            descripcion="Bonus",
+            tipo=TipoDetalle.INGRESO,
+            monto=500.0
+        )
+        det2 = NominaDetalle(
+            nomina_empleado_id=nomina_emp.id,
+            codigo="DED_01",
+            descripcion="Tax",
+            tipo=TipoDetalle.DEDUCCION,
+            monto=150.0
+        )
+        db_session.add(det1)
+        db_session.add(det2)
+        db_session.commit()
+
+        # Test valid perceptions
+        perc_results = perceptions_func({"nomina_id": "NOM_SUMM_ID"})
+        assert len(perc_results) == 1
+        assert perc_results[0]["Código Concepto"] == "PERC_01"
+        assert perc_results[0]["Total"] == 500.0
+
+        # Test valid deductions
+        ded_results = deductions_func({"nomina_id": "NOM_SUMM_ID"})
+        assert len(ded_results) == 1
+        assert ded_results[0]["Código Concepto"] == "DED_01"
+        assert ded_results[0]["Total"] == 150.0
+
+
+def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
+    """Test date parsing and custom query parameters on vacation taken report."""
+    from coati_payroll.model import VacationLedger, VacationAccount, VacationPolicy, Empleado, Empresa
+
+    with app.app_context():
+        # Create employee and ledger usage entry
+        empresa = create_company(db_session, "COMP_VAC", "Comp", "J010")
+        emp = create_employee(db_session, empresa_id=empresa.id, primer_nombre="Vac", primer_apellido="Tester")
+        db_session.commit()
+
+        policy = VacationPolicy(nombre="Standard Policy", codigo="STD_VAC")
+        db_session.add(policy)
+        db_session.commit()
+
+        acc = VacationAccount(
+            empleado_id=emp.id,
+            policy_id=policy.id,
+            current_balance=5.0
+        )
+        db_session.add(acc)
+        db_session.commit()
+
+        ledger = VacationLedger(
+            account_id=acc.id,
+            empleado_id=emp.id,
+            entry_type="usage",
+            fecha=date(2026, 8, 15),
+            quantity=-5.0,
+            source="manual",
+            observaciones="Summer vacation"
+        )
+        db_session.add(ledger)
+        db_session.commit()
+
+        report_func = get_system_report("vacation_taken_by_period")
+
+        # Test with date ISO strings
+        params = {
+            "fecha_inicio": "2026-08-01",
+            "fecha_fin": "2026-08-31"
+        }
+        results = report_func(params)
+        assert len(results) == 1
+        assert results[0]["Días Usados"] == 5.0
+        assert results[0]["Descripción"] == "Summer vacation"

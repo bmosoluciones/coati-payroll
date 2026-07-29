@@ -917,3 +917,184 @@ def test_plugins_group_and_main_paths(app, monkeypatch):
         cli.main()
     finally:
         mini_app.unlink(missing_ok=True)
+
+
+# ============================================================================
+# EXTENDED SYSTEM/DATABASE/PLUGINS CLI COVERAGE TESTS
+# ============================================================================
+
+
+def test_system_status_json_and_error(app, db_session, monkeypatch):
+    """Test system status JSON output and exception handling."""
+    import coati_payroll.cli as cli
+
+    with app.app_context():
+        # Clean up existing admin users to prevent MultipleResultsFound
+        db_session.query(Usuario).filter_by(tipo="admin").delete()
+        db_session.commit()
+
+        # Create one admin user
+        admin = Usuario()
+        admin.usuario = "admin-json-status"
+        admin.acceso = proteger_passwd("password")
+        admin.nombre = "Admin"
+        admin.apellido = "Test"
+        admin.tipo = "admin"
+        admin.activo = True
+        db_session.add(admin)
+        db_session.commit()
+
+    # Monkeypatch CLIContext to force JSON output
+    original_init = cli.CLIContext.__init__
+    def patched_init(self):
+        original_init(self)
+        self.json_output = True
+    monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
+
+    runner = app.test_cli_runner()
+
+    # Test JSON output
+    result = runner.invoke(args=["system", "status"])
+    assert result.exit_code == 0, f"Command output: {result.output}"
+    assert '"database":' in result.output
+
+    # Test Exception handling in system status
+    def mock_system_status():
+        raise Exception("Status extraction failed")
+
+    monkeypatch.setattr(cli, "_system_status", mock_system_status)
+    result = runner.invoke(args=["system", "status"])
+    assert result.exit_code == 1
+    assert "Failed to get system status" in result.output
+
+
+def test_system_check_json_and_error(app, monkeypatch):
+    """Test system check JSON output and exception handling."""
+    import coati_payroll.cli as cli
+
+    # Monkeypatch CLIContext to force JSON output
+    original_init = cli.CLIContext.__init__
+    def patched_init(self):
+        original_init(self)
+        self.json_output = True
+    monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
+
+    runner = app.test_cli_runner()
+
+    # Test JSON output
+    result = runner.invoke(args=["system", "check"])
+    assert result.exit_code == 0
+    assert '"checks":' in result.output
+
+    # Test Exception handling in system check
+    def mock_system_check():
+        raise Exception("Checking failed")
+
+    monkeypatch.setattr(cli, "_system_check", mock_system_check)
+    result = runner.invoke(args=["system", "check"])
+    assert result.exit_code == 1
+    assert "System check failed" in result.output
+
+
+def test_system_info_json_and_error(app, monkeypatch):
+    """Test system info JSON output and exception handling."""
+    import coati_payroll.cli as cli
+
+    # Monkeypatch CLIContext to force JSON output
+    original_init = cli.CLIContext.__init__
+    def patched_init(self):
+        original_init(self)
+        self.json_output = True
+    monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
+
+    runner = app.test_cli_runner()
+
+    # Test JSON output
+    result = runner.invoke(args=["system", "info"])
+    assert result.exit_code == 0
+    assert '"version":' in result.output
+
+    # Test Exception handling in system info
+    def mock_system_info():
+        raise Exception("Info failed")
+
+    monkeypatch.setattr(cli, "_system_info", mock_system_info)
+    result = runner.invoke(args=["system", "info"])
+    assert result.exit_code == 1
+    assert "Failed to get system info" in result.output
+
+
+def test_database_status_json_and_error(app, monkeypatch):
+    """Test database status JSON output and exception handling."""
+    import coati_payroll.cli as cli
+
+    # Monkeypatch CLIContext to force JSON output
+    original_init = cli.CLIContext.__init__
+    def patched_init(self):
+        original_init(self)
+        self.json_output = True
+    monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
+
+    runner = app.test_cli_runner()
+
+    # Test JSON output
+    result = runner.invoke(args=["database", "status"])
+    assert result.exit_code == 0
+    assert '"tables":' in result.output
+
+    # Test Exception handling in database status
+    def mock_database_status():
+        raise Exception("Database status extraction failed")
+
+    monkeypatch.setattr(cli, "_database_status", mock_database_status)
+    result = runner.invoke(args=["database", "status"])
+    assert result.exit_code == 1
+    assert "Failed to get database status" in result.output
+
+
+def test_plugin_hooks_handling(app, monkeypatch):
+    """Test _run_plugin_hook behaves properly under various conditions."""
+    import coati_payroll.cli as cli
+    import click
+    import types
+
+    ctx = cli.CLIContext()
+    ctx.json_output = False
+
+    # No callable hook or alias
+    dummy_empty = types.SimpleNamespace()
+    with pytest.raises(click.ClickException, match="Plugin does not provide callable"):
+        cli._run_plugin_hook(ctx, dummy_empty, "non_existent_hook", "test_plugin")
+
+    # Hook raises exception
+    def bad_hook():
+        raise ValueError("Bad hook error")
+
+    dummy_bad = types.SimpleNamespace(error_hook=bad_hook)
+    with pytest.raises(click.ClickException, match="Bad hook error"):
+        cli._run_plugin_hook(ctx, dummy_bad, "error_hook", "test_plugin")
+
+
+def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
+    """Test plugin toggle rollback and click exception generation."""
+    import coati_payroll.cli as cli
+    import click
+
+    ctx = cli.CLIContext()
+
+    # Non-existent plugin active toggle should fail
+    with pytest.raises(click.ClickException, match="Plugin no registrado"):
+        cli._toggle_plugin_active("unknown_plugin", True, ctx)
+
+    # Database commit exception triggering rollback
+    from coati_payroll.model import PluginRegistry
+    p = PluginRegistry(plugin_id="buggy_plugin", distribution_name="buggy_plugin", installed=True, active=False)
+    db_session.add(p)
+    db_session.commit()
+
+    def mock_commit():
+        raise Exception("Database integrity violation")
+
+    monkeypatch.setattr(db_session, "commit", mock_commit)
+    with pytest.raises(click.ClickException, match="Database integrity violation"):
+        cli._toggle_plugin_active("buggy_plugin", True, ctx)

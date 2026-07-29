@@ -125,6 +125,7 @@ def _get_plugin_metadata(plugin_id: str) -> dict[str, Any]:
 
 def _toggle_plugin_active(plugin_name, active, ctx):
     """Enable or disable a plugin in the registry."""
+    action = "habilitado" if active else "deshabilitado"
     try:
         sync_plugin_registry()
         record = (
@@ -142,7 +143,6 @@ def _toggle_plugin_active(plugin_name, active, ctx):
             raise click.ClickException("Plugin no está instalado en el entorno")
         record.active = active
         db.session.commit()
-        action = "habilitado" if active else "deshabilitado"
         output_result(ctx, f"Plugin '{plugin_name}' {action}.")
     except click.ClickException:
         raise
