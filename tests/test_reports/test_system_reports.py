@@ -597,3 +597,58 @@ def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
         assert len(results) == 1
         assert results[0]["Días Usados"] == 5.0
         assert results[0]["Descripción"] == "Summer vacation"
+
+
+def test_vacation_balance_report_execution(app, db_session):
+    """Test execution of vacation_balance_by_employee system report."""
+    from coati_payroll.model import VacationAccount, VacationPolicy, Empleado, Empresa, VacationLedger
+    from decimal import Decimal
+
+    with app.app_context():
+        # Create employee, policy, and account
+        empresa = create_company(db_session, "COMP_VAC_BAL", "Comp", "J011")
+        emp = create_employee(db_session, empresa_id=empresa.id, primer_nombre="Alice", primer_apellido="Tester")
+        db_session.commit()
+
+        policy = VacationPolicy(nombre="Standard Policy", codigo="STD_VAC_BAL")
+        db_session.add(policy)
+        db_session.commit()
+
+        acc = VacationAccount(
+            empleado_id=emp.id,
+            policy_id=policy.id,
+            current_balance=Decimal("12.5")
+        )
+        db_session.add(acc)
+        db_session.commit()
+
+        # Add an accrual and a usage ledger entry
+        ledger_accrual = VacationLedger(
+            account_id=acc.id,
+            empleado_id=emp.id,
+            entry_type="accrual",
+            fecha=date(2026, 8, 1),
+            quantity=Decimal("15.0"),
+            source="manual",
+            observaciones="Initial Accrual"
+        )
+        ledger_usage = VacationLedger(
+            account_id=acc.id,
+            empleado_id=emp.id,
+            entry_type="usage",
+            fecha=date(2026, 8, 5),
+            quantity=Decimal("-2.5"),
+            source="manual",
+            observaciones="Taken"
+        )
+        db_session.add_all([ledger_accrual, ledger_usage])
+        db_session.commit()
+
+        report_func = get_system_report("vacation_balance_by_employee")
+        results = report_func({})
+
+        assert len(results) == 1
+        assert results[0]["Nombre"] == "Alice Tester"
+        assert results[0]["Días Acumulados"] == 15.0
+        assert results[0]["Días Usados"] == 2.5
+        assert results[0]["Balance Días"] == 12.5
