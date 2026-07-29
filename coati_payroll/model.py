@@ -2178,20 +2178,6 @@ class VacationPolicy(database.Model, BaseTabla):
     # Relationships
     accounts = database.relationship("VacationAccount", back_populates="policy")
 
-    @property
-    def accrued_days(self) -> Decimal:
-        return sum((entry.quantity for entry in self.ledger_entries if entry.entry_type == "accrual"), Decimal("0.0"))
-
-    @property
-    def used_days(self) -> Decimal:
-        return sum(
-            (abs(entry.quantity) for entry in self.ledger_entries if entry.entry_type == "usage"), Decimal("0.0")
-        )
-
-    @property
-    def balance_days(self) -> Decimal:
-        return self.current_balance
-
 
 class VacationAccount(database.Model, BaseTabla):
     """Vacation account per employee.
@@ -2232,13 +2218,13 @@ class VacationAccount(database.Model, BaseTabla):
 
     @property
     def accrued_days(self) -> Decimal:
-        return sum((entry.quantity for entry in self.ledger_entries if entry.entry_type == "accrual"), Decimal("0.0"))
+        entries: list[Any] = self.ledger_entries  # type: ignore[assignment]
+        return sum((entry.quantity for entry in entries if entry.entry_type == "accrual"), Decimal("0.0"))
 
     @property
     def used_days(self) -> Decimal:
-        return sum(
-            (abs(entry.quantity) for entry in self.ledger_entries if entry.entry_type == "usage"), Decimal("0.0")
-        )
+        entries: list[Any] = self.ledger_entries  # type: ignore[assignment]
+        return sum((abs(entry.quantity) for entry in entries if entry.entry_type == "usage"), Decimal("0.0"))
 
     @property
     def balance_days(self) -> Decimal:
