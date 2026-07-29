@@ -1081,6 +1081,7 @@ def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
     import click
 
     ctx = cli.CLIContext()
+    monkeypatch.setattr(cli, "sync_plugin_registry", lambda: None)
 
     # Non-existent plugin active toggle should fail
     with pytest.raises(click.ClickException, match="Plugin no registrado"):
@@ -1092,6 +1093,17 @@ def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
     db_session.add(p)
     db_session.commit()
 
+    # Test disabled action branch
+    cli._toggle_plugin_active("buggy_plugin", False, ctx)
+
+    # Test not installed validation branch
+    p2 = PluginRegistry(plugin_id="uninstalled_plugin", distribution_name="uninstalled_plugin", installed=False, active=False)
+    db_session.add(p2)
+    db_session.commit()
+    with pytest.raises(click.ClickException, match="Plugin no está instalado"):
+        cli._toggle_plugin_active("uninstalled_plugin", True, ctx)
+
+    # Test commit error / rollback
     def mock_commit():
         raise Exception("Database integrity violation")
 
