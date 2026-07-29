@@ -573,7 +573,17 @@ def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
             source="manual",
             observaciones="Summer vacation"
         )
+        ledger_accrual = VacationLedger(
+            account_id=acc.id,
+            empleado_id=emp.id,
+            entry_type="accrual",
+            fecha=date(2026, 8, 1),
+            quantity=10.0,
+            source="manual",
+            observaciones="Standard Accrual"
+        )
         db_session.add(ledger)
+        db_session.add(ledger_accrual)
         db_session.commit()
 
         report_func = get_system_report("vacation_taken_by_period")
