@@ -114,6 +114,14 @@ class LiquidacionEngine:
         tasa_dia = (salario_mensual / Decimal(str(factor_dias))).quantize(Decimal("0.01"))
         monto_dias = (tasa_dia * Decimal(str(liquidacion.dias_por_pagar))).quantize(Decimal("0.01"))
 
+        # Side effects (loan payments, ...) are deferred until the liquidacion
+        # leaves BORRADOR: calculating a draft must never mutate real balances,
+        # otherwise abandoned drafts would reduce the employee's outstanding
+        # debt without an applied settlement.
+        apply_side_effects = liquidacion.estado != LiquidacionEstado.BORRADOR
+
+        orden = 1
+        total_bruto = Decimal("0.00")
         if liquidacion.dias_por_pagar > 0 and monto_dias > 0:
             liquidacion.detalles.append(
                 LiquidacionDetalle(
@@ -121,12 +129,14 @@ class LiquidacionEngine:
                     codigo="DIAS_POR_PAGAR",
                     descripcion="Días por pagar",
                     monto=monto_dias,
-                    orden=1,
+                    orden=orden,
                 )
             )
+            total_bruto += monto_dias
+            orden += 1
 
-        # Apply pending loans/advances as deductions
-        saldo_disponible = monto_dias
+        # Apply pending loans/advances as deductions.
+        saldo_disponible = total_bruto
         loan_processor = LoanProcessor(
             nomina=None,
             fecha_calculo=self.fecha_calculo,
@@ -134,6 +144,7 @@ class LiquidacionEngine:
             periodo_fin=self.fecha_calculo,
             liquidacion=liquidacion,
             calcular_interes=False,
+            apply_side_effects=apply_side_effects,
         )
 
         prioridad_prestamos = config.liquidacion_prioridad_prestamos
@@ -159,7 +170,6 @@ class LiquidacionEngine:
         )
         deducciones.extend(deducciones_adv)
 
-        orden = 1
         total_deducciones = Decimal("0.00")
         for item in deducciones:
             orden += 1
@@ -174,7 +184,6 @@ class LiquidacionEngine:
                 )
             )
 
-        total_bruto = monto_dias
         total_neto = (total_bruto - total_deducciones).quantize(Decimal("0.01"))
         liquidacion.total_bruto = total_bruto
         liquidacion.total_deducciones = total_deducciones

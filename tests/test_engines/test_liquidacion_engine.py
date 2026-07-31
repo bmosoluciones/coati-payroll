@@ -9,7 +9,7 @@ from decimal import Decimal
 
 import pytest
 
-from coati_payroll.enums import NominaEstado, AdelantoEstado
+from coati_payroll.enums import NominaEstado, AdelantoEstado, LiquidacionEstado
 from coati_payroll.liquidacion_engine import LiquidacionEngine, ejecutar_liquidacion, recalcular_liquidacion
 from coati_payroll.model import (
     ConfiguracionCalculos,
@@ -236,6 +236,21 @@ def test_deducciones_adelantos_y_recalculo_no_duplica_abonos(app, db_session):
 
         db_session.refresh(prestamo)
         db_session.refresh(adelanto)
+        # Draft must not mutate real balances nor create payment records
+        assert Decimal(str(prestamo.saldo_pendiente)) == Decimal("5.00")
+        assert Decimal(str(adelanto.saldo_pendiente)) == Decimal("3.00")
+        abonos_0 = db_session.execute(db.select(AdelantoAbono).filter_by(liquidacion_id=liq.id)).scalars().all()
+        assert len(abonos_0) == 0
+
+        # Transition out of BORRADOR materializes the deferred payments
+        liq.estado = LiquidacionEstado.CALCULADA
+        engine = LiquidacionEngine(empleado=empleado, fecha_calculo=liq.fecha_calculo)
+        applied = engine.calcular(liq)
+        assert applied is not None
+        db_session.commit()
+
+        db_session.refresh(prestamo)
+        db_session.refresh(adelanto)
         assert Decimal(str(prestamo.saldo_pendiente)) == Decimal("0.00")
         assert Decimal(str(adelanto.saldo_pendiente)) == Decimal("0.00")
 
@@ -337,4 +352,3 @@ def test_liquidacion_deduce_saldo_total_no_una_cuota(app, db_session):
         loan_deductions = [d for d in liq.detalles if d.tipo == "deduction" and d.codigo.startswith("PRESTAMO_")]
         assert len(loan_deductions) == 1
         assert loan_deductions[0].monto == Decimal("20.00")
-

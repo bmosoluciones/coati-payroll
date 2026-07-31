@@ -201,6 +201,25 @@ def aplicar(liquidacion_id: str):
         pe.fecha_fin = liquidacion.fecha_calculo
 
     liquidacion.estado = LiquidacionEstado.APLICADO
+
+    # Materialize deferred loan/advance payments now that the liquidacion
+    # leaves the draft state. Calculating in BORRADOR never touches real
+    # balances; this recalculation with estado=APLICADO records the
+    # AdelantoAbono rows and reduces the outstanding loan balances.
+    from coati_payroll.liquidacion_engine import LiquidacionEngine
+
+    engine = LiquidacionEngine(
+        empleado=empleado,
+        fecha_calculo=liquidacion.fecha_calculo,
+        usuario=getattr(current_user, "usuario", None),
+    )
+    applied = engine.calcular(liquidacion)
+
+    if not applied:
+        db.session.rollback()
+        flash(_("No se pudo aplicar la liquidación."), "error")
+        return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
+
     db.session.commit()
     flash(_("Liquidación aplicada. Empleado marcado como inactivo y desvinculado de planillas."), "success")
     return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
