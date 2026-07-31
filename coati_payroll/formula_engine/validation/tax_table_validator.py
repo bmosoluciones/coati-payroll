@@ -87,10 +87,12 @@ class TaxTableValidator:
             # Validate fixed and over values
             fixed = bracket.get("fixed", 0)
             over = bracket.get("over", 0)
+            rate = bracket.get("rate", 0)
 
             try:
                 fixed_decimal = to_decimal(fixed)
                 over_decimal = to_decimal(over)
+                rate_decimal = to_decimal(rate)
 
                 if fixed_decimal < 0:
                     errors.append(
@@ -108,6 +110,19 @@ class TaxTableValidator:
                     errors.append(
                         f"El tramo {i} de la tabla '{table_name}' tiene 'over' ({over}) mayor que 'min' ({min_val}). "
                         "El valor 'over' debe ser menor o igual a 'min'."
+                    )
+
+                if rate_decimal < 0:
+                    errors.append(
+                        f"El tramo {i} de la tabla '{table_name}' tiene 'rate' negativo ({rate}). "
+                        "El valor 'rate' no puede ser negativo."
+                    )
+
+                if rate_decimal > Decimal("1"):
+                    errors.append(
+                        f"El tramo {i} de la tabla '{table_name}' tiene 'rate' ({rate}) mayor que 1. "
+                        "El valor 'rate' debe expresarse como fracción decimal entre 0 y 1 "
+                        "(por ejemplo, 0.15 para el 15%)."
                     )
             except ValidationError as e:
                 errors.append(f"Valores inválidos en tramo {i} de tabla '{table_name}': {e}")
