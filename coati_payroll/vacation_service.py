@@ -458,6 +458,21 @@ class VacationService:
 
         policy = cast("VacationPolicy", account.policy)
         self._validar_policy(policy)
+
+        # Serialize concurrent accruals for the same account BEFORE the
+        # idempotency check. Checking for an existing ledger entry before
+        # taking the row lock is a TOCTOU race: two concurrent runs can both
+        # pass the check and then both insert an ACCRUAL entry, violating the
+        # unique idempotency constraint. With the account locked first, the
+        # second run re-checks after the first commits and skips.
+        if self.apply_side_effects:
+            account = db.session.execute(
+                db.select(VacationAccount).filter(VacationAccount.id == account.id).with_for_update()
+            ).scalar_one()
+            balance_before = self._recalcular_balance(account)
+        else:
+            balance_before = self._obtener_balance(account)
+
         if not self._eligible_for_accrual(empleado, nomina_empleado, account, policy):
             return Decimal("0.00")
 
@@ -466,14 +481,6 @@ class VacationService:
 
         if accrual_amount <= 0:
             return Decimal("0.00")
-
-        if self.apply_side_effects:
-            account = db.session.execute(
-                db.select(VacationAccount).filter(VacationAccount.id == account.id).with_for_update()
-            ).scalar_one()
-            balance_before = self._recalcular_balance(account)
-        else:
-            balance_before = self._obtener_balance(account)
 
         accrual_amount = self._normalize_accrual_amount(
             accrual_amount, balance_before, policy, empleado.codigo_empleado
@@ -751,14 +758,14 @@ class VacationService:
         if rate == 0:
             return Decimal("0.00")
 
-        # For seniority, rate is typically annual, so prorate for period
-        if policy.accrual_frequency == AccrualFrequency.ANNUAL:
-            dias_periodo = (self.periodo_fin - self.periodo_inicio).days + 1
-            dias_anio = Decimal(str(config.dias_anio_vacaciones))
-            return self._quantize_amount(rate * Decimal(dias_periodo) / dias_anio)
-        # If frequency is monthly/biweekly, divide rate accordingly
-        meses_anio = Decimal(str(config.meses_anio_financiero))
-        return self._quantize_amount(rate / meses_anio)
+        # The seniority rate is annual: prorate it by the actual payroll period
+        # length regardless of frequency so the annual total is always the
+        # configured rate. Dividing by a fixed 12 months over-accrues any
+        # frequency with more than 12 periods per year (e.g. biweekly would
+        # accumulate twice the annual rate).
+        dias_periodo = (self.periodo_fin - self.periodo_inicio).days + 1
+        dias_anio = Decimal(str(config.dias_anio_vacaciones))
+        return self._quantize_amount(rate * Decimal(dias_periodo) / dias_anio)
 
     def _build_vacation_usage_query(self, empleado):
         """Build query for vacation-related novedades."""
@@ -860,6 +867,20 @@ class VacationService:
         from coati_payroll.model import VacationAccount, VacationLedger, db
 
         account = vac_novelty.account
+
+        # Serialize concurrent processing for the same account BEFORE the
+        # idempotency check (same TOCTOU rationale as the accrual path):
+        # checking for an existing USAGE entry before taking the row lock lets
+        # two concurrent runs both pass the check and both insert a USAGE
+        # entry, violating the unique idempotency constraint.
+        if self.apply_side_effects:
+            account = db.session.execute(
+                db.select(VacationAccount).filter(VacationAccount.id == account.id).with_for_update()
+            ).scalar_one()
+            balance_before = self._recalcular_balance(account)
+        else:
+            balance_before = self._obtener_balance(account) + self._temp_accrued.get(empleado.id, Decimal("0.00"))
+
         existing_usage = (
             db.session.execute(
                 db.select(VacationLedger).filter(
@@ -878,14 +899,6 @@ class VacationService:
 
         self._validate_vacation_novelty(vac_novelty, empleado, policy)
         units = self._quantize_vacation_units(vac_novelty.units, policy, empleado)
-
-        if self.apply_side_effects:
-            account = db.session.execute(
-                db.select(VacationAccount).filter(VacationAccount.id == account.id).with_for_update()
-            ).scalar_one()
-            balance_before = self._recalcular_balance(account)
-        else:
-            balance_before = self._obtener_balance(account) + self._temp_accrued.get(empleado.id, Decimal("0.00"))
 
         if not policy.allow_negative and balance_before - units < 0:
             raise NominaEngineError(

@@ -111,7 +111,9 @@ class LiquidacionEngine:
             self.errors.append("Factor de días inválido en configuración.")
             return None
 
-        tasa_dia = (salario_mensual / Decimal(str(factor_dias))).quantize(Decimal("0.01"))
+        # Keep the daily rate unrounded so the proration is exact; only the
+        # final line amounts are quantized below.
+        tasa_dia = salario_mensual / Decimal(str(factor_dias))
         monto_dias = (tasa_dia * Decimal(str(liquidacion.dias_por_pagar))).quantize(Decimal("0.01"))
 
         # Side effects (loan payments, vacation payout ledger entries, ...) are

@@ -173,9 +173,27 @@ class TestCuotaFrances:
 
         cuota = calcular_cuota_frances(principal, tasa_anual, num_cuotas)
 
-        # Single payment should be principal plus one month's interest
-        # 1000 + (1000 * 0.01) = 1010
-        assert cuota == Decimal("1010.00")
+        # Single payment should be principal plus one period of interest using
+        # the same day-accurate basis as the accrual (dias_mes_nomina=30,
+        # dias_anio_financiero=365): 1000 * (1 + 0.12 * 30/365) = 1009.86
+        assert cuota == Decimal("1009.86")
+
+    def test_calcular_cuota_frances_cubre_interes_devengado(self):
+        """French payment must cover the exact-days interest accrued in a period.
+
+        A nominal monthly rate (tasa/12) is smaller than the day-accurate
+        interest (31/365 > 1/12), which would leave a residual balance that
+        never amortizes. The constant payment must be at least the interest
+        accrued on the opening balance for a 31-day month.
+        """
+        principal = Decimal("12000.00")
+        tasa_anual = Decimal("12.0")
+        num_cuotas = 12
+
+        cuota = calcular_cuota_frances(principal, tasa_anual, num_cuotas)
+        interes_31_dias = calcular_interes_simple(principal, tasa_anual, 31)
+
+        assert cuota > interes_31_dias
 
     def test_calcular_cuota_frances_principal_cero(self):
         """Test French method with zero principal."""

@@ -850,6 +850,42 @@ def test_calcular_acumulacion_seniority_no_tiers(app, db_session, planilla, empl
         assert accrual == Decimal("0.00")
 
 
+def test_calcular_acumulacion_seniority_proratado_por_frecuencia(app, db_session, planilla, empleado):
+    """Seniority rate is annual: prorate it by the actual period length regardless
+    of frequency. A biweekly policy must not divide by a fixed 12 months, which
+    would accumulate twice the annual rate over 24 biweekly periods a year."""
+    with app.app_context():
+        policy = VacationPolicy(
+            planilla_id=planilla.id,
+            codigo="SENIOR-BIWEEKLY",
+            nombre="Seniority Biweekly Policy",
+            descripcion="Test seniority proration",
+            accrual_method=AccrualMethod.SENIORITY,
+            accrual_rate=Decimal("15.00"),
+            accrual_frequency=AccrualFrequency.BIWEEKLY,
+            unit_type=VacationUnitType.DAYS,
+            min_service_days=0,
+            partial_units_allowed=True,
+            seniority_tiers=[{"years": 0, "rate": 15.0}],
+            activo=True,
+            creado_por="test_system",
+        )
+        db_session.add(policy)
+        db_session.flush()
+
+        periodo_inicio = date.today() - timedelta(days=14)
+        periodo_fin = date.today()
+
+        service = VacationService(planilla, periodo_inicio, periodo_fin)
+        accrual = service._calcular_acumulacion_antiguedad(empleado, policy)
+
+        dias_periodo = (periodo_fin - periodo_inicio).days + 1
+        expected = (Decimal("15.00") * Decimal(dias_periodo) / Decimal("365")).quantize(Decimal("0.01"))
+        assert accrual == expected
+        # The old behavior (rate / 12 = 1.25 per period) would exceed one unit.
+        assert accrual < Decimal("1.00")
+
+
 def test_calcular_acumulacion_unknown_method(app, db_session, planilla, empleado, moneda):
     """Test vacation accrual with unknown method returns zero."""
     with app.app_context():

@@ -55,6 +55,7 @@ def _obtener_config_default(empresa_id: str | None = None) -> "ConfiguracionCalc
         ConfiguracionCalculos instance with defaults
     """
     from coati_payroll.model import ConfiguracionCalculos
+    from coati_payroll.log import log
     from flask import has_app_context
 
     # Only try to access database if we have an application context
@@ -92,9 +93,11 @@ def _obtener_config_default(empresa_id: str | None = None) -> "ConfiguracionCalc
             )
             if config:
                 return config
-        except (RuntimeError, SQLAlchemyError):
-            # No application context, fall through to defaults
-            pass
+            log.warning("No se encontró ConfiguracionCalculos activa; usando valores por defecto.")
+        except (RuntimeError, SQLAlchemyError) as exc:
+            # No usable DB/session, fall through to defaults but log it so the
+            # silent fallback is observable instead of masking the root cause.
+            log.warning("No se pudo consultar ConfiguracionCalculos (%s); usando valores por defecto.", exc)
 
     # If no configuration exists or no app context, return a default instance (not saved to DB)
     # This ensures backward compatibility with existing tests
@@ -249,19 +252,25 @@ def calcular_cuota_frances(
     if tasa_anual <= 0:
         return (principal / Decimal(num_cuotas)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-    # Convert annual rate to monthly rate using configured months per year
+    # Derive the periodic rate from the same day-accurate basis used by the
+    # interest accrual (dias / dias_anio_financiero). Using a nominal monthly
+    # rate (tasa/meses_anio_financiero) while interest accrues by exact days
+    # makes the constant payment smaller than the accrued interest whenever
+    # the period has more days than a 1/12 share of the year (31/365 > 1/12),
+    # so the loan never amortizes to zero and leaves a residual balance.
     tasa_decimal = tasa_anual / Decimal("100")
-    meses_anio = Decimal(str(config.meses_anio_financiero))
-    tasa_mensual = tasa_decimal / meses_anio
+    dias_mes = Decimal(str(getattr(config, "dias_mes_nomina", None) or 30))
+    dias_anio = Decimal(str(config.dias_anio_financiero))
+    tasa_periodica = tasa_decimal * (dias_mes / dias_anio)
 
     # Calculate (1 + r)^n using iterative multiplication for precision
-    base = Decimal("1") + tasa_mensual
+    base = Decimal("1") + tasa_periodica
     factor = Decimal("1")
     for _ in range(num_cuotas):
         factor *= base
 
     # Calculate payment: C = P * [r(1+r)^n] / [(1+r)^n - 1]
-    numerador = principal * tasa_mensual * factor
+    numerador = principal * tasa_periodica * factor
     denominador = factor - Decimal("1")
 
     if denominador == 0:
@@ -349,10 +358,11 @@ def generar_tabla_amortizacion(
         metodo: Amortization method (frances or aleman)
         tipo_interes: Interest type (simple or compuesto). Interest is calculated
             using the exact days between scheduled payment dates. The constant
-            installment for French method is derived from a nominal monthly rate,
-            so day-based interest can create small differences versus traditional
-            monthly tables. Each installment is rounded to cents before being
-            stored in the schedule, and negative day spans are treated as zero.
+            installment for French method is derived from the same day-accurate
+            rate used by the accrual (dias_mes_nomina / dias_anio_financiero),
+            so the payment covers the accrued interest and the loan amortizes
+            to zero. Each installment is rounded to cents before being stored
+            in the schedule, and negative day spans are treated as zero.
 
     Returns:
         List of loan installments

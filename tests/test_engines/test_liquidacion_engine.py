@@ -22,6 +22,7 @@ from coati_payroll.model import (
     Planilla,
     TipoPlanilla,
     Moneda,
+    Liquidacion,
     db,
 )
 
@@ -537,3 +538,51 @@ def test_finiquito_no_paga_vacaciones_si_policy_no_lo_permite(app, db_session):
             db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
         ).scalars().all()
         assert len(payouts) == 0
+
+
+def test_prorrateo_no_redondea_tasa_diaria_intermedia(app, db_session):
+    """Proration uses the unrounded daily rate so partial days are exact."""
+    from tests.factories.company_factory import create_company
+
+    with app.app_context():
+        empresa = create_company(db_session, codigo="E8", razon_social="Empresa 8", ruc="RUC8")
+
+        config = ConfiguracionCalculos(
+            empresa_id=empresa.id,
+            pais_id=None,
+            activo=True,
+            liquidacion_modo_dias="calendar",
+            liquidacion_factor_calendario=30,
+            liquidacion_factor_laboral=28,
+        )
+        db_session.add(config)
+
+        empleado = Empleado(
+            empresa_id=empresa.id,
+            codigo_empleado="EMP8",
+            primer_nombre="A",
+            primer_apellido="B",
+            identificacion_personal="ID-EMP8",
+            fecha_alta=date(2025, 1, 1),
+            salario_base=Decimal("3000.55"),
+            activo=True,
+        )
+        db_session.add(empleado)
+        db_session.flush()
+        db_session.commit()
+
+        liq = Liquidacion(
+            empleado_id=empleado.id,
+            fecha_calculo=date(2025, 1, 15),
+            dias_por_pagar=15,
+            estado=LiquidacionEstado.BORRADOR,
+        )
+        db_session.add(liq)
+        db_session.commit()
+
+        engine = LiquidacionEngine(empleado=empleado, fecha_calculo=liq.fecha_calculo)
+        calculated = engine.calcular(liq)
+        assert calculated is not None
+
+        # 3000.55 / 30 = 100.0183...; 15 days = 1500.28, not 1500.30.
+        assert liq.total_bruto == Decimal("1500.28")
