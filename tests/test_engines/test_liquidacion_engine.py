@@ -352,3 +352,188 @@ def test_liquidacion_deduce_saldo_total_no_una_cuota(app, db_session):
         loan_deductions = [d for d in liq.detalles if d.tipo == "deduction" and d.codigo.startswith("PRESTAMO_")]
         assert len(loan_deductions) == 1
         assert loan_deductions[0].monto == Decimal("20.00")
+
+
+def test_finiquito_paga_vacaciones_pendientes(app, db_session):
+    """Liquidation pays out pending vacation balance when the policy allows it."""
+    from coati_payroll.enums import AccrualMethod, AccrualFrequency, VacationLedgerType, VacationUnitType
+    from coati_payroll.model import VacationAccount, VacationLedger, VacationPolicy
+    from tests.factories.company_factory import create_company
+
+    with app.app_context():
+        empresa = create_company(db_session, codigo="E6", razon_social="Empresa 6", ruc="RUC6")
+
+        config = ConfiguracionCalculos(
+            empresa_id=empresa.id,
+            pais_id=None,
+            activo=True,
+            liquidacion_modo_dias="calendar",
+            liquidacion_factor_calendario=30,
+            liquidacion_factor_laboral=28,
+        )
+        db_session.add(config)
+
+        empleado = Empleado(
+            empresa_id=empresa.id,
+            codigo_empleado="EMP6",
+            primer_nombre="A",
+            primer_apellido="B",
+            identificacion_personal="ID-EMP6",
+            fecha_alta=date(2025, 1, 1),
+            salario_base=Decimal("300.00"),
+            activo=True,
+        )
+        db_session.add(empleado)
+        db_session.flush()
+
+        policy = VacationPolicy(
+            codigo="VAC-PAYOUT",
+            nombre="Vacaciones con pago en finiquito",
+            accrual_method=AccrualMethod.PERIODIC,
+            accrual_rate=Decimal("2.50"),
+            accrual_frequency=AccrualFrequency.MONTHLY,
+            unit_type=VacationUnitType.DAYS,
+            min_service_days=0,
+            allow_negative=False,
+            partial_units_allowed=True,
+            payout_on_termination=True,
+            activo=True,
+        )
+        db_session.add(policy)
+        db_session.flush()
+
+        account = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=policy.id,
+            current_balance=Decimal("10.0000"),
+            activo=True,
+        )
+        db_session.add(account)
+        db_session.flush()
+        db_session.add(
+            VacationLedger(
+                account_id=account.id,
+                empleado_id=empleado.id,
+                fecha=date(2025, 1, 31),
+                entry_type=VacationLedgerType.ACCRUAL,
+                quantity=Decimal("10.0000"),
+                source="payroll",
+            )
+        )
+        db_session.commit()
+
+        # Draft: 10 pending days valued at 300/30 = 10.00/day => 100.00 payout.
+        # The PAYOUT ledger entry is deferred while in BORRADOR.
+        liq, errors, _warnings = ejecutar_liquidacion(
+            empleado_id=empleado.id,
+            concepto_id=None,
+            fecha_calculo=date(2025, 1, 2),
+            usuario="test",
+        )
+        assert errors == []
+        assert liq is not None
+
+        vac_detail = [d for d in liq.detalles if d.codigo == "VACACIONES_PENDIENTES"]
+        assert len(vac_detail) == 1
+        assert vac_detail[0].monto == Decimal("100.00")
+        assert liq.total_bruto > Decimal("100.00")
+
+        account = db_session.get(VacationAccount, account.id)
+        assert Decimal(str(account.current_balance)) == Decimal("10.0000")
+        payouts_draft = db_session.execute(
+            db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
+        ).scalars().all()
+        assert len(payouts_draft) == 0
+
+        # Transition to APLICADO materializes the PAYOUT ledger entry
+        liq.estado = LiquidacionEstado.APLICADO
+        engine = LiquidacionEngine(empleado=empleado, fecha_calculo=liq.fecha_calculo)
+        applied = engine.calcular(liq)
+        assert applied is not None
+        db_session.commit()
+
+        account = db_session.get(VacationAccount, account.id)
+        assert Decimal(str(account.current_balance)) == Decimal("0.0000")
+        payouts = db_session.execute(
+            db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
+        ).scalars().all()
+        assert len(payouts) == 1
+        assert Decimal(str(payouts[0].quantity)) == Decimal("-10.0000")
+        assert payouts[0].reference_type == "liquidacion"
+        assert payouts[0].reference_id == liq.id
+
+
+def test_finiquito_no_paga_vacaciones_si_policy_no_lo_permite(app, db_session):
+    """Liquidation does not pay pending vacation when payout_on_termination is disabled."""
+    from coati_payroll.enums import AccrualMethod, AccrualFrequency, VacationLedgerType, VacationUnitType
+    from coati_payroll.model import VacationAccount, VacationLedger, VacationPolicy
+    from tests.factories.company_factory import create_company
+
+    with app.app_context():
+        empresa = create_company(db_session, codigo="E7", razon_social="Empresa 7", ruc="RUC7")
+
+        config = ConfiguracionCalculos(
+            empresa_id=empresa.id,
+            pais_id=None,
+            activo=True,
+            liquidacion_modo_dias="calendar",
+            liquidacion_factor_calendario=30,
+            liquidacion_factor_laboral=28,
+        )
+        db_session.add(config)
+        db_session.commit()
+
+        empleado = Empleado(
+            empresa_id=empresa.id,
+            codigo_empleado="EMP7",
+            primer_nombre="A",
+            primer_apellido="B",
+            identificacion_personal="ID-EMP7",
+            fecha_alta=date(2025, 1, 1),
+            salario_base=Decimal("300.00"),
+            activo=True,
+        )
+        db_session.add(empleado)
+        db_session.flush()
+
+        policy = VacationPolicy(
+            codigo="VAC-NO-PAYOUT",
+            nombre="Vacaciones sin pago en finiquito",
+            accrual_method=AccrualMethod.PERIODIC,
+            accrual_rate=Decimal("2.50"),
+            accrual_frequency=AccrualFrequency.MONTHLY,
+            unit_type=VacationUnitType.DAYS,
+            min_service_days=0,
+            allow_negative=False,
+            partial_units_allowed=True,
+            payout_on_termination=False,
+            activo=True,
+        )
+        db_session.add(policy)
+        db_session.flush()
+
+        account = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=policy.id,
+            current_balance=Decimal("10.0000"),
+            activo=True,
+        )
+        db_session.add(account)
+        db_session.commit()
+
+        liq, errors, _warnings = ejecutar_liquidacion(
+            empleado_id=empleado.id,
+            concepto_id=None,
+            fecha_calculo=date(2025, 1, 2),
+            usuario="test",
+        )
+        assert errors == []
+        assert liq is not None
+
+        # No vacation income line and no PAYOUT ledger entry.
+        vac_detail = [d for d in liq.detalles if d.codigo == "VACACIONES_PENDIENTES"]
+        assert len(vac_detail) == 0
+        payouts = db_session.execute(
+            db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
+        ).scalars().all()
+        assert len(payouts) == 0

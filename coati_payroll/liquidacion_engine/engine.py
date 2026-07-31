@@ -114,10 +114,10 @@ class LiquidacionEngine:
         tasa_dia = (salario_mensual / Decimal(str(factor_dias))).quantize(Decimal("0.01"))
         monto_dias = (tasa_dia * Decimal(str(liquidacion.dias_por_pagar))).quantize(Decimal("0.01"))
 
-        # Side effects (loan payments, ...) are deferred until the liquidacion
-        # leaves BORRADOR: calculating a draft must never mutate real balances,
-        # otherwise abandoned drafts would reduce the employee's outstanding
-        # debt without an applied settlement.
+        # Side effects (loan payments, vacation payout ledger entries, ...) are
+        # deferred until the liquidacion leaves BORRADOR: calculating a draft
+        # must never mutate real balances, otherwise abandoned drafts would
+        # reduce the employee's outstanding debt without an applied settlement.
         apply_side_effects = liquidacion.estado != LiquidacionEstado.BORRADOR
 
         orden = 1
@@ -133,6 +133,15 @@ class LiquidacionEngine:
                 )
             )
             total_bruto += monto_dias
+            orden += 1
+
+        # Vacation payout on termination: the pending vacation balance is
+        # valued at the daily salary and paid out when the policy allows it.
+        monto_vacaciones = self._procesar_vacaciones_finiquito(
+            liquidacion, tasa_dia, apply_side_effects=apply_side_effects, orden=orden
+        )
+        if monto_vacaciones > 0:
+            total_bruto += monto_vacaciones
             orden += 1
 
         # Apply pending loans/advances as deductions.
@@ -194,6 +203,104 @@ class LiquidacionEngine:
 
         return liquidacion
 
+    def _procesar_vacaciones_finiquito(
+        self, liquidacion: Liquidacion, tasa_dia: Decimal, apply_side_effects: bool, orden: int
+    ) -> Decimal:
+        """Pay out pending vacation balance on termination.
+
+        When the employee's active vacation policy has payout_on_termination
+        enabled, the accumulated balance is valued at the daily salary and
+        added as an income line. Once the liquidacion leaves BORRADOR a
+        PAYOUT ledger entry is recorded to zero the account balance.
+
+        Returns:
+            The total vacation payout amount.
+        """
+        from coati_payroll.enums import VacationLedgerType
+        from coati_payroll.model import VacationAccount, VacationLedger, VacationPolicy
+
+        accounts = (
+            db.session.execute(
+                db.select(VacationAccount)
+                .join(VacationPolicy, VacationPolicy.id == VacationAccount.policy_id)
+                .where(
+                    VacationAccount.empleado_id == self.empleado.id,
+                    VacationAccount.activo.is_(True),
+                    VacationPolicy.activo.is_(True),
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        monto_total = Decimal("0.00")
+        for account in accounts:
+            policy = cast(Any, account.policy)
+            if not policy.payout_on_termination:
+                continue
+
+            balance = Decimal(str(account.current_balance or 0))
+            if balance <= 0:
+                continue
+
+            if policy.unit_type == "hours":
+                config = self._get_config()
+                horas_jornada = Decimal(str(getattr(config, "horas_jornada_diaria", 8) or 8))
+                monto = (balance / horas_jornada * tasa_dia).quantize(Decimal("0.01"))
+            else:
+                monto = (balance * tasa_dia).quantize(Decimal("0.01"))
+
+            if monto <= 0:
+                continue
+
+            liquidacion.detalles.append(
+                LiquidacionDetalle(
+                    tipo="income",
+                    codigo="VACACIONES_PENDIENTES",
+                    descripcion=f"Vacaciones pendientes ({policy.codigo})",
+                    monto=monto,
+                    orden=orden,
+                )
+            )
+            monto_total += monto
+
+            if not apply_side_effects:
+                continue
+
+            existing = (
+                db.session.execute(
+                    db.select(VacationLedger).filter(
+                        VacationLedger.entry_type == VacationLedgerType.PAYOUT,
+                        VacationLedger.source == "termination",
+                        VacationLedger.reference_type == "liquidacion",
+                        VacationLedger.reference_id == liquidacion.id,
+                        VacationLedger.account_id == account.id,
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if existing:
+                continue
+
+            db.session.add(
+                VacationLedger(
+                    account_id=account.id,
+                    empleado_id=self.empleado.id,
+                    fecha=self.fecha_calculo,
+                    entry_type=VacationLedgerType.PAYOUT,
+                    quantity=-balance,
+                    source="termination",
+                    reference_id=liquidacion.id,
+                    reference_type="liquidacion",
+                    observaciones="Pago de vacaciones pendientes en liquidación",
+                    balance_after=Decimal("0.00"),
+                )
+            )
+            account.current_balance = Decimal("0.0000")
+
+        return monto_total
+
 
 def recalcular_liquidacion(liquidacion_id: str, fecha_calculo: date | None = None, usuario: str | None = None):
     """Recalculate an existing liquidacion.
@@ -230,6 +337,30 @@ def recalcular_liquidacion(liquidacion_id: str, fecha_calculo: date | None = Non
             if adelanto.saldo_pendiente > 0 and adelanto.estado == "paid":
                 adelanto.estado = "approved"
         db.session.delete(abono)
+
+    # Revert vacation payout ledger entries applied by this liquidation
+    from coati_payroll.enums import VacationLedgerType
+    from coati_payroll.model import VacationAccount, VacationLedger
+
+    payouts = (
+        db.session.execute(
+            db.select(VacationLedger).filter(
+                VacationLedger.entry_type == VacationLedgerType.PAYOUT,
+                VacationLedger.source == "termination",
+                VacationLedger.reference_type == "liquidacion",
+                VacationLedger.reference_id == liquidacion.id,
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for entry in payouts:
+        account = db.session.get(VacationAccount, entry.account_id)
+        if account:
+            account.current_balance = (
+                Decimal(str(account.current_balance)) + Decimal(str(-entry.quantity))
+            ).quantize(Decimal("0.0001"))
+        db.session.delete(entry)
 
     # Remove existing details
     liquidacion.detalles.clear()
