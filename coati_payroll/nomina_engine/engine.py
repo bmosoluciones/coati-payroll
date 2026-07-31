@@ -34,6 +34,7 @@ class NominaEngine:
         fecha_calculo: date | None = None,
         usuario: str | None = None,
         excluded_nomina_id: str | None = None,
+        snapshot_override: dict[str, Any] | None = None,
     ):
         """Initialize the payroll engine.
 
@@ -45,6 +46,8 @@ class NominaEngine:
             usuario: Username executing the payroll
             excluded_nomina_id: Nomina ID to ignore in overlap/duplicate validation.
                 Used by recalculation flow to ignore the source nomina.
+            snapshot_override: Stored snapshot from the original nomina to reuse
+                during recalculation, guaranteeing reproducible results.
         """
         self.planilla = planilla
         self.periodo_inicio = periodo_inicio
@@ -52,6 +55,7 @@ class NominaEngine:
         self.fecha_calculo = fecha_calculo or date.today()
         self.usuario = usuario
         self.excluded_nomina_id = excluded_nomina_id
+        self.snapshot_override = snapshot_override
         self.nomina: Nomina | None = None
         self.empleados_calculo: list[EmpleadoCalculo] = []
         self.errors: list[str] = []
@@ -108,6 +112,7 @@ class NominaEngine:
                 self.fecha_calculo,
                 self.usuario,
                 excluded_nomina_id=self.excluded_nomina_id,
+                snapshot=self.snapshot_override,
             )
 
             self.nomina = nomina
@@ -137,6 +142,7 @@ def ejecutar_nomina(
     fecha_calculo: date | None = None,
     usuario: str | None = None,
     excluded_nomina_id: str | None = None,
+    snapshot_override: dict[str, Any] | None = None,
 ) -> tuple[Nomina | None, list[str], list[str]]:
     """Execute a payroll run for a planilla.
 
@@ -187,6 +193,7 @@ def ejecutar_nomina(
         fecha_calculo=fecha_calculo,
         usuario=usuario,
         excluded_nomina_id=excluded_nomina_id,
+        snapshot_override=snapshot_override,
     )
 
     nomina = engine.ejecutar()

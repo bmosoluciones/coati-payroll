@@ -190,6 +190,8 @@ class SnapshotService:
                     "gravable": p.gravable,
                     "base_calculo": p.base_calculo,
                     "estado_aprobacion": p.estado_aprobacion,
+                    "vigente_desde": p.vigente_desde.isoformat() if p.vigente_desde else None,
+                    "valido_hasta": p.valido_hasta.isoformat() if p.valido_hasta else None,
                 }
             )
 
@@ -261,6 +263,8 @@ class SnapshotService:
                 "antes_impuesto": d.antes_impuesto,
                 "base_calculo": d.base_calculo,
                 "estado_aprobacion": d.estado_aprobacion,
+                "vigente_desde": d.vigente_desde.isoformat() if d.vigente_desde else None,
+                "valido_hasta": d.valido_hasta.isoformat() if d.valido_hasta else None,
             }
             # Include ReglaCalculo if linked
             if d.id in reglas_by_deduccion:
@@ -309,6 +313,9 @@ class SnapshotService:
                     "base_calculo": pr.base_calculo,
                     "tipo_acumulacion": pr.tipo_acumulacion,
                     "estado_aprobacion": pr.estado_aprobacion,
+                    "vigente_desde": pr.vigente_desde.isoformat() if pr.vigente_desde else None,
+                    "valido_hasta": pr.valido_hasta.isoformat() if pr.valido_hasta else None,
+                    "tope_aplicacion": str(pr.tope_aplicacion) if pr.tope_aplicacion is not None else None,
                 }
             )
 

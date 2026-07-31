@@ -18,6 +18,28 @@ class PerceptionCalculator:
 
     def __init__(self, concept_calculator: ConceptCalculator):
         self.concept_calculator = concept_calculator
+        self.percepciones_snapshot: dict[str, Any] | None = None
+
+    def _snapshot_for(self, percepcion) -> dict[str, Any] | None:
+        """Resolve the catalog snapshot entry for a perception, if available."""
+        if not self.percepciones_snapshot:
+            return None
+        return self.percepciones_snapshot.get(percepcion.id) or self.percepciones_snapshot.get(percepcion.codigo)
+
+    @staticmethod
+    def _snapshot_valido(snapshot_entry: dict[str, Any] | None, fecha_calculo: date) -> bool:
+        """Check validity dates from the snapshot when available."""
+        if not snapshot_entry:
+            return True
+        if snapshot_entry.get("vigente_desde"):
+            desde = date.fromisoformat(snapshot_entry["vigente_desde"])
+            if desde > fecha_calculo:
+                return False
+        if snapshot_entry.get("valido_hasta"):
+            hasta = date.fromisoformat(snapshot_entry["valido_hasta"])
+            if hasta < fecha_calculo:
+                return False
+        return True
 
     def calculate(self, emp_calculo: EmpleadoCalculo, planilla: Planilla, fecha_calculo: date) -> list[PercepcionItem]:
         """Calculate all perceptions for an employee."""
@@ -32,23 +54,37 @@ class PerceptionCalculator:
             if not percepcion or not percepcion.activo:
                 continue
 
-            # Check validity dates
-            if percepcion.vigente_desde and percepcion.vigente_desde > fecha_calculo:
+            snapshot_entry = self._snapshot_for(percepcion)
+            if not self._snapshot_valido(snapshot_entry, fecha_calculo):
                 continue
-            if percepcion.valido_hasta and percepcion.valido_hasta < fecha_calculo:
-                continue
+
+            # When the perception exists in the catalog snapshot, prefer the
+            # frozen formula/amount so recalculation reproduces the original
+            # payroll even if the live catalog changed since.
+            formula_tipo = snapshot_entry.get("formula_tipo", percepcion.formula_tipo) if snapshot_entry else percepcion.formula_tipo
+            monto_default = snapshot_entry.get("monto_default", percepcion.monto_default) if snapshot_entry else percepcion.monto_default
+            porcentaje = snapshot_entry.get("porcentaje", percepcion.porcentaje) if snapshot_entry else percepcion.porcentaje
+            formula = snapshot_entry.get("formula", percepcion.formula) if snapshot_entry else percepcion.formula
+            base_calculo = snapshot_entry.get("base_calculo", getattr(percepcion, "base_calculo", None)) if snapshot_entry else getattr(percepcion, "base_calculo", None)
+
+            # Check validity dates against the live object only when there is no snapshot
+            if not snapshot_entry:
+                if percepcion.vigente_desde and percepcion.vigente_desde > fecha_calculo:
+                    continue
+                if percepcion.valido_hasta and percepcion.valido_hasta < fecha_calculo:
+                    continue
 
             # Calculate perception amount
             monto = self.concept_calculator.calculate(
                 emp_calculo,
-                percepcion.formula_tipo,
-                percepcion.monto_default,
-                percepcion.porcentaje,
-                percepcion.formula,
+                formula_tipo,
+                monto_default,
+                porcentaje,
+                formula,
                 planilla_percepcion.monto_predeterminado,
                 planilla_percepcion.porcentaje,
                 codigo_concepto=percepcion.codigo,
-                base_calculo=getattr(percepcion, "base_calculo", None),
+                base_calculo=base_calculo,
                 unidad_calculo=getattr(percepcion, "unidad_calculo", None),
             )
 

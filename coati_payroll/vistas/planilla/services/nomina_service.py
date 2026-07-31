@@ -562,7 +562,17 @@ class NominaService:
         # Revert any automatic loans and advances payments/interest for this payroll run
         NominaService._rollback_loans_and_advances_for_nomina(nomina)
 
-        # Re-execute the payroll with the ORIGINAL calculation date for consistency
+        # Re-execute the payroll with the ORIGINAL calculation date for consistency.
+        # Reuse the snapshots captured in the original run so the recalculation
+        # reproduces the exact same payroll numbers even if the live
+        # configuration changed since (fixes reproducibility of recalculations).
+        stored_snapshot: dict[str, Any] | None = None
+        if nomina.configuracion_snapshot or nomina.catalogos_snapshot:
+            stored_snapshot = {
+                "configuracion": nomina.configuracion_snapshot or None,
+                "tipos_cambio": nomina.tipos_cambio_snapshot or [],
+                "catalogos": nomina.catalogos_snapshot or {},
+            }
         engine = NominaEngine(
             planilla=planilla,
             periodo_inicio=periodo_inicio,
@@ -570,6 +580,7 @@ class NominaService:
             fecha_calculo=fecha_calculo_original,
             usuario=usuario,
             excluded_nomina_id=nomina_original_id,
+            snapshot_override=stored_snapshot,
         )
 
         new_nomina = engine.ejecutar()

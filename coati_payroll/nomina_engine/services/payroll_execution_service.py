@@ -87,8 +87,22 @@ class PayrollExecutionService:
         fecha_calculo: date,
         usuario: str | None,
         excluded_nomina_id: str | None = None,
+        snapshot: dict[str, Any] | None = None,
     ) -> tuple[Nomina | None, list[EmpleadoCalculo], list[str], list[str]]:
-        """Execute a complete payroll run."""
+        """Execute a complete payroll run.
+
+        Args:
+            planilla: The Planilla being executed
+            periodo_inicio: Payroll period start
+            periodo_fin: Payroll period end
+            fecha_calculo: Calculation date
+            usuario: Username executing the payroll
+            excluded_nomina_id: Optional Nomina ID to ignore (recalculation flow)
+            snapshot: Optional stored snapshot to reuse (recalculation flow).
+                When provided, the payroll is calculated from the frozen data
+                instead of capturing a fresh snapshot, guaranteeing reproducible
+                results even if configuration changed since the original run.
+        """
         errors: list[str] = []
         warnings = WarningCollector()
 
@@ -126,15 +140,26 @@ class PayrollExecutionService:
             errors.extend(period_result.errors)
             return None, [], errors, warnings.to_list()
 
-        # Capture configuration snapshots for recalculation consistency
-        snapshot = self.snapshot_service.capture_complete_snapshot(
-            planilla, periodo_inicio, periodo_fin, fecha_calculo, excluded_nomina_id=excluded_nomina_id
-        )
+        # Capture configuration snapshots for recalculation consistency.
+        # When a stored snapshot is provided (recalculation flow) it is reused
+        # as-is so the recalculation reproduces the original payroll numbers.
+        if snapshot is None:
+            snapshot = self.snapshot_service.capture_complete_snapshot(
+                planilla, periodo_inicio, periodo_fin, fecha_calculo, excluded_nomina_id=excluded_nomina_id
+            )
         deducciones_snapshot = {
             deduccion["id"]: deduccion for deduccion in snapshot.get("catalogos", {}).get("deducciones", [])
         }
+        percepciones_snapshot = {
+            percepcion["id"]: percepcion for percepcion in snapshot.get("catalogos", {}).get("percepciones", [])
+        }
+        prestaciones_snapshot = {
+            prestacion["id"]: prestacion for prestacion in snapshot.get("catalogos", {}).get("prestaciones", [])
+        }
         self.concept_calculator.deducciones_snapshot = deducciones_snapshot
         self.concept_calculator.configuracion_snapshot = snapshot.get("configuracion") or None
+        self.perception_calculator.percepciones_snapshot = percepciones_snapshot
+        self.benefit_calculator.prestaciones_snapshot = prestaciones_snapshot
         bootstrap_context = self._resolve_company_bootstrap_context(planilla, periodo_inicio, warnings)
 
         # Prevent duplicate execution for the same period

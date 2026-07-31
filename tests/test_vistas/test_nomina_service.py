@@ -657,6 +657,89 @@ class TestRecalcularNomina:
 
     @patch("coati_payroll.audit_helpers.crear_log_auditoria_nomina")
     @patch("coati_payroll.vistas.planilla.services.nomina_service.NominaEngine")
+    def test_recalcular_nomina_reuses_stored_snapshot(
+        self, mock_engine_class, mock_audit, app, db_session, planilla, empleado, admin_user
+    ):
+        """Recalculation must pass the stored snapshots to the engine (reproducibility)."""
+        with app.app_context():
+            stored_config = {"tipo_cambio": "C$", "pago_catorcenal": False}
+            stored_catalogos = {
+                "percepciones": [{"id": "p1", "codigo": "SALARIO", "formula_tipo": "fixed"}],
+                "deducciones": [],
+                "prestaciones": [],
+            }
+            original_nomina = Nomina(
+                planilla_id=planilla.id,
+                periodo_inicio=date(2024, 1, 1),
+                periodo_fin=date(2024, 1, 31),
+                generado_por=admin_user.usuario,
+                estado=NominaEstado.GENERADO,
+                total_bruto=Decimal("15000.00"),
+                total_deducciones=Decimal("2000.00"),
+                total_neto=Decimal("13000.00"),
+                total_empleados=1,
+                empleados_procesados=1,
+                empleados_con_error=0,
+                configuracion_snapshot=stored_config,
+                tipos_cambio_snapshot=[{"moneda": "USD", "tipo_cambio": "1.00"}],
+                catalogos_snapshot=stored_catalogos,
+            )
+            db_session.add(original_nomina)
+            db_session.commit()
+            db_session.refresh(original_nomina)
+
+            mock_engine = MagicMock()
+            mock_engine.ejecutar.return_value = MagicMock(spec=Nomina)
+            mock_engine.errors = []
+            mock_engine.warnings = []
+            mock_engine_class.return_value = mock_engine
+
+            NominaService.recalcular_nomina(nomina=original_nomina, planilla=planilla, usuario=admin_user.usuario)
+
+            call_kwargs = mock_engine_class.call_args.kwargs
+            assert call_kwargs.get("snapshot_override") == {
+                "configuracion": stored_config,
+                "tipos_cambio": [{"moneda": "USD", "tipo_cambio": "1.00"}],
+                "catalogos": stored_catalogos,
+            }
+
+    @patch("coati_payroll.audit_helpers.crear_log_auditoria_nomina")
+    @patch("coati_payroll.vistas.planilla.services.nomina_service.NominaEngine")
+    def test_recalcular_nomina_without_snapshot_falls_back_to_fresh_capture(
+        self, mock_engine_class, mock_audit, app, db_session, planilla, empleado, admin_user
+    ):
+        """Legacy nominas without stored snapshots must not pass a snapshot override."""
+        with app.app_context():
+            original_nomina = Nomina(
+                planilla_id=planilla.id,
+                periodo_inicio=date(2024, 1, 1),
+                periodo_fin=date(2024, 1, 31),
+                generado_por=admin_user.usuario,
+                estado=NominaEstado.GENERADO,
+                total_bruto=Decimal("15000.00"),
+                total_deducciones=Decimal("2000.00"),
+                total_neto=Decimal("13000.00"),
+                total_empleados=1,
+                empleados_procesados=1,
+                empleados_con_error=0,
+            )
+            db_session.add(original_nomina)
+            db_session.commit()
+            db_session.refresh(original_nomina)
+
+            mock_engine = MagicMock()
+            mock_engine.ejecutar.return_value = MagicMock(spec=Nomina)
+            mock_engine.errors = []
+            mock_engine.warnings = []
+            mock_engine_class.return_value = mock_engine
+
+            NominaService.recalcular_nomina(nomina=original_nomina, planilla=planilla, usuario=admin_user.usuario)
+
+            call_kwargs = mock_engine_class.call_args.kwargs
+            assert call_kwargs.get("snapshot_override") is None
+
+    @patch("coati_payroll.audit_helpers.crear_log_auditoria_nomina")
+    @patch("coati_payroll.vistas.planilla.services.nomina_service.NominaEngine")
     def test_recalcular_nomina_with_adelanto_abono(
         self, mock_engine_class, mock_audit, app, db_session, planilla, empleado, admin_user
     ):

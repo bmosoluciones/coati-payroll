@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
 
 from coati_payroll.model import Planilla
@@ -21,6 +22,27 @@ class DeductionCalculator:
     def __init__(self, concept_calculator: ConceptCalculator, warnings: WarningCollectorProtocol):
         self.concept_calculator = concept_calculator
         self.warnings = warnings
+
+    def _snapshot_for(self, deduccion) -> dict[str, Any] | None:
+        """Resolve the catalog snapshot entry for a deduction, if available."""
+        if not self.concept_calculator.deducciones_snapshot:
+            return None
+        return self.concept_calculator.deducciones_snapshot.get(deduccion.id) or self.concept_calculator.deducciones_snapshot.get(deduccion.codigo)
+
+    @staticmethod
+    def _snapshot_valido(snapshot_entry: dict[str, Any] | None, fecha_calculo: date) -> bool:
+        """Check validity dates from the snapshot when available."""
+        if not snapshot_entry:
+            return True
+        if snapshot_entry.get("vigente_desde"):
+            desde = date.fromisoformat(snapshot_entry["vigente_desde"])
+            if desde > fecha_calculo:
+                return False
+        if snapshot_entry.get("valido_hasta"):
+            hasta = date.fromisoformat(snapshot_entry["valido_hasta"])
+            if hasta < fecha_calculo:
+                return False
+        return True
 
     def calculate(self, emp_calculo: EmpleadoCalculo, planilla: Planilla, fecha_calculo: date) -> list[DeduccionItem]:
         """Calculate all deductions for an employee, applying priority order."""
@@ -42,23 +64,37 @@ class DeductionCalculator:
             if deduccion.codigo in emp_calculo.inasistencia_codigos_descuento:
                 continue
 
-            # Check validity dates
-            if deduccion.vigente_desde and deduccion.vigente_desde > fecha_calculo:
+            snapshot_entry = self._snapshot_for(deduccion)
+            if not self._snapshot_valido(snapshot_entry, fecha_calculo):
                 continue
-            if deduccion.valido_hasta and deduccion.valido_hasta < fecha_calculo:
-                continue
+
+            # When the deduction exists in the catalog snapshot, prefer the
+            # frozen formula/amount so recalculation reproduces the original
+            # payroll even if the live catalog changed since.
+            formula_tipo = snapshot_entry.get("formula_tipo", deduccion.formula_tipo) if snapshot_entry else deduccion.formula_tipo
+            monto_default = snapshot_entry.get("monto_default", deduccion.monto_default) if snapshot_entry else deduccion.monto_default
+            porcentaje = snapshot_entry.get("porcentaje", deduccion.porcentaje) if snapshot_entry else deduccion.porcentaje
+            formula = snapshot_entry.get("formula", deduccion.formula) if snapshot_entry else deduccion.formula
+            base_calculo = snapshot_entry.get("base_calculo", getattr(deduccion, "base_calculo", None)) if snapshot_entry else getattr(deduccion, "base_calculo", None)
+
+            # Check validity dates against the live object only when there is no snapshot
+            if not snapshot_entry:
+                if deduccion.vigente_desde and deduccion.vigente_desde > fecha_calculo:
+                    continue
+                if deduccion.valido_hasta and deduccion.valido_hasta < fecha_calculo:
+                    continue
 
             # Calculate deduction amount
             monto = self.concept_calculator.calculate(
                 emp_calculo,
-                deduccion.formula_tipo,
-                deduccion.monto_default,
-                deduccion.porcentaje,
-                deduccion.formula,
+                formula_tipo,
+                monto_default,
+                porcentaje,
+                formula,
                 planilla_deduccion.monto_predeterminado,
                 planilla_deduccion.porcentaje,
                 codigo_concepto=deduccion.codigo,
-                base_calculo=getattr(deduccion, "base_calculo", None),
+                base_calculo=base_calculo,
                 unidad_calculo=getattr(deduccion, "unidad_calculo", None),
             )
 
