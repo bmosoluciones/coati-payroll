@@ -96,6 +96,13 @@ class PayrollExecutionService:
         self.concept_calculator.warnings = warnings
         self.deduction_calculator.warnings = warnings
 
+        # Serialize concurrent executions for the same planilla. Locking the
+        # planilla row (SELECT ... FOR UPDATE) makes the overlap/duplicate
+        # checks and the Nomina INSERT an atomic critical section, preventing
+        # two concurrent runs from both passing validation and creating
+        # duplicate payrolls for the same period with duplicated side effects.
+        self.session.execute(db.select(Planilla.id).where(Planilla.id == planilla.id).with_for_update())
+
         # Validate planilla
         from ..domain.payroll_context import PayrollContext
 
