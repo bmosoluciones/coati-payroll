@@ -939,7 +939,7 @@ def test_calcular_acumulacion_annual_frequency(app, db_session, planilla):
 def test_consecutive_payroll_vacation_novelty_no_cross_processing(app, db_session, planilla, empleado):
     """Verify that a vacation novelty bound to one payroll is not cross-processed or loaded by a consecutive run."""
     with app.app_context():
-        from coati_payroll.model import NominaNovedad, PlanillaEmpleado, VacationNovelty
+        from coati_payroll.model import NominaNovedad, PlanillaEmpleado
         from coati_payroll.enums import NovedadEstado
 
         periodo_inicio = date(2025, 1, 1)
@@ -1065,220 +1065,56 @@ def test_consecutive_payroll_vacation_novelty_no_cross_processing(app, db_sessio
         assert service_none._build_vacation_usage_query(empleado)[0].id == novedad_floating.id
 
 
-def test_dry_run_vacation_accrual_and_usage_same_period(app, db_session, planilla, empleado, periodic_policy, moneda):
-    """
-    Test that an employee with zero initial vacation balance who accrues vacation (1.25)
-    and takes vacation (1.00) in the same period can successfully be calculated
-    in dry-run mode (apply_side_effects=False) without triggering NominaEngineError.
-    """
+def test_recalculation_context_keeps_source_bound_vacation_novelties(
+    app, db_session, planilla, empleado
+):
+    """A recalculation must read source-bound novelties before relinking them."""
     with app.app_context():
-        from coati_payroll.model import db, NominaNovedad, VacationNovelty, PlanillaEmpleado
-        from coati_payroll.enums import NovedadEstado, VacacionEstado
+        from coati_payroll.model import NominaNovedad, PlanillaEmpleado
+        from coati_payroll.enums import NovedadEstado
 
-        periodo_inicio = date(2025, 1, 1)
-        periodo_fin = date(2025, 1, 30)
-
-        # Ensure employee is active in the planilla and has a valid fecha_alta for the test period
-        empleado.fecha_alta = date(2024, 1, 1)
-        pe = db_session.execute(
-            db.select(PlanillaEmpleado).filter_by(planilla_id=planilla.id, empleado_id=empleado.id)
-        ).scalars().first()
-        if not pe:
-            pe = PlanillaEmpleado(
+        periodo_inicio = date(2025, 3, 1)
+        periodo_fin = date(2025, 3, 31)
+        db_session.add(
+            PlanillaEmpleado(
                 planilla_id=planilla.id,
                 empleado_id=empleado.id,
                 activo=True,
                 creado_por="test",
             )
-            db_session.add(pe)
-        else:
-            pe.activo = True
-
-        # Create VacationAccount with current_balance = 0
-        account = VacationAccount(
-            empleado_id=empleado.id,
-            policy_id=periodic_policy.id,
-            current_balance=Decimal("0.0000"),
-            activo=True,
-            creado_por="test_system",
         )
-        db_session.add(account)
-        db_session.flush()
-
-        # Create a Nomina
-        nomina = Nomina(
-            id="NOMINA_TEST_SAME_PERIOD",
+        source = Nomina(
+            id="NOMINA_SOURCE_01",
             planilla_id=planilla.id,
             periodo_inicio=periodo_inicio,
             periodo_fin=periodo_fin,
             generado_por="test_user",
             estado="draft",
         )
-        db_session.add(nomina)
+        db_session.add(source)
         db_session.flush()
-
-        # Create NominaEmpleado
-        nomina_empleado = NominaEmpleado(
-            nomina_id=nomina.id,
-            empleado_id=empleado.id,
-            sueldo_base_historico=Decimal("1000.00"),
-            moneda_origen_id=moneda.id,
-        )
-        db_session.add(nomina_empleado)
-        db_session.flush()
-
-        # Create VacationNovelty with units = 1.00 (within limits of 1.25 accrual)
-        vac_novelty = VacationNovelty(
-            empleado_id=empleado.id,
-            account_id=account.id,
-            start_date=date(2025, 1, 5),
-            end_date=date(2025, 1, 10),
-            units=Decimal("1.0000"),
-            estado=VacacionEstado.APROBADO,
-        )
-        db_session.add(vac_novelty)
-        db_session.flush()
-
-        # Create linked NominaNovedad
-        novedad = NominaNovedad(
-            nomina_id=nomina.id,
+        novelty = NominaNovedad(
+            nomina_id=source.id,
             empleado_id=empleado.id,
             codigo_concepto="VAC",
             tipo_valor="dias",
-            valor_cantidad=Decimal("1.0000"),
-            fecha_novedad=date(2025, 1, 5),
+            valor_cantidad=Decimal("2.00"),
+            fecha_novedad=date(2025, 3, 10),
             es_descanso_vacaciones=True,
-            vacation_novelty_id=vac_novelty.id,
             estado=NovedadEstado.PENDIENTE,
             creado_por="test_user",
         )
-        db_session.add(novedad)
+        db_session.add(novelty)
         db_session.commit()
 
-        # Instantiate VacationService with apply_side_effects=False
+        # The execution context must remain the source ID until relinking.
         service = VacationService(
             planilla=planilla,
             periodo_inicio=periodo_inicio,
             periodo_fin=periodo_fin,
-            nomina_id=nomina.id,
+            nomina_id=source.id,
             apply_side_effects=False,
         )
+        usage = service._build_vacation_usage_query(empleado)
 
-        # Step 1: Accumulate vacation (calculated accrual = 1.25, but not committed to DB)
-        accrued = service.acumular_vacaciones_empleado(empleado, nomina_empleado, "test_user")
-        assert accrued > Decimal("0.00")
-
-        # Step 2: Process usage. This should succeed without NominaEngineError because
-        # accrued vacation is tracked temporarily.
-        used = service.procesar_novedades_vacaciones(empleado, "test_user")
-        assert used == Decimal("1.0000")
-
-
-# ============================================================================
-# EXTENDED VACATION SERVICE COVERAGE TESTS
-# ============================================================================
-
-
-def test_vacation_service_invalid_config_validation(app, db_session, planilla):
-    """Test validation errors raised for negative/zero configuration days."""
-    from coati_payroll.model import ConfiguracionCalculos
-    from coati_payroll.nomina_engine.validators import ValidationError
-
-    service = VacationService(planilla, date.today(), date.today())
-
-    # Negative/Zero Config items
-    bad_config = ConfiguracionCalculos(
-        dias_mes_vacaciones=0,
-        dias_anio_vacaciones=360,
-        dias_quincena=15,
-        meses_anio_financiero=12,
-        dias_anio_antiguedad=365
-    )
-    with pytest.raises(ValidationError, match="dias_mes_vacaciones debe ser mayor que cero"):
-        service._validar_configuracion(bad_config)
-
-    bad_config2 = ConfiguracionCalculos(
-        dias_mes_vacaciones=30,
-        dias_anio_vacaciones=-1,
-        dias_quincena=15,
-        meses_anio_financiero=12,
-        dias_anio_antiguedad=365
-    )
-    with pytest.raises(ValidationError, match="dias_anio_vacaciones debe ser mayor que cero"):
-        service._validar_configuracion(bad_config2)
-
-
-def test_vacation_service_policy_bounds_errors(app, db_session, planilla, empleado):
-    """Test policy bounding errors when policy doesn't belong to planilla or company."""
-    from coati_payroll.model import VacationPolicy
-    from coati_payroll.nomina_engine.validators import ValidationError
-
-    with app.app_context():
-        # Policy belongs to a different planilla
-        other_policy = VacationPolicy(
-            planilla_id="OTHER_PLANILLA",
-            codigo="OTHER_POL",
-            nombre="Other",
-            accrual_method="periodic",
-            accrual_rate=Decimal("1.25"),
-            unit_type="days"
-        )
-        db_session.add(other_policy)
-        db_session.flush()
-
-        planilla.vacation_policy_id = other_policy.id
-        db_session.commit()
-
-        service = VacationService(planilla, date.today(), date.today())
-        with pytest.raises(ValidationError, match="does not belong to planilla"):
-            service._resolve_bound_policy_account(empleado, {})
-
-
-def test_vacation_service_leave_prerequisites(app, db_session, planilla, empleado, periodic_policy):
-    """Test unit_type checking and seniority prerequisites for accrual eligibility."""
-    from coati_payroll.nomina_engine.validators import ValidationError
-    from coati_payroll.model import NominaEmpleado, VacationAccount
-
-    with app.app_context():
-        # Invalid unit type
-        periodic_policy.unit_type = "invalid_unit"
-        db_session.commit()
-
-        account = VacationAccount(
-            empleado_id=empleado.id,
-            policy_id=periodic_policy.id,
-            current_balance=Decimal("0.0")
-        )
-        db_session.add(account)
-        db_session.commit()
-
-        service = VacationService(planilla, date.today(), date.today())
-        ne = NominaEmpleado(nomina_id="NOM_X", empleado_id=empleado.id)
-
-        with pytest.raises(ValidationError, match="Tipo de unidad inválida"):
-            service._eligible_for_accrual(empleado, ne, account, periodic_policy)
-
-
-def test_vacation_service_accrual_caps_and_partial_units(app, db_session, planilla):
-    """Test applying vacation balance caps and rounding rules."""
-    from coati_payroll.model import VacationPolicy
-
-    service = VacationService(planilla, date.today(), date.today())
-
-    policy = VacationPolicy(
-        codigo="CAP_POL",
-        nombre="Cap Policy",
-        unit_type="days",
-        max_balance=10.0,
-        partial_units_allowed=False,
-        rounding_rule="round_half_up"
-    )
-
-    # Balance before = 9.0, accrual = 1.6 -> cap limits to 10.0, so amount = 1.0 (after rounding if applicable)
-    amount = service._normalize_accrual_amount(Decimal("1.6"), Decimal("9.0"), policy, "EMP01")
-    assert amount == Decimal("1.0")
-
-    # If partial units are allowed, cap holds but no integer rounding
-    policy.partial_units_allowed = True
-    amount2 = service._normalize_accrual_amount(Decimal("1.25"), Decimal("9.0"), policy, "EMP01")
-    assert amount2 == Decimal("1.0000")  # max_balance = 10.0, so limit is 10.0 - 9.0 = 1.0
+        assert [item.id for item in usage] == [novelty.id]

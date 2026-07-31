@@ -163,6 +163,12 @@ class PayrollExecutionService:
         db.session.add(nomina)
         db.session.flush()
 
+        # During recalculation, novelties remain bound to the source payroll
+        # until the recalculation service relinks them after a successful run.
+        # Use that source ID as the read context so bound novelties are not
+        # omitted while the new payroll is being calculated.
+        novelty_context_id = excluded_nomina_id or nomina.id
+
         # Initialize processors that need nomina
         loan_processor = LoanProcessor(
             nomina, fecha_calculo, periodo_inicio, periodo_fin, calcular_interes=True, apply_side_effects=False
@@ -199,7 +205,7 @@ class PayrollExecutionService:
                     snapshot.get("tipos_cambio"),
                     bootstrap_context,
                     warnings,
-                    nomina_id=nomina.id,
+                    nomina_id=novelty_context_id,
                 )
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
