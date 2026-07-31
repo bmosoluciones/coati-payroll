@@ -74,7 +74,13 @@ class LoanProcessor:
                 continue
 
             saldo_pendiente = Decimal(str(prestamo.saldo_pendiente or 0))
-            monto_aplicar = min(monto_cuota, saldo_pendiente, saldo_disponible)
+            if self.liquidacion is not None:
+                # Termination settlement: the full outstanding balance is due,
+                # not a single installment, otherwise the rest becomes
+                # uncollectible once the employee is inactive.
+                monto_aplicar = min(saldo_pendiente, saldo_disponible)
+            else:
+                monto_aplicar = min(monto_cuota, saldo_pendiente, saldo_disponible)
 
             item = DeduccionItem(
                 codigo=f"PRESTAMO_{prestamo.id[:8]}",
@@ -124,9 +130,13 @@ class LoanProcessor:
             if saldo_disponible <= 0:
                 break
 
-            monto_cuota = Decimal(str(adelanto.monto_por_cuota or adelanto.saldo_pendiente))
             saldo_pendiente = Decimal(str(adelanto.saldo_pendiente or 0))
-            monto_aplicar = min(monto_cuota, saldo_pendiente, saldo_disponible)
+            if self.liquidacion is not None:
+                # Termination settlement: the full outstanding balance is due.
+                monto_aplicar = min(saldo_pendiente, saldo_disponible)
+            else:
+                monto_cuota = Decimal(str(adelanto.monto_por_cuota or adelanto.saldo_pendiente))
+                monto_aplicar = min(monto_cuota, saldo_pendiente, saldo_disponible)
 
             item = DeduccionItem(
                 codigo=f"ADELANTO_{adelanto.id[:8]}",

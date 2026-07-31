@@ -256,3 +256,85 @@ def test_deducciones_adelantos_y_recalculo_no_duplica_abonos(app, db_session):
         db_session.refresh(adelanto)
         assert Decimal(str(prestamo.saldo_pendiente)) == Decimal("0.00")
         assert Decimal(str(adelanto.saldo_pendiente)) == Decimal("0.00")
+
+
+def test_liquidacion_deduce_saldo_total_no_una_cuota(app, db_session):
+    """Liquidation must deduct the full outstanding balance, not a single installment."""
+    from tests.factories.company_factory import create_company
+
+    with app.app_context():
+        empresa = create_company(db_session, codigo="E5", razon_social="Empresa 5", ruc="RUC5")
+
+        config = ConfiguracionCalculos(
+            empresa_id=empresa.id,
+            pais_id=None,
+            activo=True,
+            liquidacion_modo_dias="calendar",
+            liquidacion_factor_calendario=30,
+            liquidacion_factor_laboral=28,
+        )
+        db_session.add(config)
+
+        empleado = Empleado(
+            empresa_id=empresa.id,
+            codigo_empleado="EMP5",
+            primer_nombre="A",
+            primer_apellido="B",
+            identificacion_personal="ID-EMP5",
+            fecha_alta=date(2025, 1, 1),
+            salario_base=Decimal("300.00"),
+            activo=True,
+        )
+        db_session.add(empleado)
+        db_session.flush()
+
+        ded = Deduccion(
+            codigo="DED2",
+            nombre="Deduccion Prestamo",
+            tipo="loan",
+            es_impuesto=False,
+            formula_tipo="fixed",
+            antes_impuesto=False,
+            recurrente=False,
+            activo=True,
+        )
+        db_session.add(ded)
+        db_session.flush()
+
+        prestamo = Adelanto(
+            empleado_id=empleado.id,
+            deduccion_id=ded.id,
+            tipo="loan",
+            estado=AdelantoEstado.APROBADO,
+            saldo_pendiente=Decimal("20.00"),
+            monto_por_cuota=Decimal("2.00"),  # installment much smaller than balance
+        )
+        db_session.add(prestamo)
+        db_session.commit()
+
+        # fecha_calculo - (fecha_alta - 1) = 2 days => 300/30 * 2 = 20.00 gross.
+        # The whole 20.00 balance is deducted (not just the 2.00 installment),
+        # because the settlement covers the full outstanding debt.
+        liq, errors, _warnings = ejecutar_liquidacion(
+            empleado_id=empleado.id,
+            concepto_id=None,
+            fecha_calculo=date(2025, 1, 2),
+            usuario="test",
+        )
+        assert errors == []
+        assert liq is not None
+
+        liq.estado = LiquidacionEstado.APLICADO
+        engine = LiquidacionEngine(empleado=empleado, fecha_calculo=liq.fecha_calculo)
+        applied = engine.calcular(liq)
+        assert applied is not None
+        db_session.commit()
+
+        prestamo = db_session.get(Adelanto, prestamo.id)
+        # Full 20.00 balance applied, not the 2.00 installment
+        assert Decimal(str(prestamo.saldo_pendiente)) == Decimal("0.00")
+
+        loan_deductions = [d for d in liq.detalles if d.tipo == "deduction" and d.codigo.startswith("PRESTAMO_")]
+        assert len(loan_deductions) == 1
+        assert loan_deductions[0].monto == Decimal("20.00")
+
