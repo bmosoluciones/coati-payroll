@@ -202,6 +202,27 @@ class PayrollExecutionService:
             if not planilla_empleado.activo:
                 continue
 
+            # Respect the employee's assignment window. An association that has
+            # not started yet (fecha_inicio > periodo_fin) or already ended
+            # (fecha_fin < periodo_inicio) must not be processed even if the
+            # association is still marked active.
+            if planilla_empleado.fecha_inicio and planilla_empleado.fecha_inicio > periodo_fin:
+                warnings.append(
+                    f"Empleado {planilla_empleado.empleado.primer_nombre} "
+                    f"{planilla_empleado.empleado.primer_apellido} fuera de la ventana de asignación "
+                    f"(inicio {planilla_empleado.fecha_inicio} posterior al fin del período {periodo_fin}); "
+                    "será omitido."
+                )
+                continue
+            if planilla_empleado.fecha_fin and planilla_empleado.fecha_fin < periodo_inicio:
+                warnings.append(
+                    f"Empleado {planilla_empleado.empleado.primer_nombre} "
+                    f"{planilla_empleado.empleado.primer_apellido} fuera de la ventana de asignación "
+                    f"(fin {planilla_empleado.fecha_fin} anterior al inicio del período {periodo_inicio}); "
+                    "será omitido."
+                )
+                continue
+
             empleado = planilla_empleado.empleado
             if not empleado.activo:
                 warnings.append(
@@ -222,6 +243,7 @@ class PayrollExecutionService:
                     bootstrap_context,
                     warnings,
                     nomina_id=novelty_context_id,
+                    planilla_empleado=planilla_empleado,
                 )
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
@@ -420,11 +442,12 @@ class PayrollExecutionService:
         bootstrap_context: dict[str, Any],
         warnings: WarningCollector,
         nomina_id: str | None = None,
+        planilla_empleado=None,
     ) -> EmpleadoCalculo:
         """Process a single employee's payroll."""
         # Validate employee
         employee_validation = self.employee_validator.validate_employee(
-            empleado, planilla.empresa_id, periodo_inicio, periodo_fin
+            empleado, planilla.empresa_id, periodo_inicio, periodo_fin, planilla_empleado=planilla_empleado
         )
         if not employee_validation.is_valid:
             # Include specific validation errors (errors is already a list of strings)

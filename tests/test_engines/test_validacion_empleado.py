@@ -65,7 +65,9 @@ class TestValidacionEmpleadoActivo:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -139,7 +141,9 @@ class TestValidacionFechaIngreso:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -205,7 +209,9 @@ class TestValidacionFechaIngreso:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -276,7 +282,9 @@ class TestValidacionFechaSalida:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -348,7 +356,9 @@ class TestValidacionDatosEmpleado:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -414,7 +424,9 @@ class TestValidacionDatosEmpleado:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -480,7 +492,9 @@ class TestValidacionDatosEmpleado:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -549,7 +563,9 @@ class TestValidacionPeriodo:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -614,7 +630,9 @@ class TestValidacionPeriodo:
             db_session.add(empleado)
             db_session.flush()
 
-            planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+            )
             db_session.add(planilla_emp)
             db_session.commit()
 
@@ -633,3 +651,144 @@ class TestValidacionPeriodo:
             assert len(engine.errors) > 0
             error_found = any("excesivamente largo" in e for e in engine.errors)
             assert error_found, f"Expected error about excessive period. Errors: {engine.errors}"
+
+
+class TestVentanaAsignacion:
+    """Tests for the PlanillaEmpleado assignment window."""
+
+    def test_empleado_fuera_ventana_futura_omitido(self, app, db_session):
+        """An association that starts after the period is not processed."""
+        from coati_payroll.model import Empresa, Moneda, TipoPlanilla, Planilla, Empleado, PlanillaEmpleado
+
+        with app.app_context():
+            moneda = Moneda(codigo="NIO", nombre="Córdoba", simbolo="C$", activo=True)
+            db_session.add(moneda)
+            db_session.flush()
+
+            empresa = Empresa(codigo="TESTW1", razon_social="Window Test SA", ruc="J-12345679")
+            db_session.add(empresa)
+            db_session.flush()
+
+            tipo_planilla = TipoPlanilla(
+                codigo="MENSUALW",
+                descripcion="Mensual",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=1,
+                dia_inicio_fiscal=1,
+            )
+            db_session.add(tipo_planilla)
+            db_session.flush()
+
+            planilla = Planilla(
+                nombre="Planilla Test", tipo_planilla_id=tipo_planilla.id, moneda_id=moneda.id, activo=True
+            )
+            db_session.add(planilla)
+            db_session.flush()
+
+            empleado = Empleado(
+                codigo_empleado="EMPWIN1",
+                primer_nombre="Futura",
+                primer_apellido="Asignacion",
+                identificacion_personal="001-010180-9999A",
+                salario_base=Decimal("15000.00"),
+                fecha_alta=date(2024, 1, 1),
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(empleado)
+            db_session.flush()
+
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id,
+                empleado_id=empleado.id,
+                activo=True,
+                fecha_inicio=date(2025, 3, 1),  # starts AFTER the period
+            )
+            db_session.add(planilla_emp)
+            db_session.commit()
+
+            engine = NominaEngine(
+                planilla=planilla,
+                periodo_inicio=date(2025, 1, 1),
+                periodo_fin=date(2025, 1, 31),
+                fecha_calculo=date(2025, 1, 31),
+                usuario="admin",
+            )
+            nomina = engine.ejecutar()
+
+            assert nomina is not None
+            assert len(engine.empleados_calculo) == 0
+            warning_found = any("fuera de la ventana de asignación" in w for w in engine.warnings)
+            assert warning_found
+
+    def test_empleado_fuera_ventana_vencida_omitido(self, app, db_session):
+        """An association that already ended before the period is not processed."""
+        from coati_payroll.model import Empresa, Moneda, TipoPlanilla, Planilla, Empleado, PlanillaEmpleado
+
+        with app.app_context():
+            moneda = Moneda(codigo="NIO", nombre="Córdoba", simbolo="C$", activo=True)
+            db_session.add(moneda)
+            db_session.flush()
+
+            empresa = Empresa(codigo="TESTW2", razon_social="Window Test SA", ruc="J-12345680")
+            db_session.add(empresa)
+            db_session.flush()
+
+            tipo_planilla = TipoPlanilla(
+                codigo="MENSUALW2",
+                descripcion="Mensual",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=1,
+                dia_inicio_fiscal=1,
+            )
+            db_session.add(tipo_planilla)
+            db_session.flush()
+
+            planilla = Planilla(
+                nombre="Planilla Test", tipo_planilla_id=tipo_planilla.id, moneda_id=moneda.id, activo=True
+            )
+            db_session.add(planilla)
+            db_session.flush()
+
+            empleado = Empleado(
+                codigo_empleado="EMPWIN2",
+                primer_nombre="Vencida",
+                primer_apellido="Asignacion",
+                identificacion_personal="001-010180-9999B",
+                salario_base=Decimal("15000.00"),
+                fecha_alta=date(2024, 1, 1),
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(empleado)
+            db_session.flush()
+
+            planilla_emp = PlanillaEmpleado(
+                planilla_id=planilla.id,
+                empleado_id=empleado.id,
+                activo=True,
+                fecha_inicio=date(2024, 1, 1),
+                fecha_fin=date(2024, 12, 31),  # ended BEFORE the period
+            )
+            db_session.add(planilla_emp)
+            db_session.commit()
+
+            engine = NominaEngine(
+                planilla=planilla,
+                periodo_inicio=date(2025, 1, 1),
+                periodo_fin=date(2025, 1, 31),
+                fecha_calculo=date(2025, 1, 31),
+                usuario="admin",
+            )
+            nomina = engine.ejecutar()
+
+            assert nomina is not None
+            assert len(engine.empleados_calculo) == 0
+            warning_found = any("fuera de la ventana de asignación" in w for w in engine.warnings)
+            assert warning_found

@@ -24,13 +24,32 @@ class EmployeeValidator(BaseValidator):
         return result
 
     def validate_employee(
-        self, empleado: Empleado, planilla_empresa_id: str | None, periodo_inicio: date, periodo_fin: date
+        self,
+        empleado: Empleado,
+        planilla_empresa_id: str | None,
+        periodo_inicio: date,
+        periodo_fin: date,
+        planilla_empleado=None,
     ) -> ValidationResult:
         """Validate employee for payroll processing."""
         result = ValidationResult()
 
         if not empleado.activo:
             result.add_error(f"Empleado {empleado.codigo_empleado} no está activo")
+
+        if planilla_empleado is not None:
+            fecha_inicio = getattr(planilla_empleado, "fecha_inicio", None)
+            fecha_fin = getattr(planilla_empleado, "fecha_fin", None)
+            if fecha_inicio and fecha_inicio > periodo_fin:
+                result.add_error(
+                    f"Empleado {empleado.codigo_empleado}: la asignación inicia "
+                    f"({fecha_inicio}) después del fin del período ({periodo_fin})"
+                )
+            if fecha_fin and fecha_fin < periodo_inicio:
+                result.add_error(
+                    f"Empleado {empleado.codigo_empleado}: la asignación terminó "
+                    f"({fecha_fin}) antes del inicio del período ({periodo_inicio})"
+                )
 
         if empleado.fecha_alta:
             if empleado.fecha_alta > periodo_fin:

@@ -89,7 +89,9 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
         db_session.add(empleado)
         db_session.flush()
 
-        planilla_emp = PlanillaEmpleado(planilla_id=planilla.id, empleado_id=empleado.id, activo=True)
+        planilla_emp = PlanillaEmpleado(
+            planilla_id=planilla.id, empleado_id=empleado.id, activo=True, fecha_inicio=date(2024, 1, 1)
+        )
         db_session.add(planilla_emp)
 
         # Create active loan/advance for the employee

@@ -264,6 +264,7 @@ class TestRegressionPreventionCalculations:
                 planilla_id=planilla.id,
                 empleado_id=empleado.id,
                 activo=True,
+                fecha_inicio=date(2024, 1, 1),
             )
             db_session.add(planilla_emp)
             db_session.flush()
