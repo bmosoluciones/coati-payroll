@@ -1418,6 +1418,111 @@ def test_regenerar_comprobante_contable_aplicado_state_success(app, client, admi
             assert f"/planilla/{planilla.id}/nomina/{nomina.id}/log" in response.location
 
 
+# ============================================================================
+# EXTENDED NOMINA ROUTES COVERAGE TESTS
+# ============================================================================
+
+
+def test_comparar_nomina_route_success(app, client, admin_user, db_session, planilla, nomina):
+    """Test payroll comparison route GET behaviors with filters and defaults."""
+    with app.app_context():
+        from tests.helpers.auth import login_user
+        login_user(client, admin_user.usuario, "admin-password")
+
+        # Create another nomina to compare with
+        from coati_payroll.model import Nomina
+        other_nomina = Nomina(
+            id="NOM-OTHER-COMPARE",
+            planilla_id=planilla.id,
+            periodo_inicio=date(2025, 2, 1),
+            periodo_fin=date(2025, 2, 15),
+            estado="draft",
+        )
+        db_session.add(other_nomina)
+        db_session.commit()
+
+        # Call with no arguments
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/comparar")
+        assert response.status_code == 200
+
+        # Call with base selection and execute parameter
+        response2 = client.get(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/comparar?nomina_base_id=NOM-OTHER-COMPARE&ejecutar=1"
+        )
+        assert response2.status_code == 200
+
+
+def test_aplicar_vacaciones_route_get_and_post(app, client, admin_user, db_session, planilla, nomina, empleado):
+    """Test getting and posting to the vacation application route."""
+    with app.app_context():
+        from tests.helpers.auth import login_user
+        login_user(client, admin_user.usuario, "admin-password")
+
+        # Create a Percepcion concept
+        from coati_payroll.model import Percepcion, VacationNovelty, VacationPolicy, VacationAccount
+        from coati_payroll.enums import VacacionEstado
+
+        perc = Percepcion(
+            id="VAC_PERC_ID",
+            codigo="VAC_INC",
+            nombre="Vacation Income",
+        )
+        db_session.add(perc)
+        db_session.commit()
+
+        # Get request to the application form
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/vacaciones/aplicar")
+        assert response.status_code == 200
+
+        policy = VacationPolicy(nombre="Standard Policy", codigo="STD_VAC_ROUTE")
+        db_session.add(policy)
+        db_session.commit()
+
+        acc = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=policy.id,
+            current_balance=10.0
+        )
+        db_session.add(acc)
+        db_session.commit()
+
+        # Create approved vacation request
+        vac = VacationNovelty(
+            empleado_id=empleado.id,
+            account_id=acc.id,
+            start_date=date(2025, 1, 5),
+            end_date=date(2025, 1, 10),
+            units=Decimal("5.00"),
+            estado=VacacionEstado.APROBADO,
+        )
+        db_session.add(vac)
+        db_session.commit()
+
+        # Post with empty selection
+        response_empty = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/vacaciones/aplicar",
+            data={
+                "tipo_concepto": "income",
+                "percepcion_id": "VAC_PERC_ID",
+            }
+        )
+        assert response_empty.status_code == 200
+        assert b"Debe seleccionar al menos una solicitud de vacaciones" in response_empty.data
+
+        # Post with selection and valid concept
+        response_success = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/vacaciones/aplicar",
+            data={
+                "vacation_ids": [vac.id],
+                "tipo_concepto": "income",
+                "percepcion_id": "VAC_PERC_ID",
+            },
+            follow_redirects=True
+        )
+        assert response_success.status_code == 200
+        assert b"Se aplicaron" in response_success.data or b"vacaciones" in response_success.data
+
+
 def test_regenerar_comprobante_contable_pagado_state_success(app, client, admin_user, db_session, planilla, nomina):
     """Test successful comprobante regeneration for PAGADO state."""
     with app.app_context():

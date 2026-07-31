@@ -1172,3 +1172,113 @@ def test_dry_run_vacation_accrual_and_usage_same_period(app, db_session, planill
         # accrued vacation is tracked temporarily.
         used = service.procesar_novedades_vacaciones(empleado, "test_user")
         assert used == Decimal("1.0000")
+
+
+# ============================================================================
+# EXTENDED VACATION SERVICE COVERAGE TESTS
+# ============================================================================
+
+
+def test_vacation_service_invalid_config_validation(app, db_session, planilla):
+    """Test validation errors raised for negative/zero configuration days."""
+    from coati_payroll.model import ConfiguracionCalculos
+    from coati_payroll.nomina_engine.validators import ValidationError
+
+    service = VacationService(planilla, date.today(), date.today())
+
+    # Negative/Zero Config items
+    bad_config = ConfiguracionCalculos(
+        dias_mes_vacaciones=0,
+        dias_anio_vacaciones=360,
+        dias_quincena=15,
+        meses_anio_financiero=12,
+        dias_anio_antiguedad=365
+    )
+    with pytest.raises(ValidationError, match="dias_mes_vacaciones debe ser mayor que cero"):
+        service._validar_configuracion(bad_config)
+
+    bad_config2 = ConfiguracionCalculos(
+        dias_mes_vacaciones=30,
+        dias_anio_vacaciones=-1,
+        dias_quincena=15,
+        meses_anio_financiero=12,
+        dias_anio_antiguedad=365
+    )
+    with pytest.raises(ValidationError, match="dias_anio_vacaciones debe ser mayor que cero"):
+        service._validar_configuracion(bad_config2)
+
+
+def test_vacation_service_policy_bounds_errors(app, db_session, planilla, empleado):
+    """Test policy bounding errors when policy doesn't belong to planilla or company."""
+    from coati_payroll.model import VacationPolicy
+    from coati_payroll.nomina_engine.validators import ValidationError
+
+    with app.app_context():
+        # Policy belongs to a different planilla
+        other_policy = VacationPolicy(
+            planilla_id="OTHER_PLANILLA",
+            codigo="OTHER_POL",
+            nombre="Other",
+            accrual_method="periodic",
+            accrual_rate=Decimal("1.25"),
+            unit_type="days"
+        )
+        db_session.add(other_policy)
+        db_session.flush()
+
+        planilla.vacation_policy_id = other_policy.id
+        db_session.commit()
+
+        service = VacationService(planilla, date.today(), date.today())
+        with pytest.raises(ValidationError, match="does not belong to planilla"):
+            service._resolve_bound_policy_account(empleado, {})
+
+
+def test_vacation_service_leave_prerequisites(app, db_session, planilla, empleado, periodic_policy):
+    """Test unit_type checking and seniority prerequisites for accrual eligibility."""
+    from coati_payroll.nomina_engine.validators import ValidationError
+    from coati_payroll.model import NominaEmpleado, VacationAccount
+
+    with app.app_context():
+        # Invalid unit type
+        periodic_policy.unit_type = "invalid_unit"
+        db_session.commit()
+
+        account = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=periodic_policy.id,
+            current_balance=Decimal("0.0")
+        )
+        db_session.add(account)
+        db_session.commit()
+
+        service = VacationService(planilla, date.today(), date.today())
+        ne = NominaEmpleado(nomina_id="NOM_X", empleado_id=empleado.id)
+
+        with pytest.raises(ValidationError, match="Tipo de unidad inválida"):
+            service._eligible_for_accrual(empleado, ne, account, periodic_policy)
+
+
+def test_vacation_service_accrual_caps_and_partial_units(app, db_session, planilla):
+    """Test applying vacation balance caps and rounding rules."""
+    from coati_payroll.model import VacationPolicy
+
+    service = VacationService(planilla, date.today(), date.today())
+
+    policy = VacationPolicy(
+        codigo="CAP_POL",
+        nombre="Cap Policy",
+        unit_type="days",
+        max_balance=10.0,
+        partial_units_allowed=False,
+        rounding_rule="round_half_up"
+    )
+
+    # Balance before = 9.0, accrual = 1.6 -> cap limits to 10.0, so amount = 1.0 (after rounding if applicable)
+    amount = service._normalize_accrual_amount(Decimal("1.6"), Decimal("9.0"), policy, "EMP01")
+    assert amount == Decimal("1.0")
+
+    # If partial units are allowed, cap holds but no integer rounding
+    policy.partial_units_allowed = True
+    amount2 = service._normalize_accrual_amount(Decimal("1.25"), Decimal("9.0"), policy, "EMP01")
+    assert amount2 == Decimal("1.0000")  # max_balance = 10.0, so limit is 10.0 - 9.0 = 1.0

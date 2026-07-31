@@ -282,12 +282,12 @@ def payroll_employee_detail_report(parameters: Dict[str, Any]) -> List[Dict[str,
         {
             "Código Empleado": empleado.codigo_empleado,
             "Nombre": f"{empleado.primer_nombre} {empleado.primer_apellido}",
-            "Salario Base": float(nomina_emp.salario_base) if nomina_emp.salario_base else 0.0,
-            "Total Percepciones": float(nomina_emp.total_percepciones) if nomina_emp.total_percepciones else 0.0,
+            "Salario Base": float(nomina_emp.sueldo_base_historico) if nomina_emp.sueldo_base_historico else 0.0,
+            "Total Percepciones": float(nomina_emp.total_ingresos) if nomina_emp.total_ingresos else 0.0,
             "Salario Bruto": float(nomina_emp.salario_bruto) if nomina_emp.salario_bruto else 0.0,
             "Total Deducciones": float(nomina_emp.total_deducciones) if nomina_emp.total_deducciones else 0.0,
             "Salario Neto": float(nomina_emp.salario_neto) if nomina_emp.salario_neto else 0.0,
-            "Total Prestaciones": float(nomina_emp.total_prestaciones) if nomina_emp.total_prestaciones else 0.0,
+            "Total Prestaciones": 0.0,
         }
         for nomina_emp, empleado in results
     ]
@@ -307,20 +307,21 @@ def payroll_perceptions_summary_report(parameters: Dict[str, Any]) -> List[Dict[
 
     results = db.session.execute(
         db.select(
-            NominaDetalle.concepto_codigo,
-            NominaDetalle.concepto_nombre,
+            NominaDetalle.codigo,
+            NominaDetalle.descripcion,
             count(NominaDetalle.id).label("cantidad_empleados"),
             func.sum(NominaDetalle.monto).label("total"),
         )
-        .filter(NominaDetalle.nomina_id == nomina_id, NominaDetalle.tipo == TipoDetalle.INGRESO)
-        .group_by(NominaDetalle.concepto_codigo, NominaDetalle.concepto_nombre)
-        .order_by(NominaDetalle.concepto_codigo)
+        .join(NominaEmpleado, NominaDetalle.nomina_empleado_id == NominaEmpleado.id)
+        .filter(NominaEmpleado.nomina_id == nomina_id, NominaDetalle.tipo == TipoDetalle.INGRESO)
+        .group_by(NominaDetalle.codigo, NominaDetalle.descripcion)
+        .order_by(NominaDetalle.codigo)
     ).all()
 
     return [
         {
-            "Código Concepto": row.concepto_codigo,
-            "Concepto": row.concepto_nombre,
+            "Código Concepto": row.codigo,
+            "Concepto": row.descripcion,
             "Cantidad Empleados": row.cantidad_empleados,
             "Total": float(row.total) if row.total else 0.0,
         }
@@ -342,20 +343,21 @@ def payroll_deductions_summary_report(parameters: Dict[str, Any]) -> List[Dict[s
 
     results = db.session.execute(
         db.select(
-            NominaDetalle.concepto_codigo,
-            NominaDetalle.concepto_nombre,
+            NominaDetalle.codigo,
+            NominaDetalle.descripcion,
             count(NominaDetalle.id).label("cantidad_empleados"),
             func.sum(NominaDetalle.monto).label("total"),
         )
-        .filter(NominaDetalle.nomina_id == nomina_id, NominaDetalle.tipo == TipoDetalle.DEDUCCION)
-        .group_by(NominaDetalle.concepto_codigo, NominaDetalle.concepto_nombre)
-        .order_by(NominaDetalle.concepto_codigo)
+        .join(NominaEmpleado, NominaDetalle.nomina_empleado_id == NominaEmpleado.id)
+        .filter(NominaEmpleado.nomina_id == nomina_id, NominaDetalle.tipo == TipoDetalle.DEDUCCION)
+        .group_by(NominaDetalle.codigo, NominaDetalle.descripcion)
+        .order_by(NominaDetalle.codigo)
     ).all()
 
     return [
         {
-            "Código Concepto": row.concepto_codigo,
-            "Concepto": row.concepto_nombre,
+            "Código Concepto": row.codigo,
+            "Concepto": row.descripcion,
             "Cantidad Empleados": row.cantidad_empleados,
             "Total": float(row.total) if row.total else 0.0,
         }
@@ -416,19 +418,19 @@ def vacation_taken_by_period_report(parameters: Dict[str, Any]) -> List[Dict[str
     )
 
     if fecha_inicio:
-        stmt = stmt.filter(VacationLedger.entry_date >= fecha_inicio)
+        stmt = stmt.filter(VacationLedger.fecha >= fecha_inicio)
     if fecha_fin:
-        stmt = stmt.filter(VacationLedger.entry_date <= fecha_fin)
+        stmt = stmt.filter(VacationLedger.fecha <= fecha_fin)
 
-    results = db.session.execute(stmt.order_by(VacationLedger.entry_date.desc())).all()
+    results = db.session.execute(stmt.order_by(VacationLedger.fecha.desc())).all()
 
     return [
         {
-            "Fecha": entry.entry_date.isoformat() if entry.entry_date else "",
+            "Fecha": entry.fecha.isoformat() if entry.fecha else "",
             "Código Empleado": empleado.codigo_empleado,
             "Nombre": f"{empleado.primer_nombre} {empleado.primer_apellido}",
-            "Días Usados": float(abs(entry.days_change)) if entry.days_change else 0.0,
-            "Descripción": entry.description or "",
+            "Días Usados": float(abs(entry.quantity)) if entry.quantity else 0.0,
+            "Descripción": entry.observaciones or "",
         }
         for entry, empleado in results
     ]

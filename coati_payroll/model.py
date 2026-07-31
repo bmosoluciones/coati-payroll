@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 # <-------------------------------------------------------------------------> #
 # Standard library
 # <-------------------------------------------------------------------------> #
@@ -956,6 +958,18 @@ class Nomina(database.Model, BaseTabla):
         back_populates="nomina_base",
         foreign_keys="NominaComparacion.nomina_base_id",
     )
+
+    @property
+    def codigo_nomina(self) -> str:
+        return self.id
+
+    @property
+    def descripcion(self) -> str:
+        return f"Nómina {self.id}"
+
+    @property
+    def fecha_pago(self) -> date:
+        return self.periodo_fin
 
 
 class NominaComparacion(database.Model, BaseTabla):
@@ -2203,6 +2217,20 @@ class VacationAccount(database.Model, BaseTabla):
 
     # Relationships
     ledger_entries = database.relationship("VacationLedger", back_populates="account", order_by="VacationLedger.fecha")
+
+    @property
+    def accrued_days(self) -> Decimal:
+        entries: list[Any] = self.ledger_entries  # type: ignore[assignment]
+        return sum((entry.quantity for entry in entries if entry.entry_type == "accrual"), Decimal("0.0"))
+
+    @property
+    def used_days(self) -> Decimal:
+        entries: list[Any] = self.ledger_entries  # type: ignore[assignment]
+        return sum((abs(entry.quantity) for entry in entries if entry.entry_type == "usage"), Decimal("0.0"))
+
+    @property
+    def balance_days(self) -> Decimal:
+        return self.current_balance
 
 
 class VacationLedger(database.Model, BaseTabla):

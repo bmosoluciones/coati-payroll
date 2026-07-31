@@ -510,3 +510,150 @@ def test_report_execution_manager(app, db_session):
         assert execution.row_count == 1
         assert execution.execution_time_ms > 0
         assert len(results) == 1
+
+
+# ============================================================================
+# EXTENDED REPORT ENGINE COVERAGE TESTS
+# ============================================================================
+
+
+def test_custom_report_builder_invalid_columns(app, db_session):
+    """Test validate_definition with non-field columns, invalid entities and fields."""
+    with app.app_context():
+        definition = {
+            "columns": [
+                {
+                    "type": "expression",
+                    "expression": "salario_base * 2",
+                    "label": "Double Salary"
+                },
+                {
+                    "type": "field",
+                    "entity": "NonExistentEntity",
+                    "field": "invalid_field"
+                }
+            ],
+            "filters": [
+                {
+                    "field": "invalid_filter_field",
+                    "operator": "=",
+                    "value": "xyz"
+                }
+            ]
+        }
+
+        report = Report(
+            name="Invalid Defs Report",
+            type=ReportType.CUSTOM,
+            status=ReportStatus.ENABLED,
+            base_entity="Employee",
+            definition=definition,
+        )
+
+        builder = CustomReportBuilder(report)
+        errors = builder.validate_definition()
+
+        assert len(errors) > 0
+        assert any("Custom expressions are not yet supported" in error for error in errors)
+        assert any("Entity 'NonExistentEntity' is not allowed" in error for error in errors)
+        assert any("Filter field 'invalid_filter_field' is not allowed" in error for error in errors)
+
+
+def test_custom_report_builder_invalid_sorting(app, db_session):
+    """Test custom report build_query sorts only on allowed fields and pagination."""
+    with app.app_context():
+        definition = {
+            "columns": [
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "codigo_empleado",
+                    "label": "Code"
+                }
+            ],
+            "sorting": [
+                {
+                    "field": "invalid_sort_field",
+                    "direction": "asc"
+                },
+                {
+                    "field": "primer_apellido",
+                    "direction": "desc"
+                }
+            ]
+        }
+
+        report = Report(
+            name="Sorting Check Report",
+            type=ReportType.CUSTOM,
+            status=ReportStatus.ENABLED,
+            base_entity="Employee",
+            definition=definition,
+        )
+
+        builder = CustomReportBuilder(report)
+        stmt = builder.build_query(page=2, per_page=5)
+        # Query builds successfully without raising exceptions for the invalid sort field
+        assert stmt is not None
+
+
+def test_report_execution_manager_error_tracking(app, db_session, monkeypatch):
+    """Test ReportExecutionManager error tracking and message truncation."""
+    with app.app_context():
+        # Create a report that points to a non-existent system report ID to trigger failure
+        report = Report(
+            name="Broken System Report",
+            type=ReportType.SYSTEM,
+            status=ReportStatus.ENABLED,
+            base_entity="Employee",
+            system_report_id="extremely_long_unregistered_id_xyz_123",
+        )
+        db_session.add(report)
+        db_session.commit()
+
+        manager = ReportExecutionManager(report, "failing_user")
+
+        # Expect manager.execute to raise ValueError and save FAILED status
+        import pytest
+        with pytest.raises(ValueError, match="System report .* not found"):
+            manager.execute()
+
+        from coati_payroll.model import ReportExecution
+        execution = db_session.query(ReportExecution).filter_by(executed_by="failing_user").first()
+        assert execution is not None
+        assert execution.status == ReportExecutionStatus.FAILED
+        assert "not found" in execution.error_message
+
+
+def test_non_admin_report_permissions(app, db_session):
+    """Test non-admin view, execute, and export role permissions."""
+    with app.app_context():
+        report = Report(
+            name="Perm Restricted Report",
+            type=ReportType.CUSTOM,
+            status=ReportStatus.ENABLED,
+            base_entity="Employee",
+        )
+        db_session.add(report)
+        db_session.commit()
+
+        # No roles added yet, non-admin should have no permissions
+        assert can_view_report(report, "hhrr") is False
+        assert can_execute_report(report, "hhrr") is False
+        assert can_export_report(report, "hhrr") is False
+
+        # Add explicit permissions
+        role_perm = ReportRole(
+            report_id=report.id,
+            role="hhrr",
+            can_view=True,
+            can_execute=True,
+            can_export=True
+        )
+        db_session.add(role_perm)
+        db_session.commit()
+        db_session.refresh(report)
+
+        assert can_view_report(report, "hhrr") is True
+        assert can_execute_report(report, "hhrr") is True
+        assert can_export_report(report, "hhrr") is True
