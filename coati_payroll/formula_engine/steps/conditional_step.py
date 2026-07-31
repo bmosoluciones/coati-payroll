@@ -50,7 +50,11 @@ class ConditionalStep(Step):
         selected_value = if_true if condition_result else if_false
 
         # Evaluate selected expression
-        evaluator = ExpressionEvaluator(variables=context.variables, trace_callback=context.trace_callback)
+        evaluator = ExpressionEvaluator(
+            variables=context.variables,
+            trace_callback=context.trace_callback,
+            strict_mode=context.strict_mode,
+        )
         return evaluator.evaluate(str(selected_value))
 
     def _evaluate_condition(self, condition: dict[str, Any], context: "ExecutionContext") -> bool:
