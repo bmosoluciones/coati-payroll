@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-08-01
+
+### Added
+
+- Vacation payout on termination (`finiquito`): when the employee's `VacationPolicy` has `payout_on_termination` enabled, the pending vacation balance is valued at the daily salary and added as `VACACIONES_PENDIENTES` income. The `PAYOUT` ledger entry is created only when the settlement leaves `BORRADOR`, so abandoned drafts never mutate the vacation account.
+- Multi-currency payroll verification and test suite.
+- Dedicated SOX and data traceability validation test suite.
+- Stress-test and benchmarking script for the payroll calculation formula engine.
+- `uv.lock` lockfile for reproducible installs.
+
+### Fixed
+
+- Recalculation now reuses the stored configuration/catalogs/exchange-rate snapshot from the original run, making recalculated payrolls reproducible even if live rules changed since. Snapshot captures no longer suffer N+1 queries or lose explicit zero values.
+- `LiquidacionEngine` defers loan/advance/vacation side effects while the settlement is in `BORRADOR`; the apply route recalculates with `estado=APLICADO` before committing.
+- A termination settlement now deducts the full outstanding loan/advance balance (`min(saldo_total, saldo_disponible)`) instead of a single installment, avoiding uncollectible debt once the employee is inactive.
+- Tax table validator now rejects `rate < 0` and `rate > 1` so misconfigurations (e.g. `15` instead of `0.15`) are caught before payroll calculation.
+- `ConditionalStep` propagates `strict_mode` to the expression evaluator so errors inside the selected branch surface like in other steps.
+- Employees whose `PlanillaEmpleado` assignment is outside the payroll period window (future `fecha_inicio` or past `fecha_fin`) are skipped with a warning and reported by the employee validator.
+- Concurrent payroll runs are serialized with a planilla row lock (`SELECT ... FOR UPDATE`), making overlap/duplicate validation plus insert atomic and preventing duplicate payrolls with doubled side effects.
+- `ConfigRepository` resolves duplicate configurations deterministically with a warning, logs every fallback, and raises in production instead of silently calculating with example defaults.
+- Day-accurate French loan payments (periodic rate derived from `dias_mes_nomina / dias_anio_financiero`), seniority accrual prorated by actual period length for every frequency, TOCTOU-safe vacation accrual/usage locking, config fallback warnings, and an exact (unrounded) liquidation daily rate.
+- Payroll honors explicit zero concept overrides and preserves bound novelties during recalculation.
+- Engine transaction safety with `try/finally` rollback; results clear errors and warnings on success.
+- Formula engine `round()` now uses `ROUND_HALF_UP` consistently with the rest of the engine, and rounding rejects `None` to surface upstream data issues.
+- Exchange-rate queries add `limit(1)` to avoid `MultipleResultsFound` and validate the snapshot destination currency.
+- Accounting vouchers detect salary advances by `ADELANTO_*` code and include the missing `empresa_id` in `PrestacionAcumulada`.
+- Loan processor caps deductions against the remaining balance and adds per-item error handling in deferred effects.
+- Deduction calculator warns on mandatory deductions with zero balance.
+- Vacation processor re-raises system errors instead of silently swallowing them; explicitly bound vacation novelties no longer cross-process on consecutive payroll runs.
+- Novelty values are clamped to non-negative; fiscal-year boundary calculations use `periodo_fin`.
+- Concept calculator fixes mojibake, division-by-zero, and `FIJO` rounding; salary calculator raises on missing configuration instead of silently using defaults.
+- Payroll execution wires `PeriodValidator` and tightens exception handling.
+- Payroll comparison fixes: floating novelties included in quality/vacation metrics, 500 error on comparison, benefit accumulation isolated across companies, vacation balance validated during dry-run.
+- MySQL connection string auto-correction and non-numeric string constants support in the formula engine visitor; deduction and progressive tax accumulation corrections.
+
+### Changed
+
+- Refactors across vacation, reports, accounting, employee, payroll, planilla, and quality modules to reduce complexity and comply with lint/type baselines.
+- Background payroll calculation system improvements.
+
+### Tests
+
+- Increased unit test coverage across several modules, including regression prevention, multi-currency verification, SOX/traceability, and idempotency suites.
+
+## [1.10.5] - 2026-07-20
+
+### Changed
+
+- Maintenance release.
+
+## [1.10.4] - 2026-07-08
+
+### Changed
+
+- Maintenance release.
+- Updated Python dependencies: `alembic`, `cryptography`, `dramatiq[redis]`, `sqlalchemy`, `mypy`.
+- Updated JavaScript dependencies: SortableJS (via CDN).
+
 ## [1.10.3] - 2026-06-10
 
 ### Fixed
