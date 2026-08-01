@@ -875,7 +875,7 @@ class PlanillaEmpleado(database.Model, BaseTabla):
     empleado_id = database.Column(database.String(26), database.ForeignKey(FK_EMPLEADO_ID), nullable=False)
 
     activo = database.Column(database.Boolean(), default=True)
-    fecha_inicio = database.Column(database.Date, nullable=False, default=date.today)
+    fecha_inicio = database.Column(database.Date, nullable=True)  # None = ventana abierta (sin inicio explícito)
     fecha_fin = database.Column(database.Date, nullable=True)  # si deja de estar en la planilla
 
     planilla = database.relationship("Planilla", back_populates="planilla_empleados")
