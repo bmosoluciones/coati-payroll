@@ -49,6 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Increased unit test coverage across several modules, including regression prevention, multi-currency verification, SOX/traceability, and idempotency suites.
 
+## [1.11.1] - 2026-08-01
+
+### Fixed
+
+- Employee assignment window is open by default: the check added for #33 only applies when `fecha_inicio` is explicitly set, so back-dated payroll runs no longer silently drop employees whose start date falls after the payroll period.
+
+### Changed
+
+- Cleaned snapshot lookups in the calculators (single `snap_val = snapshot_entry or {}` lookup, `min()` for benefit ceilings) and removed dead imports / import-ordering nits in the engine.
+
 ## [1.10.5] - 2026-07-20
 
 ### Changed
