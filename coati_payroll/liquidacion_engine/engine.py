@@ -235,6 +235,9 @@ class LiquidacionEngine:
             .all()
         )
 
+        config = self._get_config()
+        horas_jornada = Decimal(str(getattr(config, "horas_jornada_diaria", 8) or 8))
+
         monto_total = Decimal("0.00")
         for account in accounts:
             policy = cast(Any, account.policy)
@@ -246,8 +249,6 @@ class LiquidacionEngine:
                 continue
 
             if policy.unit_type == "hours":
-                config = self._get_config()
-                horas_jornada = Decimal(str(getattr(config, "horas_jornada_diaria", 8) or 8))
                 monto = (balance / horas_jornada * tasa_dia).quantize(Decimal("0.01"))
             else:
                 monto = (balance * tasa_dia).quantize(Decimal("0.01"))
