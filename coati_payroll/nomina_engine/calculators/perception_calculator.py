@@ -61,11 +61,12 @@ class PerceptionCalculator:
             # When the perception exists in the catalog snapshot, prefer the
             # frozen formula/amount so recalculation reproduces the original
             # payroll even if the live catalog changed since.
-            formula_tipo = snapshot_entry.get("formula_tipo", percepcion.formula_tipo) if snapshot_entry else percepcion.formula_tipo
-            monto_default = snapshot_entry.get("monto_default", percepcion.monto_default) if snapshot_entry else percepcion.monto_default
-            porcentaje = snapshot_entry.get("porcentaje", percepcion.porcentaje) if snapshot_entry else percepcion.porcentaje
-            formula = snapshot_entry.get("formula", percepcion.formula) if snapshot_entry else percepcion.formula
-            base_calculo = snapshot_entry.get("base_calculo", getattr(percepcion, "base_calculo", None)) if snapshot_entry else getattr(percepcion, "base_calculo", None)
+            snap_val = snapshot_entry or {}
+            formula_tipo = snap_val.get("formula_tipo", percepcion.formula_tipo)
+            monto_default = snap_val.get("monto_default", percepcion.monto_default)
+            porcentaje = snap_val.get("porcentaje", percepcion.porcentaje)
+            formula = snap_val.get("formula", percepcion.formula)
+            base_calculo = snap_val.get("base_calculo", getattr(percepcion, "base_calculo", None))
 
             # Check validity dates against the live object only when there is no snapshot
             if not snapshot_entry:

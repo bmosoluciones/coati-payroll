@@ -27,7 +27,8 @@ class DeductionCalculator:
         """Resolve the catalog snapshot entry for a deduction, if available."""
         if not self.concept_calculator.deducciones_snapshot:
             return None
-        return self.concept_calculator.deducciones_snapshot.get(deduccion.id) or self.concept_calculator.deducciones_snapshot.get(deduccion.codigo)
+        snapshot = self.concept_calculator.deducciones_snapshot
+        return snapshot.get(deduccion.id) or snapshot.get(deduccion.codigo)
 
     @staticmethod
     def _snapshot_valido(snapshot_entry: dict[str, Any] | None, fecha_calculo: date) -> bool:
@@ -71,11 +72,12 @@ class DeductionCalculator:
             # When the deduction exists in the catalog snapshot, prefer the
             # frozen formula/amount so recalculation reproduces the original
             # payroll even if the live catalog changed since.
-            formula_tipo = snapshot_entry.get("formula_tipo", deduccion.formula_tipo) if snapshot_entry else deduccion.formula_tipo
-            monto_default = snapshot_entry.get("monto_default", deduccion.monto_default) if snapshot_entry else deduccion.monto_default
-            porcentaje = snapshot_entry.get("porcentaje", deduccion.porcentaje) if snapshot_entry else deduccion.porcentaje
-            formula = snapshot_entry.get("formula", deduccion.formula) if snapshot_entry else deduccion.formula
-            base_calculo = snapshot_entry.get("base_calculo", getattr(deduccion, "base_calculo", None)) if snapshot_entry else getattr(deduccion, "base_calculo", None)
+            snap_val = snapshot_entry or {}
+            formula_tipo = snap_val.get("formula_tipo", deduccion.formula_tipo)
+            monto_default = snap_val.get("monto_default", deduccion.monto_default)
+            porcentaje = snap_val.get("porcentaje", deduccion.porcentaje)
+            formula = snap_val.get("formula", deduccion.formula)
+            base_calculo = snap_val.get("base_calculo", getattr(deduccion, "base_calculo", None))
 
             # Check validity dates against the live object only when there is no snapshot
             if not snapshot_entry:
@@ -109,13 +111,12 @@ class DeductionCalculator:
                             f"Deducción {deduccion.codigo} omitida por saldo insuficiente."
                         )
                         continue
-                    else:
-                        self.warnings.append(
-                            f"Empleado {emp_calculo.empleado.primer_nombre} "
-                            f"{emp_calculo.empleado.primer_apellido}: "
-                            f"Deducción obligatoria {deduccion.codigo} no se pudo aplicar "
-                            f"(saldo insuficiente: {saldo_disponible})."
-                        )
+                    self.warnings.append(
+                        f"Empleado {emp_calculo.empleado.primer_nombre} "
+                        f"{emp_calculo.empleado.primer_apellido}: "
+                        f"Deducción obligatoria {deduccion.codigo} no se pudo aplicar "
+                        f"(saldo insuficiente: {saldo_disponible})."
+                    )
 
                 item = DeduccionItem(
                     codigo=deduccion.codigo,

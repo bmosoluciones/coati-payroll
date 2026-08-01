@@ -47,12 +47,8 @@ class SalaryCalculator:
         dias_periodo = (periodo_fin - periodo_inicio).days + 1
 
         if dias_periodo <= 0:
-            from ..validators import ValidationError
-
             raise ValidationError(f"Período inválido: inicio ({periodo_inicio}) posterior a fin ({periodo_fin})")
         if dias_periodo > 366:
-            from ..validators import ValidationError
-
             raise ValidationError(
                 f"Período excesivamente largo: {dias_periodo} días. Los períodos no deben exceder 366 días."
             )

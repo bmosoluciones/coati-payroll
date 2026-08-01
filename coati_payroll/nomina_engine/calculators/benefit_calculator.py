@@ -62,11 +62,12 @@ class BenefitCalculator:
             # When the benefit exists in the catalog snapshot, prefer the
             # frozen formula/amount so recalculation reproduces the original
             # payroll even if the live catalog changed since.
-            formula_tipo = snapshot_entry.get("formula_tipo", prestacion.formula_tipo) if snapshot_entry else prestacion.formula_tipo
-            monto_default = snapshot_entry.get("monto_default", prestacion.monto_default) if snapshot_entry else prestacion.monto_default
-            porcentaje = snapshot_entry.get("porcentaje", prestacion.porcentaje) if snapshot_entry else prestacion.porcentaje
-            formula = snapshot_entry.get("formula", prestacion.formula) if snapshot_entry else prestacion.formula
-            base_calculo = snapshot_entry.get("base_calculo", getattr(prestacion, "base_calculo", None)) if snapshot_entry else getattr(prestacion, "base_calculo", None)
+            snap_val = snapshot_entry or {}
+            formula_tipo = snap_val.get("formula_tipo", prestacion.formula_tipo)
+            monto_default = snap_val.get("monto_default", prestacion.monto_default)
+            porcentaje = snap_val.get("porcentaje", prestacion.porcentaje)
+            formula = snap_val.get("formula", prestacion.formula)
+            base_calculo = snap_val.get("base_calculo", getattr(prestacion, "base_calculo", None))
 
             # Check validity dates against the live object only when there is no snapshot
             if not snapshot_entry:
@@ -92,10 +93,9 @@ class BenefitCalculator:
             # Apply ceiling if defined (snapshot value takes precedence)
             tope_aplicacion = snapshot_entry.get("tope_aplicacion") if snapshot_entry else None
             if tope_aplicacion is not None:
-                if monto > Decimal(str(tope_aplicacion)):
-                    monto = Decimal(str(tope_aplicacion))
-            elif prestacion.tope_aplicacion and monto > Decimal(str(prestacion.tope_aplicacion)):
-                monto = Decimal(str(prestacion.tope_aplicacion))
+                monto = min(monto, Decimal(str(tope_aplicacion)))
+            elif prestacion.tope_aplicacion:
+                monto = min(monto, Decimal(str(prestacion.tope_aplicacion)))
 
             if monto > 0:
                 item = PrestacionItem(
