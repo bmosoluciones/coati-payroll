@@ -34,7 +34,6 @@ class ConfigRepository(BaseRepository[ConfiguracionCalculos]):
         duplicate row can never make the payroll calculation explode.
         """
         from coati_payroll.log import log
-        from sqlalchemy import select
 
         configs = (
             self.session.execute(

@@ -9,11 +9,12 @@ from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any, cast
 
+from sqlalchemy.exc import IntegrityError, OperationalError
+
 from coati_payroll.enums import NominaEstado
 from coati_payroll.formula_engine import FormulaEngineError
 from coati_payroll.log import log
 from coati_payroll.model import Empleado, Nomina, Planilla, db
-from sqlalchemy.exc import IntegrityError, OperationalError
 
 from ..calculators.benefit_calculator import BenefitCalculator
 from ..calculators.concept_calculator import ConceptCalculator

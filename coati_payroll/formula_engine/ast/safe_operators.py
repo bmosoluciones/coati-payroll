@@ -272,6 +272,7 @@ COMPARISON_OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
     "!=": operator.ne,
 }
 
+
 def _safe_round(value: Any, ndigits: Any = 0) -> Decimal:
     """Round a value using ROUND_HALF_UP (financial rounding).
 
