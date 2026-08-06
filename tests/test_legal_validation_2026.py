@@ -132,17 +132,23 @@ def test_panama_income_tax_annualizes_by_13_with_css_and_se():
     assert _tax_rule(profile, "income_tax", Decimal(profile["stress_case"]["salary"])) == expected
 
 
-def test_el_salvador_isr_uses_base_after_isss_and_afp():
-    """ISR planilla 2026, salary $1,000/month (Decreto Ejecutivo No. 10, mayo 2025).
+@pytest.mark.parametrize(
+    ("salary", "expected"),
+    [
+        ("640.00", "20.11"),
+        ("1000.00", "60.45"),
+    ],
+)
+def test_el_salvador_isr_uses_base_after_isss_and_afp(salary, expected):
+    """ISR planilla 2026 (Decreto Ejecutivo No. 10, mayo 2025).
 
-    Base gravada = 1,000 - ISSS (3% capped at $30) - AFP (7.25%) = 1,000 - 30 - 72.50
-                 = $897.50.
-    Tramo III ($895.25 - $2,038.10): 60.00 + 20% x (897.50 - 895.24) = $60.45.
+    Base gravada = salario - ISSS (3% capped at $30) - AFP (7.25%):
+      - 640:  base 574.40 -> Tramo II (550.01-895.24): 17.67 + 10% x 24.40 = 20.11
+      - 1,000: base 897.50 -> Tramo III (895.25-2,038.10): 60.00 + 20% x 2.26 = 60.45
     The exempt band starts at $550 (not $472) and ISSS/AFP must be netted first.
     """
     profile = CA["countries"]["SV"]
-    expected = Decimal("60.45")
-    assert _tax_rule(profile, "isr", Decimal(profile["stress_case"]["salary"])) == expected
+    assert _tax_rule(profile, "isr", Decimal(salary)) == Decimal(expected)
 
 
 def test_belize_income_tax_2026_relief_and_marginal_credit():
@@ -159,34 +165,67 @@ def test_belize_income_tax_2026_relief_and_marginal_credit():
     assert _tax_rule(profile, "income_tax", Decimal(profile["stress_case"]["salary"])) == expected
 
 
+@pytest.mark.parametrize(
+    ("salary", "expected"),
+    [
+        ("2416.67", "0.00"),
+        ("2666.67", "250.00"),
+        ("3333.33", "416.67"),
+    ],
+)
+def test_belize_marginal_relief_credit_phases_out(salary, expected):
+    """Marginal relief credit = 2,250 - 0.75 x (income - 29,000), floored at 0.
+
+    - Annual 29,000: 25% x 9,000 = 2,250 minus credit 2,250 -> exempt.
+    - Annual 32,000: credit = 2,250 - 0.75 x 3,000 = 0 -> 25% x 12,000 / 12.
+    - Annual 40,000: no credit -> 25% x 20,000 / 12.
+    """
+    profile = CA["countries"]["BZ"]
+    assert _tax_rule(profile, "income_tax", Decimal(salary)) == Decimal(expected)
+
+
 # ---------------------------------------------------------------------------
 # Mexico / India / Brazil
 # ---------------------------------------------------------------------------
 
 
-def test_mexico_income_tax_nets_employment_subsidy():
-    """ISR sueldos 2026, salary MXN10,000/month.
+@pytest.mark.parametrize(
+    ("salary", "expected"),
+    [
+        ("10000.00", "192.81"),
+        ("12000.00", "946.62"),
+    ],
+)
+def test_mexico_income_tax_nets_employment_subsidy(salary, expected):
+    """ISR sueldos 2026, monthly tariff (Anexo 8 RMF 2026).
 
-    Tarifa mensual (Anexo 8 RMF 2026): MXN729.02.
-    Subsidio para el empleo (cuota fija, DOF 01/05/2024): enero 2026
-    3,439.46 (UMA 2025) x 15.59% = 536.21.
-    Net ISR = 729.02 - 536.21 = MXN192.81 (feb-dic 2026: 535.65 -> 193.37).
+    Tarifa mensual: 10,000 -> 729.02; 12,000 -> 946.62.
+    Subsidio para el empleo (Decreto DOF 31/12/2025): cuota 536.21 only while
+    monthly income does not exceed $11,492.66:
+      - 10,000: 729.02 - 536.21 = 192.81
+      - 12,000: above the cap -> no subsidy -> 946.62.
     """
     profile = _profile("mexico_2026.json")
-    expected = Decimal("192.81")
-    assert _tax_rule(profile, "income_tax", Decimal(profile["stress_case"]["salary"])) == expected
+    assert _tax_rule(profile, "income_tax", Decimal(salary)) == Decimal(expected)
 
 
-def test_india_income_tax_new_regime_with_standard_deduction_and_rebate():
-    """Income tax FY 2026-27 new regime (s. 115BAC), salary INR100,000/month.
+@pytest.mark.parametrize(
+    ("salary", "expected"),
+    [
+        ("100000.00", "0.00"),
+        ("120000.00", "7062.50"),
+    ],
+)
+def test_india_income_tax_new_regime_with_standard_deduction_and_rebate(salary, expected):
+    """Income tax FY 2026-27 new regime (s. 115BAC), monthly TDS.
 
-    Annual = INR12,00,000. Standard deduction (s. 16(1a)) INR75,000
-      -> taxable INR11,25,000. Slab tax = 20,000 + 10% x (11,25,000 - 800,000)
-      = INR52,500. Rebate s. 87A (income <= INR12,00,000) -> tax = INR0.
+    Annual taxable = salary x 12 - standard deduction (s. 16(1a)) INR75,000.
+    Rebate s. 87A (up to INR60,000) only while total income <= INR12,00,000:
+      - 100,000: taxable 11,25,000 -> slab 52,500 -> rebate -> 0.00
+      - 120,000: taxable 13,65,000 -> slab 84,750 -> no rebate -> 7,062.50.
     """
     profile = _profile("india_2026_27.json")
-    expected = Decimal("0.00")
-    assert _tax_rule(profile, "income_tax", Decimal(profile["stress_case"]["salary"])) == expected
+    assert _tax_rule(profile, "income_tax", Decimal(salary)) == Decimal(expected)
 
 
 def test_brazil_irrf_applies_simplified_discount():
