@@ -118,14 +118,17 @@ def test_panama_income_tax_annualizes_by_13_with_css_and_se():
 
     Payroll withholding annualizes by 13 (12 months + XIII mes):
       gross annual  = 2,000 x 13 = 26,000
-      CSS 9.75%     = 2,535 (on all 13 pays)
+      CSS 9.75%     = 2,340 (on 12 monthly pays)
+      CSS 7.25%     = 145   (on the décimo - special rate, not 9.75%)
       SE 1.25%      = 300   (on 12 pays only, not on the décimo)
-      taxable       = 26,000 - 2,535 - 300 = 23,165
-      tax           = 15% x (23,165 - 11,000) = 1,824.75
-      monthly       = 1,824.75 / 12 = 152.06
+      taxable       = 26,000 - 2,485 - 300 = 23,215
+      tax           = 15% x (23,215 - 11,000) = 1,832.25
+      monthly       = 1,832.25 / 12 = 152.69
+    The profile still applies CSS 9.75% to all 13 pays (deducts 2,535), so this
+    guard stays red until the differential décimo rate is modelled in the JSON.
     """
     profile = CA["countries"]["PA"]
-    expected = Decimal("152.06")
+    expected = Decimal("152.69")
     assert _tax_rule(profile, "income_tax", Decimal(profile["stress_case"]["salary"])) == expected
 
 

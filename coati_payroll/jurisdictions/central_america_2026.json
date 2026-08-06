@@ -1026,6 +1026,12 @@
           "title": "DGI Panamá — preguntas sobre renta natural",
           "url": "https://dgi.mef.gob.pa/Preguntas/DeclaracionInformes.php/Pagos",
           "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "CSS Panamá — tasas de cotización (décimo tercer mes 7.25%)",
+          "url": "https://www.css.gob.pa/",
+          "retrieved_on": "2026-08-06",
+          "note": "Ley 51 de CSS: cuota del empleado 9.75% sobre el salario mensual y 7.25% sobre el décimo tercer mes; el décimo queda exento de Seguro Educativo."
         }
       ],
       "company": {
@@ -1163,6 +1169,11 @@
                 "default": "0.0975"
               },
               {
+                "name": "decimo_css_rate",
+                "type": "decimal",
+                "default": "0.0725"
+              },
+              {
                 "name": "educational_rate",
                 "type": "decimal",
                 "default": "0.0125"
@@ -1172,7 +1183,7 @@
               {
                 "name": "annual_income",
                 "type": "calculation",
-                "formula": "salario_bruto * (meses_restantes + decimo_tercer_mes) - salario_bruto * (meses_restantes + decimo_tercer_mes) * css_rate - salario_bruto * meses_restantes * educational_rate"
+                "formula": "salario_bruto * (meses_restantes + decimo_tercer_mes) - (salario_bruto * meses_restantes * css_rate + salario_bruto * decimo_tercer_mes * decimo_css_rate) - salario_bruto * meses_restantes * educational_rate"
               },
               {
                 "name": "annual_tax",
@@ -1228,9 +1239,9 @@
           "expected": {
             "social_security": "195.00",
             "educational": "25.00",
-            "income_tax": "152.06",
+            "income_tax": "152.69",
             "gross": "2000.00",
-            "net": "1627.94"
+            "net": "1627.31"
           }
         }
       ]
