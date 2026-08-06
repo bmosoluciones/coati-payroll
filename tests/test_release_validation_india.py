@@ -267,10 +267,10 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
             accumulated = db_session.execute(
                 db.select(AcumuladoAnual).filter_by(empleado_id=employee.id, empresa_id=company.id)
             ).scalar_one()
-            assert accumulated.salario_bruto_acumulado == Decimal("300000.00")
-            assert accumulated.salario_gravable_acumulado == Decimal("300000.00")
-            assert accumulated.deducciones_antes_impuesto_acumulado == Decimal("36000.00")
-            assert accumulated.impuesto_retenido_acumulado == Decimal("11400.00")
+            assert accumulated.salario_bruto_acumulado == Decimal(stress["salary"]) * len(runs)
+            assert accumulated.salario_gravable_acumulado == Decimal(stress["salary"]) * len(runs)
+            assert accumulated.deducciones_antes_impuesto_acumulado == Decimal(expected["epf_employee"]) * len(runs)
+            assert accumulated.impuesto_retenido_acumulado == Decimal(expected["tds"]) * len(runs)
             assert accumulated.periodos_procesados == len(runs)
 
         benefit_transactions = db_session.execute(
