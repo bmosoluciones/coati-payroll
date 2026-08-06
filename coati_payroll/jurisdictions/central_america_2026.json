@@ -1,75 +1,1408 @@
 {
-  "vacation_defaults": {"frequency": "monthly", "prorate_by_period_days": false, "unit_type": "days", "partial_units_allowed": false, "accrue_during_leave": true},
-  "stress_defaults": {"employee_count": 100},
+  "vacation_defaults": {
+    "frequency": "monthly",
+    "prorate_by_period_days": false,
+    "unit_type": "days",
+    "partial_units_allowed": false,
+    "accrue_during_leave": true
+  },
+  "stress_defaults": {
+    "employee_count": 100
+  },
   "countries": {
     "GT": {
-      "country": "GT", "name": "Guatemala payroll 2026", "currency": "GTQ", "effective_from": "2026-01-01",
+      "country": "GT",
+      "name": "Guatemala payroll 2026",
+      "currency": "GTQ",
+      "effective_from": "2026-01-01",
       "sources": [
-        {"title": "SAT Guatemala — Cumplimiento tributario / rentas del trabajo", "url": "https://portal.sat.gob.gt/portal/preguntas-frecuentes/cumplimiento-tributario/", "retrieved_on": "2026-08-06"},
-        {"title": "IGSS — cuotas laboral y patronal", "url": "https://www.igssgt.org/wp-content/uploads/2026/05/IGSS-en-cifras-2024.pdf", "retrieved_on": "2026-08-06"}
+        {
+          "title": "SAT Guatemala — Cumplimiento tributario / rentas del trabajo",
+          "url": "https://portal.sat.gob.gt/portal/preguntas-frecuentes/cumplimiento-tributario/",
+          "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "IGSS — cuotas laboral y patronal",
+          "url": "https://www.igssgt.org/wp-content/uploads/2026/05/IGSS-en-cifras-2024.pdf",
+          "retrieved_on": "2026-08-06"
+        }
       ],
-      "company": {"code": "GT-PAYROLL-2026", "legal_name": "Guatemala Release Validation SA", "tax_id": "GT-RELEASE-2026"},
-      "payroll": {"code": "GT-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
-      "stress_case": {"employee_count": 8, "salary": "10000.00", "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]], "vacation": {"code": "GT-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"}, "benefits": {"igss_employer": {"code": "GT-IGSS-EMPLOYER-2026", "percentage": "10.67", "accumulation": "annual"}, "aguinaldo": {"code": "GT-AGUINALDO-PROVISION-2026", "percentage": "8.3333", "accumulation": "annual"}}},
-      "rules": {
-        "igss_employee": {"code": "GT-IGSS-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.0483"}], "steps": [{"name": "igss", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "igss"}},
-        "isr": {"code": "GT-ISR-DEPENDENCIA-2026", "type": "tax", "before_tax": false, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "annual_months", "type": "decimal", "default": 12}, {"name": "personal_deduction", "type": "decimal", "default": 48000}, {"name": "social_rate", "type": "decimal", "default": "0.0483"}], "steps": [{"name": "annual_taxable", "type": "calculation", "formula": "salario_bruto * annual_months * (1 - social_rate) - personal_deduction"}, {"name": "annual_tax", "type": "tax_lookup", "table": "isr", "input": "annual_taxable"}, {"name": "monthly_tax", "type": "calculation", "formula": "annual_tax / annual_months"}], "tax_tables": {"isr": [{"min": 0, "max": 300000, "rate": 0.05, "fixed": 0, "over": 0}, {"min": 300000.01, "max": null, "rate": 0.07, "fixed": 15000, "over": 300000}]}, "output": "monthly_tax"}}
+      "company": {
+        "code": "GT-PAYROLL-2026",
+        "legal_name": "Guatemala Release Validation SA",
+        "tax_id": "GT-RELEASE-2026"
       },
-      "cases": [{"salary": "10000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "income_tax"], "expected": {"social_security": "483.00", "income_tax": "275.85", "gross": "10000.00", "net": "9241.15"}}]
+      "payroll": {
+        "code": "GT-MONTHLY-2026",
+        "frequency": "monthly",
+        "periods_per_year": 12,
+        "fiscal_start_month": 1,
+        "fiscal_start_day": 1,
+        "days_per_month": 30,
+        "days_per_half_month": 15,
+        "days_per_year": 365,
+        "daily_hours": "8.00"
+      },
+      "stress_case": {
+        "employee_count": 8,
+        "salary": "10000.00",
+        "periods": [
+          [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          [
+            "2026-03-01",
+            "2026-03-31"
+          ]
+        ],
+        "vacation": {
+          "code": "GT-VACATION-2026",
+          "accrual_rate_days": "1.00",
+          "usage_employee_index": 0,
+          "usage_period_index": 2,
+          "usage_days": "1.00"
+        },
+        "benefits": {
+          "igss_employer": {
+            "code": "GT-IGSS-EMPLOYER-2026",
+            "percentage": "10.67",
+            "accumulation": "annual"
+          },
+          "aguinaldo": {
+            "code": "GT-AGUINALDO-PROVISION-2026",
+            "percentage": "8.3333",
+            "accumulation": "annual"
+          }
+        }
+      },
+      "rules": {
+        "igss_employee": {
+          "code": "GT-IGSS-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.0483"
+              }
+            ],
+            "steps": [
+              {
+                "name": "igss",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "igss"
+          }
+        },
+        "isr": {
+          "code": "GT-ISR-DEPENDENCIA-2026",
+          "type": "tax",
+          "before_tax": false,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "meses_restantes",
+                "type": "decimal",
+                "default": 12
+              },
+              {
+                "name": "personal_deduction",
+                "type": "decimal",
+                "default": 51024
+              },
+              {
+                "name": "social_rate",
+                "type": "decimal",
+                "default": "0.0483"
+              },
+              {
+                "name": "pre_tax_deductions",
+                "type": "decimal",
+                "default": 0
+              }
+            ],
+            "steps": [
+              {
+                "name": "annual_taxable",
+                "type": "calculation",
+                "formula": "salario_bruto * meses_restantes * (1 - social_rate) - personal_deduction + pre_tax_deductions * meses_restantes"
+              },
+              {
+                "name": "annual_tax",
+                "type": "tax_lookup",
+                "table": "isr",
+                "input": "annual_taxable"
+              },
+              {
+                "name": "monthly_tax",
+                "type": "calculation",
+                "formula": "annual_tax / meses_restantes"
+              }
+            ],
+            "tax_tables": {
+              "isr": [
+                {
+                  "min": 0,
+                  "max": 300000,
+                  "rate": 0.05,
+                  "fixed": 0,
+                  "over": 0
+                },
+                {
+                  "min": 300000.01,
+                  "max": null,
+                  "rate": 0.07,
+                  "fixed": 15000,
+                  "over": 300000
+                }
+              ]
+            },
+            "output": "monthly_tax"
+          }
+        }
+      },
+      "cases": [
+        {
+          "salary": "10000.00",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "deduction_keys": [
+            "social_security",
+            "income_tax"
+          ],
+          "expected": {
+            "social_security": "483.00",
+            "income_tax": "263.25",
+            "gross": "10000.00",
+            "net": "9253.75"
+          }
+        }
+      ]
     },
     "HN": {
-      "country": "HN", "name": "Honduras payroll 2026", "currency": "HNL", "effective_from": "2026-01-01",
-      "sources": [{"title": "SAR Honduras — Acuerdo SAR-01-2026", "url": "https://www.sar.gob.hn/download/acuerdo-numero-sar-01-2026-publicado-en-fecha-23-de-enero-del-2026-en-la-gaceta-no-37051/", "retrieved_on": "2026-08-06"}],
-      "company": {"code": "HN-PAYROLL-2026", "legal_name": "Honduras Release Validation SA", "tax_id": "HN-RELEASE-2026"},
-      "payroll": {"code": "HN-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
-      "stress_case": {"employee_count": 8, "salary": "30000.00", "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]], "vacation": {"code": "HN-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"}, "benefits": {"ihss_employer": {"code": "HN-IHSS-EMPLOYER-2026", "percentage": "3.50", "accumulation": "annual"}, "thirteenth_provision": {"code": "HN-13TH-PROVISION-2026", "percentage": "8.3333", "accumulation": "annual"}}},
-      "rules": {"ihss_employee": {"code": "HN-IHSS-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.025"}], "steps": [{"name": "ihss", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "ihss"}}, "isr": {"code": "HN-ISR-2026", "type": "tax", "before_tax": false, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "annual_months", "type": "decimal", "default": 12}, {"name": "social_rate", "type": "decimal", "default": "0.025"}], "steps": [{"name": "annual_taxable", "type": "calculation", "formula": "salario_bruto * annual_months * (1 - social_rate)"}, {"name": "annual_tax", "type": "tax_lookup", "table": "isr", "input": "annual_taxable"}, {"name": "monthly_tax", "type": "calculation", "formula": "annual_tax / annual_months"}], "tax_tables": {"isr": [{"min": 0, "max": 228324.32, "rate": 0, "fixed": 0, "over": 0}, {"min": 228324.33, "max": 348154.10, "rate": 0.15, "fixed": 0, "over": 228324.32}, {"min": 348154.11, "max": 809660.75, "rate": 0.20, "fixed": 17974.467, "over": 348154.10}, {"min": 809660.76, "max": null, "rate": 0.25, "fixed": 110275.797, "over": 809660.75}]}, "output": "monthly_tax"}}},
-      "cases": [{"salary": "30000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "income_tax"], "expected": {"social_security": "750.00", "income_tax": "1545.30", "gross": "30000.00", "net": "27704.70"}}]
+      "country": "HN",
+      "name": "Honduras payroll 2026",
+      "currency": "HNL",
+      "effective_from": "2026-01-01",
+      "sources": [
+        {
+          "title": "SAR Honduras — Acuerdo SAR-01-2026",
+          "url": "https://www.sar.gob.hn/download/acuerdo-numero-sar-01-2026-publicado-en-fecha-23-de-enero-del-2026-en-la-gaceta-no-37051/",
+          "retrieved_on": "2026-08-06"
+        }
+      ],
+      "company": {
+        "code": "HN-PAYROLL-2026",
+        "legal_name": "Honduras Release Validation SA",
+        "tax_id": "HN-RELEASE-2026"
+      },
+      "payroll": {
+        "code": "HN-MONTHLY-2026",
+        "frequency": "monthly",
+        "periods_per_year": 12,
+        "fiscal_start_month": 1,
+        "fiscal_start_day": 1,
+        "days_per_month": 30,
+        "days_per_half_month": 15,
+        "days_per_year": 365,
+        "daily_hours": "8.00"
+      },
+      "stress_case": {
+        "employee_count": 8,
+        "salary": "30000.00",
+        "periods": [
+          [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          [
+            "2026-03-01",
+            "2026-03-31"
+          ]
+        ],
+        "vacation": {
+          "code": "HN-VACATION-2026",
+          "accrual_rate_days": "1.00",
+          "usage_employee_index": 0,
+          "usage_period_index": 2,
+          "usage_days": "1.00"
+        },
+        "benefits": {
+          "ihss_employer": {
+            "code": "HN-IHSS-EMPLOYER-2026",
+            "percentage": "3.50",
+            "accumulation": "annual"
+          },
+          "thirteenth_provision": {
+            "code": "HN-13TH-PROVISION-2026",
+            "percentage": "8.3333",
+            "accumulation": "annual"
+          }
+        }
+      },
+      "rules": {
+        "ihss_employee": {
+          "code": "HN-IHSS-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.025"
+              }
+            ],
+            "steps": [
+              {
+                "name": "ihss",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "ihss"
+          }
+        },
+        "isr": {
+          "code": "HN-ISR-2026",
+          "type": "tax",
+          "before_tax": false,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "meses_restantes",
+                "type": "decimal",
+                "default": 12
+              },
+              {
+                "name": "social_rate",
+                "type": "decimal",
+                "default": "0.025"
+              },
+              {
+                "name": "pre_tax_deductions",
+                "type": "decimal",
+                "default": 0
+              }
+            ],
+            "steps": [
+              {
+                "name": "annual_taxable",
+                "type": "calculation",
+                "formula": "salario_bruto * meses_restantes * (1 - social_rate) + pre_tax_deductions * meses_restantes"
+              },
+              {
+                "name": "annual_tax",
+                "type": "tax_lookup",
+                "table": "isr",
+                "input": "annual_taxable"
+              },
+              {
+                "name": "monthly_tax",
+                "type": "calculation",
+                "formula": "annual_tax / meses_restantes"
+              }
+            ],
+            "tax_tables": {
+              "isr": [
+                {
+                  "min": 0,
+                  "max": 228324.32,
+                  "rate": 0,
+                  "fixed": 0,
+                  "over": 0
+                },
+                {
+                  "min": 228324.33,
+                  "max": 348154.10,
+                  "rate": 0.15,
+                  "fixed": 0,
+                  "over": 228324.32
+                },
+                {
+                  "min": 348154.11,
+                  "max": 809660.75,
+                  "rate": 0.20,
+                  "fixed": 17974.467,
+                  "over": 348154.10
+                },
+                {
+                  "min": 809660.76,
+                  "max": null,
+                  "rate": 0.25,
+                  "fixed": 110275.797,
+                  "over": 809660.75
+                }
+              ]
+            },
+            "output": "monthly_tax"
+          }
+        }
+      },
+      "cases": [
+        {
+          "salary": "30000.00",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "deduction_keys": [
+            "social_security",
+            "income_tax"
+          ],
+          "expected": {
+            "social_security": "750.00",
+            "income_tax": "1545.30",
+            "gross": "30000.00",
+            "net": "27704.70"
+          }
+        }
+      ]
     },
     "SV": {
-      "country": "SV", "name": "El Salvador payroll 2026", "currency": "USD", "effective_from": "2026-01-01",
-      "sources": [{"title": "Ministerio de Hacienda — Tablas de retención ISR", "url": "https://transparencia.mh.gob.sv/downloads/pdf/DC5852_Tablas%20de%20retencion%20del%20ISR.pdf", "retrieved_on": "2026-08-06"}, {"title": "MTPS — Código de Trabajo, aguinaldo y vacaciones", "url": "https://www.mtps.gob.sv/2025/12/23/mtps-orienta-a-ciudadanos-sobre-el-pago-del-aguinaldo/", "retrieved_on": "2026-08-06"}],
-      "company": {"code": "SV-PAYROLL-2026", "legal_name": "El Salvador Release Validation SA", "tax_id": "SV-RELEASE-2026"},
-      "payroll": {"code": "SV-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
-      "stress_case": {"employee_count": 8, "salary": "1000.00", "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]], "vacation": {"code": "SV-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"}, "benefits": {"isss_employer": {"code": "SV-ISSS-EMPLOYER-2026", "percentage": "7.50", "accumulation": "annual"}, "aguinaldo": {"code": "SV-AGUINALDO-PROVISION-2026", "percentage": "8.3333", "accumulation": "annual"}}},
-      "rules": {"isss_employee": {"code": "SV-ISSS-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.03"}], "steps": [{"name": "isss", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "isss"}}, "afp_employee": {"code": "SV-AFP-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.0725"}], "steps": [{"name": "afp", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "afp"}}, "isr": {"code": "SV-ISR-2026", "type": "tax", "before_tax": false, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "pre_tax_deductions", "type": "decimal", "default": 0}], "steps": [{"name": "tax_base", "type": "calculation", "formula": "salario_bruto - pre_tax_deductions"}, {"name": "isr", "type": "tax_lookup", "table": "isr", "input": "tax_base"}], "tax_tables": {"isr": [{"min": 0, "max": 472, "rate": 0, "fixed": 0, "over": 0}, {"min": 472.01, "max": 895.24, "rate": 0.10, "fixed": 17.67, "over": 472}, {"min": 895.25, "max": 2038.10, "rate": 0.20, "fixed": 60, "over": 895.24}, {"min": 2038.11, "max": null, "rate": 0.30, "fixed": 288.57, "over": 2038.10}]}, "output": "isr"}}},
-      "cases": [{"salary": "1000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "afp", "income_tax"], "expected": {"social_security": "30.00", "afp": "72.50", "income_tax": "60.45", "gross": "1000.00", "net": "837.05"}}]
+      "country": "SV",
+      "name": "El Salvador payroll 2026",
+      "currency": "USD",
+      "effective_from": "2026-01-01",
+      "sources": [
+        {
+          "title": "Ministerio de Hacienda — Tablas de retención ISR",
+          "url": "https://transparencia.mh.gob.sv/downloads/pdf/DC5852_Tablas%20de%20retencion%20del%20ISR.pdf",
+          "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "MTPS — Código de Trabajo, aguinaldo y vacaciones",
+          "url": "https://www.mtps.gob.sv/2025/12/23/mtps-orienta-a-ciudadanos-sobre-el-pago-del-aguinaldo/",
+          "retrieved_on": "2026-08-06"
+        }
+      ],
+      "company": {
+        "code": "SV-PAYROLL-2026",
+        "legal_name": "El Salvador Release Validation SA",
+        "tax_id": "SV-RELEASE-2026"
+      },
+      "payroll": {
+        "code": "SV-MONTHLY-2026",
+        "frequency": "monthly",
+        "periods_per_year": 12,
+        "fiscal_start_month": 1,
+        "fiscal_start_day": 1,
+        "days_per_month": 30,
+        "days_per_half_month": 15,
+        "days_per_year": 365,
+        "daily_hours": "8.00"
+      },
+      "stress_case": {
+        "employee_count": 8,
+        "salary": "1000.00",
+        "periods": [
+          [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          [
+            "2026-03-01",
+            "2026-03-31"
+          ]
+        ],
+        "vacation": {
+          "code": "SV-VACATION-2026",
+          "accrual_rate_days": "1.00",
+          "usage_employee_index": 0,
+          "usage_period_index": 2,
+          "usage_days": "1.00"
+        },
+        "benefits": {
+          "isss_employer": {
+            "code": "SV-ISSS-EMPLOYER-2026",
+            "percentage": "7.50",
+            "accumulation": "annual"
+          },
+          "aguinaldo": {
+            "code": "SV-AGUINALDO-PROVISION-2026",
+            "percentage": "8.3333",
+            "accumulation": "annual"
+          }
+        }
+      },
+      "rules": {
+        "isss_employee": {
+          "code": "SV-ISSS-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.03"
+              }
+            ],
+            "steps": [
+              {
+                "name": "isss",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "isss"
+          }
+        },
+        "afp_employee": {
+          "code": "SV-AFP-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.0725"
+              }
+            ],
+            "steps": [
+              {
+                "name": "afp",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "afp"
+          }
+        },
+        "isr": {
+          "code": "SV-ISR-2026",
+          "type": "tax",
+          "before_tax": false,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "isss_rate",
+                "type": "decimal",
+                "default": "0.03"
+              },
+              {
+                "name": "isss_cap",
+                "type": "decimal",
+                "default": 30
+              },
+              {
+                "name": "afp_rate",
+                "type": "decimal",
+                "default": "0.0725"
+              }
+            ],
+            "steps": [
+              {
+                "name": "isss",
+                "type": "calculation",
+                "formula": "min(salario_bruto * isss_rate, isss_cap)"
+              },
+              {
+                "name": "afp",
+                "type": "calculation",
+                "formula": "salario_bruto * afp_rate"
+              },
+              {
+                "name": "tax_base",
+                "type": "calculation",
+                "formula": "salario_bruto - isss - afp"
+              },
+              {
+                "name": "isr",
+                "type": "tax_lookup",
+                "table": "isr",
+                "input": "tax_base"
+              }
+            ],
+            "tax_tables": {
+              "isr": [
+                {
+                  "min": 0,
+                "max": 550,
+                  "rate": 0,
+                  "fixed": 0,
+                  "over": 0
+                },
+                {
+                  "min": 550.01,
+                  "max": 895.24,
+                  "rate": 0.10,
+                  "fixed": 17.67,
+                  "over": 472
+                },
+                {
+                  "min": 895.25,
+                  "max": 2038.10,
+                  "rate": 0.20,
+                  "fixed": 60,
+                  "over": 895.24
+                },
+                {
+                  "min": 2038.11,
+                  "max": null,
+                  "rate": 0.30,
+                  "fixed": 288.57,
+                  "over": 2038.10
+                }
+              ]
+            },
+            "output": "isr"
+          }
+        }
+      },
+      "cases": [
+        {
+          "salary": "1000.00",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "deduction_keys": [
+            "social_security",
+            "afp",
+            "income_tax"
+          ],
+          "expected": {
+            "social_security": "30.00",
+            "afp": "72.50",
+            "income_tax": "60.45",
+            "gross": "1000.00",
+            "net": "837.05"
+          }
+        }
+      ]
     },
     "NI": {
-      "country": "NI", "name": "Nicaragua payroll 2026", "currency": "NIO", "effective_from": "2026-01-01",
-      "sources": [{"title": "INSS Nicaragua — Regímenes de afiliación", "url": "https://inss-princ.inss.gob.ni/index.php/tramites-37/10-afiliaciones/13-regimenes-de-afiliacion", "retrieved_on": "2026-08-06"}, {"title": "DGI Nicaragua — tabla renta del trabajo", "url": "https://www.dgi.gob.ni/pdfArchivo/22", "retrieved_on": "2026-08-06"}],
-      "company": {"code": "NI-PAYROLL-2026", "legal_name": "Nicaragua Release Validation SA", "tax_id": "NI-RELEASE-2026"},
-      "payroll": {"code": "NI-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
-      "stress_case": {"employee_count": 8, "salary": "30000.00", "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]], "vacation": {"code": "NI-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"}, "benefits": {"inss_employer": {"code": "NI-INSS-EMPLOYER-2026", "percentage": "22.50", "accumulation": "annual"}, "thirteenth_provision": {"code": "NI-13TH-PROVISION-2026", "percentage": "8.3333", "accumulation": "annual"}}},
-      "rules": {"inss_employee": {"code": "NI-INSS-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.07"}], "steps": [{"name": "inss", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "inss"}}, "ir": {"code": "NI-IR-TRABAJO-2026", "type": "tax", "before_tax": false, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "annual_months", "type": "decimal", "default": 12}, {"name": "social_rate", "type": "decimal", "default": "0.07"}], "steps": [{"name": "annual_taxable", "type": "calculation", "formula": "salario_bruto * annual_months * (1 - social_rate)"}, {"name": "annual_tax", "type": "tax_lookup", "table": "ir", "input": "annual_taxable"}, {"name": "monthly_tax", "type": "calculation", "formula": "annual_tax / annual_months"}], "tax_tables": {"ir": [{"min": 0, "max": 100000, "rate": 0, "fixed": 0, "over": 0}, {"min": 100000.01, "max": 200000, "rate": 0.15, "fixed": 0, "over": 100000}, {"min": 200000.01, "max": 350000, "rate": 0.20, "fixed": 15000, "over": 200000}, {"min": 350000.01, "max": 500000, "rate": 0.25, "fixed": 45000, "over": 350000}, {"min": 500000.01, "max": null, "rate": 0.30, "fixed": 82500, "over": 500000}]}, "output": "monthly_tax"}}},
-      "cases": [{"salary": "30000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "income_tax"], "expected": {"social_security": "2100.00", "income_tax": "3496.67", "gross": "30000.00", "net": "24403.33"}}]
+      "country": "NI",
+      "name": "Nicaragua payroll 2026",
+      "currency": "NIO",
+      "effective_from": "2026-01-01",
+      "sources": [
+        {
+          "title": "INSS Nicaragua — Regímenes de afiliación",
+          "url": "https://inss-princ.inss.gob.ni/index.php/tramites-37/10-afiliaciones/13-regimenes-de-afiliacion",
+          "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "DGI Nicaragua — tabla renta del trabajo",
+          "url": "https://www.dgi.gob.ni/pdfArchivo/22",
+          "retrieved_on": "2026-08-06"
+        }
+      ],
+      "company": {
+        "code": "NI-PAYROLL-2026",
+        "legal_name": "Nicaragua Release Validation SA",
+        "tax_id": "NI-RELEASE-2026"
+      },
+      "payroll": {
+        "code": "NI-MONTHLY-2026",
+        "frequency": "monthly",
+        "periods_per_year": 12,
+        "fiscal_start_month": 1,
+        "fiscal_start_day": 1,
+        "days_per_month": 30,
+        "days_per_half_month": 15,
+        "days_per_year": 365,
+        "daily_hours": "8.00"
+      },
+      "stress_case": {
+        "employee_count": 8,
+        "salary": "30000.00",
+        "periods": [
+          [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          [
+            "2026-03-01",
+            "2026-03-31"
+          ]
+        ],
+        "vacation": {
+          "code": "NI-VACATION-2026",
+          "accrual_rate_days": "1.00",
+          "usage_employee_index": 0,
+          "usage_period_index": 2,
+          "usage_days": "1.00"
+        },
+        "benefits": {
+          "inss_employer": {
+            "code": "NI-INSS-EMPLOYER-2026",
+            "percentage": "22.50",
+            "accumulation": "annual"
+          },
+          "thirteenth_provision": {
+            "code": "NI-13TH-PROVISION-2026",
+            "percentage": "8.3333",
+            "accumulation": "annual"
+          }
+        }
+      },
+      "rules": {
+        "inss_employee": {
+          "code": "NI-INSS-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.07"
+              }
+            ],
+            "steps": [
+              {
+                "name": "inss",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "inss"
+          }
+        },
+        "ir": {
+          "code": "NI-IR-TRABAJO-2026",
+          "type": "tax",
+          "before_tax": false,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "meses_restantes",
+                "type": "decimal",
+                "default": 12
+              },
+              {
+                "name": "social_rate",
+                "type": "decimal",
+                "default": "0.07"
+              },
+              {
+                "name": "pre_tax_deductions",
+                "type": "decimal",
+                "default": 0
+              }
+            ],
+            "steps": [
+              {
+                "name": "annual_taxable",
+                "type": "calculation",
+                "formula": "salario_bruto * meses_restantes * (1 - social_rate) + pre_tax_deductions * meses_restantes"
+              },
+              {
+                "name": "annual_tax",
+                "type": "tax_lookup",
+                "table": "ir",
+                "input": "annual_taxable"
+              },
+              {
+                "name": "monthly_tax",
+                "type": "calculation",
+                "formula": "annual_tax / meses_restantes"
+              }
+            ],
+            "tax_tables": {
+              "ir": [
+                {
+                  "min": 0,
+                  "max": 100000,
+                  "rate": 0,
+                  "fixed": 0,
+                  "over": 0
+                },
+                {
+                  "min": 100000.01,
+                  "max": 200000,
+                  "rate": 0.15,
+                  "fixed": 0,
+                  "over": 100000
+                },
+                {
+                  "min": 200000.01,
+                  "max": 350000,
+                  "rate": 0.20,
+                  "fixed": 15000,
+                  "over": 200000
+                },
+                {
+                  "min": 350000.01,
+                  "max": 500000,
+                  "rate": 0.25,
+                  "fixed": 45000,
+                  "over": 350000
+                },
+                {
+                  "min": 500000.01,
+                  "max": null,
+                  "rate": 0.30,
+                  "fixed": 82500,
+                  "over": 500000
+                }
+              ]
+            },
+            "output": "monthly_tax"
+          }
+        }
+      },
+      "cases": [
+        {
+          "salary": "30000.00",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "deduction_keys": [
+            "social_security",
+            "income_tax"
+          ],
+          "expected": {
+            "social_security": "2100.00",
+            "income_tax": "3496.67",
+            "gross": "30000.00",
+            "net": "24403.33"
+          }
+        }
+      ]
     },
     "CR": {
-      "country": "CR", "name": "Costa Rica payroll 2026", "currency": "CRC", "effective_from": "2026-01-01",
-      "sources": [{"title": "CCSS — Información para patronos 2026", "url": "https://aissfa.ccss.sa.cr/patronos", "retrieved_on": "2026-08-06"}, {"title": "Ministerio de Hacienda — Tramos de renta 2026", "url": "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf", "retrieved_on": "2026-08-06"}],
-      "company": {"code": "CR-PAYROLL-2026", "legal_name": "Costa Rica Release Validation SA", "tax_id": "CR-RELEASE-2026"},
-      "payroll": {"code": "CR-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
-      "stress_case": {"employee_count": 8, "salary": "1000000.00", "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]], "vacation": {"code": "CR-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"}, "benefits": {"ccss_employer": {"code": "CR-CCSS-EMPLOYER-2026", "percentage": "14.83", "accumulation": "annual"}, "aguinaldo": {"code": "CR-AGUINALDO-PROVISION-2026", "percentage": "8.3333", "accumulation": "annual"}}},
-      "rules": {"ccss_employee": {"code": "CR-CCSS-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.0983"}], "steps": [{"name": "ccss", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "ccss"}}, "income_tax": {"code": "CR-RENTA-SALARIO-2026", "type": "tax", "before_tax": false, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}], "steps": [{"name": "income_tax", "type": "tax_lookup", "table": "income_tax", "input": "salario_bruto"}], "tax_tables": {"income_tax": [{"min": 0, "max": 918000, "rate": 0, "fixed": 0, "over": 0}, {"min": 918000.01, "max": 1347000, "rate": 0.10, "fixed": 0, "over": 918000}, {"min": 1347000.01, "max": 2364000, "rate": 0.15, "fixed": 42900, "over": 1347000}, {"min": 2364000.01, "max": 4727000, "rate": 0.20, "fixed": 195450, "over": 2364000}, {"min": 4727000.01, "max": null, "rate": 0.25, "fixed": 668050, "over": 4727000}]}, "output": "income_tax"}}},
-      "cases": [{"salary": "1000000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "income_tax"], "expected": {"social_security": "98300.00", "income_tax": "8200.00", "gross": "1000000.00", "net": "893500.00"}}]
+      "country": "CR",
+      "name": "Costa Rica payroll 2026",
+      "currency": "CRC",
+      "effective_from": "2026-01-01",
+      "sources": [
+        {
+          "title": "CCSS — Información para patronos 2026",
+          "url": "https://aissfa.ccss.sa.cr/patronos",
+          "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "Ministerio de Hacienda — Tramos de renta 2026",
+          "url": "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf",
+          "retrieved_on": "2026-08-06"
+        }
+      ],
+      "company": {
+        "code": "CR-PAYROLL-2026",
+        "legal_name": "Costa Rica Release Validation SA",
+        "tax_id": "CR-RELEASE-2026"
+      },
+      "payroll": {
+        "code": "CR-MONTHLY-2026",
+        "frequency": "monthly",
+        "periods_per_year": 12,
+        "fiscal_start_month": 1,
+        "fiscal_start_day": 1,
+        "days_per_month": 30,
+        "days_per_half_month": 15,
+        "days_per_year": 365,
+        "daily_hours": "8.00"
+      },
+      "stress_case": {
+        "employee_count": 8,
+        "salary": "1000000.00",
+        "periods": [
+          [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          [
+            "2026-03-01",
+            "2026-03-31"
+          ]
+        ],
+        "vacation": {
+          "code": "CR-VACATION-2026",
+          "accrual_rate_days": "1.00",
+          "usage_employee_index": 0,
+          "usage_period_index": 2,
+          "usage_days": "1.00"
+        },
+        "benefits": {
+          "ccss_employer": {
+            "code": "CR-CCSS-EMPLOYER-2026",
+            "percentage": "14.83",
+            "accumulation": "annual"
+          },
+          "aguinaldo": {
+            "code": "CR-AGUINALDO-PROVISION-2026",
+            "percentage": "8.3333",
+            "accumulation": "annual"
+          }
+        }
+      },
+      "rules": {
+        "ccss_employee": {
+          "code": "CR-CCSS-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "ccss_rate",
+                "type": "decimal",
+                "default": "0.0983"
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.0983"
+              }
+            ],
+            "steps": [
+              {
+                "name": "ccss",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "ccss"
+          }
+        },
+        "income_tax": {
+          "code": "CR-RENTA-SALARIO-2026",
+          "type": "tax",
+          "before_tax": false,
+          "formula": {
+            "inputs": [
+              {"name": "salario_bruto", "type": "decimal", "default": 0},
+              {"name": "ccss_rate", "type": "decimal", "default": "0.0983"}
+            ],
+            "steps": [
+              {
+                "name": "taxable_salary",
+                "type": "calculation",
+                "formula": "salario_bruto * (1 - ccss_rate)"
+              },
+              {
+                "name": "income_tax",
+                "type": "tax_lookup",
+                "table": "income_tax",
+                "input": "taxable_salary"
+              }
+            ],
+            "tax_tables": {
+              "income_tax": [
+                {
+                  "min": 0,
+                  "max": 918000,
+                  "rate": 0,
+                  "fixed": 0,
+                  "over": 0
+                },
+                {
+                  "min": 918000.01,
+                  "max": 1347000,
+                  "rate": 0.10,
+                  "fixed": 0,
+                  "over": 918000
+                },
+                {
+                  "min": 1347000.01,
+                  "max": 2364000,
+                  "rate": 0.15,
+                  "fixed": 42900,
+                  "over": 1347000
+                },
+                {
+                  "min": 2364000.01,
+                  "max": 4727000,
+                  "rate": 0.20,
+                  "fixed": 195450,
+                  "over": 2364000
+                },
+                {
+                  "min": 4727000.01,
+                  "max": null,
+                  "rate": 0.25,
+                  "fixed": 668050,
+                  "over": 4727000
+                }
+              ]
+            },
+            "output": "income_tax"
+          }
+        }
+      },
+      "cases": [
+        {
+          "salary": "1000000.00",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "deduction_keys": [
+            "social_security",
+            "income_tax"
+          ],
+          "expected": {
+            "social_security": "98300.00",
+            "income_tax": "0.00",
+            "gross": "1000000.00",
+            "net": "901700.00"
+          }
+        }
+      ]
     },
     "PA": {
-      "country": "PA", "name": "Panama payroll 2026", "currency": "PAB", "effective_from": "2026-01-01",
-      "sources": [{"title": "DGI Panamá — Planilla 03", "url": "https://dgi.mef.gob.pa/DInforme/Planilla03.php/OnGs", "retrieved_on": "2026-08-06"}, {"title": "DGI Panamá — preguntas sobre renta natural", "url": "https://dgi.mef.gob.pa/Preguntas/DeclaracionInformes.php/Pagos", "retrieved_on": "2026-08-06"}],
-      "company": {"code": "PA-PAYROLL-2026", "legal_name": "Panama Release Validation SA", "tax_id": "PA-RELEASE-2026"},
-      "payroll": {"code": "PA-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
-      "stress_case": {"employee_count": 8, "salary": "2000.00", "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]], "vacation": {"code": "PA-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"}, "benefits": {"css_employer": {"code": "PA-CSS-EMPLOYER-2026", "percentage": "13.25", "accumulation": "annual"}, "educational_employer": {"code": "PA-EDUCATIONAL-EMPLOYER-2026", "percentage": "1.50", "accumulation": "annual"}}},
-      "rules": {"css_employee": {"code": "PA-CSS-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.0975"}], "steps": [{"name": "css", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "css"}}, "educational_employee": {"code": "PA-EDUCATIONAL-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.0125"}], "steps": [{"name": "educational", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "educational"}}, "income_tax": {"code": "PA-RENTA-NATURAL-2026", "type": "tax", "before_tax": false, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "annual_months", "type": "decimal", "default": 12}], "steps": [{"name": "annual_income", "type": "calculation", "formula": "salario_bruto * annual_months"}, {"name": "annual_tax", "type": "tax_lookup", "table": "income_tax", "input": "annual_income"}, {"name": "monthly_tax", "type": "calculation", "formula": "annual_tax / annual_months"}], "tax_tables": {"income_tax": [{"min": 0, "max": 11000, "rate": 0, "fixed": 0, "over": 0}, {"min": 11000.01, "max": 50000, "rate": 0.15, "fixed": 0, "over": 11000}, {"min": 50000.01, "max": null, "rate": 0.25, "fixed": 5850, "over": 50000}]}, "output": "monthly_tax"}}},
-      "cases": [{"salary": "2000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "educational", "income_tax"], "expected": {"social_security": "195.00", "educational": "25.00", "income_tax": "162.50", "gross": "2000.00", "net": "1617.50"}}]
+      "country": "PA",
+      "name": "Panama payroll 2026",
+      "currency": "PAB",
+      "effective_from": "2026-01-01",
+      "sources": [
+        {
+          "title": "DGI Panamá — Planilla 03",
+          "url": "https://dgi.mef.gob.pa/DInforme/Planilla03.php/OnGs",
+          "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "DGI Panamá — preguntas sobre renta natural",
+          "url": "https://dgi.mef.gob.pa/Preguntas/DeclaracionInformes.php/Pagos",
+          "retrieved_on": "2026-08-06"
+        }
+      ],
+      "company": {
+        "code": "PA-PAYROLL-2026",
+        "legal_name": "Panama Release Validation SA",
+        "tax_id": "PA-RELEASE-2026"
+      },
+      "payroll": {
+        "code": "PA-MONTHLY-2026",
+        "frequency": "monthly",
+        "periods_per_year": 12,
+        "fiscal_start_month": 1,
+        "fiscal_start_day": 1,
+        "days_per_month": 30,
+        "days_per_half_month": 15,
+        "days_per_year": 365,
+        "daily_hours": "8.00"
+      },
+      "stress_case": {
+        "employee_count": 8,
+        "salary": "2000.00",
+        "periods": [
+          [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          [
+            "2026-03-01",
+            "2026-03-31"
+          ]
+        ],
+        "vacation": {
+          "code": "PA-VACATION-2026",
+          "accrual_rate_days": "1.00",
+          "usage_employee_index": 0,
+          "usage_period_index": 2,
+          "usage_days": "1.00"
+        },
+        "benefits": {
+          "css_employer": {
+            "code": "PA-CSS-EMPLOYER-2026",
+            "percentage": "13.25",
+            "accumulation": "annual"
+          },
+          "educational_employer": {
+            "code": "PA-EDUCATIONAL-EMPLOYER-2026",
+            "percentage": "1.50",
+            "accumulation": "annual"
+          }
+        }
+      },
+      "rules": {
+        "css_employee": {
+          "code": "PA-CSS-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.0975"
+              }
+            ],
+            "steps": [
+              {
+                "name": "css",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "css"
+          }
+        },
+        "educational_employee": {
+          "code": "PA-EDUCATIONAL-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.0125"
+              }
+            ],
+            "steps": [
+              {
+                "name": "educational",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "educational"
+          }
+        },
+        "income_tax": {
+          "code": "PA-RENTA-NATURAL-2026",
+          "type": "tax",
+          "before_tax": false,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "meses_restantes",
+                "type": "decimal",
+                "default": 12
+              },
+              {
+                "name": "decimo_tercer_mes",
+                "type": "decimal",
+                "default": 1
+              },
+              {
+                "name": "css_rate",
+                "type": "decimal",
+                "default": "0.0975"
+              },
+              {
+                "name": "educational_rate",
+                "type": "decimal",
+                "default": "0.0125"
+              }
+            ],
+            "steps": [
+              {
+                "name": "annual_income",
+                "type": "calculation",
+                "formula": "salario_bruto * (meses_restantes + decimo_tercer_mes) - salario_bruto * (meses_restantes + decimo_tercer_mes) * css_rate - salario_bruto * meses_restantes * educational_rate"
+              },
+              {
+                "name": "annual_tax",
+                "type": "tax_lookup",
+                "table": "income_tax",
+                "input": "annual_income"
+              },
+              {
+                "name": "monthly_tax",
+                "type": "calculation",
+                "formula": "annual_tax / meses_restantes"
+              }
+            ],
+            "tax_tables": {
+              "income_tax": [
+                {
+                  "min": 0,
+                  "max": 11000,
+                  "rate": 0,
+                  "fixed": 0,
+                  "over": 0
+                },
+                {
+                  "min": 11000.01,
+                  "max": 50000,
+                  "rate": 0.15,
+                  "fixed": 0,
+                  "over": 11000
+                },
+                {
+                  "min": 50000.01,
+                  "max": null,
+                  "rate": 0.25,
+                  "fixed": 5850,
+                  "over": 50000
+                }
+              ]
+            },
+            "output": "monthly_tax"
+          }
+        }
+      },
+      "cases": [
+        {
+          "salary": "2000.00",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "deduction_keys": [
+            "social_security",
+            "educational",
+            "income_tax"
+          ],
+          "expected": {
+            "social_security": "195.00",
+            "educational": "25.00",
+            "income_tax": "152.06",
+            "gross": "2000.00",
+            "net": "1627.94"
+          }
+        }
+      ]
     },
     "BZ": {
-      "country": "BZ", "name": "Belize payroll 2026", "currency": "BZD", "effective_from": "2026-01-01",
-      "sources": [{"title": "Belize Social Security Board — Contributions", "url": "https://socialsecurity.org.bz/contributions/", "retrieved_on": "2026-08-06"}, {"title": "Belize Income Tax Act / tax regime", "url": "https://www.belize.org/trade-investment-zone/investment-regime/tax-regime/", "retrieved_on": "2026-08-06"}],
-      "company": {"code": "BZ-PAYROLL-2026", "legal_name": "Belize Release Validation Ltd", "tax_id": "BZ-RELEASE-2026"},
-      "payroll": {"code": "BZ-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
-      "stress_case": {"employee_count": 8, "salary": "2500.00", "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]], "vacation": {"code": "BZ-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"}, "benefits": {"ssb_employer": {"code": "BZ-SSB-EMPLOYER-2026", "percentage": "5.50", "accumulation": "annual"}, "holiday_provision": {"code": "BZ-HOLIDAY-PROVISION-2026", "percentage": "8.3333", "accumulation": "annual"}}},
-      "rules": {"ssb_employee": {"code": "BZ-SSB-EMPLOYEE-2026", "type": "deduction", "before_tax": true, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "employee_rate", "type": "decimal", "default": "0.045"}], "steps": [{"name": "ssb", "type": "calculation", "formula": "salario_bruto * employee_rate"}], "output": "ssb"}}, "income_tax": {"code": "BZ-INCOME-TAX-2026", "type": "tax", "before_tax": false, "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "annual_months", "type": "decimal", "default": 12}, {"name": "personal_relief", "type": "decimal", "default": 19600}], "steps": [{"name": "chargeable_income", "type": "calculation", "formula": "max(0, salario_bruto * annual_months - personal_relief)"}, {"name": "annual_tax", "type": "calculation", "formula": "chargeable_income * 0.25"}, {"name": "monthly_tax", "type": "calculation", "formula": "annual_tax / annual_months"}], "output": "monthly_tax"}}},
-      "cases": [{"salary": "2500.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "income_tax"], "expected": {"social_security": "112.50", "income_tax": "216.67", "gross": "2500.00", "net": "2170.83"}}]
+      "country": "BZ",
+      "name": "Belize payroll 2026",
+      "currency": "BZD",
+      "effective_from": "2026-01-01",
+      "sources": [
+        {
+          "title": "Belize Social Security Board — Contributions",
+          "url": "https://socialsecurity.org.bz/contributions/",
+          "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "Belize Income Tax Act / tax regime",
+          "url": "https://www.belize.org/trade-investment-zone/investment-regime/tax-regime/",
+          "retrieved_on": "2026-08-06"
+        }
+      ],
+      "company": {
+        "code": "BZ-PAYROLL-2026",
+        "legal_name": "Belize Release Validation Ltd",
+        "tax_id": "BZ-RELEASE-2026"
+      },
+      "payroll": {
+        "code": "BZ-MONTHLY-2026",
+        "frequency": "monthly",
+        "periods_per_year": 12,
+        "fiscal_start_month": 1,
+        "fiscal_start_day": 1,
+        "days_per_month": 30,
+        "days_per_half_month": 15,
+        "days_per_year": 365,
+        "daily_hours": "8.00"
+      },
+      "stress_case": {
+        "employee_count": 8,
+        "salary": "2500.00",
+        "periods": [
+          [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          [
+            "2026-03-01",
+            "2026-03-31"
+          ]
+        ],
+        "vacation": {
+          "code": "BZ-VACATION-2026",
+          "accrual_rate_days": "1.00",
+          "usage_employee_index": 0,
+          "usage_period_index": 2,
+          "usage_days": "1.00"
+        },
+        "benefits": {
+          "ssb_employer": {
+            "code": "BZ-SSB-EMPLOYER-2026",
+            "percentage": "5.50",
+            "accumulation": "annual"
+          },
+          "holiday_provision": {
+            "code": "BZ-HOLIDAY-PROVISION-2026",
+            "percentage": "8.3333",
+            "accumulation": "annual"
+          }
+        }
+      },
+      "rules": {
+        "ssb_employee": {
+          "code": "BZ-SSB-EMPLOYEE-2026",
+          "type": "deduction",
+          "before_tax": true,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "employee_rate",
+                "type": "decimal",
+                "default": "0.045"
+              }
+            ],
+            "steps": [
+              {
+                "name": "ssb",
+                "type": "calculation",
+                "formula": "salario_bruto * employee_rate"
+              }
+            ],
+            "output": "ssb"
+          }
+        },
+        "income_tax": {
+          "code": "BZ-INCOME-TAX-2026",
+          "type": "tax",
+          "before_tax": false,
+          "formula": {
+            "inputs": [
+              {
+                "name": "salario_bruto",
+                "type": "decimal",
+                "default": 0
+              },
+              {
+                "name": "meses_restantes",
+                "type": "decimal",
+                "default": 12
+              },
+              {
+                "name": "personal_relief",
+                "type": "decimal",
+                "default": 20000
+              },
+              {
+                "name": "marginal_relief_threshold",
+                "type": "decimal",
+                "default": 29000
+              },
+              {
+                "name": "marginal_relief_rate",
+                "type": "decimal",
+                "default": "1.5"
+              }
+            ],
+            "steps": [
+              {
+                "name": "chargeable_income",
+                "type": "calculation",
+                "formula": "max(0, salario_bruto * meses_restantes - personal_relief)"
+              },
+              {
+                "name": "annual_tax",
+                "type": "calculation",
+                "formula": "max(0, chargeable_income * 0.25 - marginal_relief_rate * max(0, salario_bruto * meses_restantes - marginal_relief_threshold))"
+              },
+              {
+                "name": "monthly_tax",
+                "type": "calculation",
+                "formula": "annual_tax / meses_restantes"
+              }
+            ],
+            "output": "monthly_tax"
+          }
+        }
+      },
+      "cases": [
+        {
+          "salary": "2500.00",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "deduction_keys": [
+            "social_security",
+            "income_tax"
+          ],
+          "expected": {
+            "social_security": "112.50",
+            "income_tax": "83.33",
+            "gross": "2500.00",
+            "net": "2304.17"
+          }
+        }
+      ]
     }
   }
 }

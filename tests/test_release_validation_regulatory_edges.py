@@ -77,8 +77,8 @@ def test_mexico_isr_table_is_continuous_at_7168_boundary():
     schema = profile["rules"]["income_tax"]["formula"]
     engine = FormulaEngine(schema)
 
-    left = engine.execute({"salario_bruto": "7168.51"})
-    right = engine.execute({"salario_bruto": "7168.52"})
+    left = engine.execute({"salario_bruto": "7168.51", "employment_subsidy": "0"})
+    right = engine.execute({"salario_bruto": "7168.52", "employment_subsidy": "0"})
 
     assert left["output"] == "420.95"
     assert right["output"] == "420.95"
@@ -141,7 +141,7 @@ def test_mexico_manual_expected_matches_engine(salary: str, expected: str):
     manual_expected = _mx_isr_manual(salary_d, tariff)
     assert manual_expected == Decimal(expected)
 
-    engine_result = Decimal(engine.execute({"salario_bruto": salary})["output"])
+    engine_result = Decimal(engine.execute({"salario_bruto": salary, "employment_subsidy": "0"})["output"])
     assert engine_result == manual_expected
 
 
@@ -251,7 +251,7 @@ def test_costa_rica_income_tax_must_use_taxable_salary_after_ccss():
     manual_expected_tax = Decimal("0.00")
 
     engine = FormulaEngine(income_tax_rule["formula"])
-    engine_result = Decimal(engine.execute({"salario_bruto": str(salary)})["output"])
+    engine_result = Decimal(engine.execute({"salario_bruto": str(salary), "decimo_tercer_mes": "0"})["output"])
     assert engine_result == manual_expected_tax
 
 
@@ -275,5 +275,5 @@ def test_panama_income_tax_must_consider_pre_tax_social_contributions():
     assert manual_expected_monthly_tax == Decimal("129.50")
 
     engine = FormulaEngine(income_tax_rule["formula"])
-    engine_result = Decimal(engine.execute({"salario_bruto": str(salary)})["output"])
+    engine_result = Decimal(engine.execute({"salario_bruto": str(salary), "decimo_tercer_mes": "0"})["output"])
     assert engine_result == manual_expected_monthly_tax

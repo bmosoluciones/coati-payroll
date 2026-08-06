@@ -3,50 +3,238 @@
   "name": "Brazil payroll 2026",
   "currency": "BRL",
   "effective_from": "2026-01-01",
-  "validation_scope": ["INSS employee progressive table", "IRRF monthly table and 2026 reduction", "FGTS", "13th salary and vacation provisions", "multi-employee multi-period accumulators"],
-  "sources": [
-    {"title": "INSS — Tabela de contribuição mensal 2026", "url": "https://www.gov.br/inss/pt-br/direitos-e-deveres/inscricao-e-contribuicao/tabela-de-contribuicao-mensal", "retrieved_on": "2026-08-06"},
-    {"title": "Receita Federal — Tributação de 2026", "url": "https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/tabelas/2026", "retrieved_on": "2026-08-06"},
-    {"title": "eSocial — documentação técnica", "url": "https://www.gov.br/esocial/pt-br/documentacao-tecnica/documentacao-tecnica/", "retrieved_on": "2026-08-06"}
+  "validation_scope": [
+    "INSS employee progressive table",
+    "IRRF monthly table and 2026 reduction",
+    "FGTS",
+    "13th salary and vacation provisions",
+    "multi-employee multi-period accumulators"
   ],
-  "company": {"code": "BR-PAYROLL-2026", "legal_name": "Brazil Release Validation Ltda", "tax_id": "BR-RELEASE-2026"},
-  "payroll": {"code": "BR-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12, "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30, "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"},
+  "sources": [
+    {
+      "title": "INSS — Tabela de contribuição mensal 2026",
+      "url": "https://www.gov.br/inss/pt-br/direitos-e-deveres/inscricao-e-contribuicao/tabela-de-contribuicao-mensal",
+      "retrieved_on": "2026-08-06"
+    },
+    {
+      "title": "Receita Federal — Tributação de 2026",
+      "url": "https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/tabelas/2026",
+      "retrieved_on": "2026-08-06"
+    },
+    {
+      "title": "eSocial — documentação técnica",
+      "url": "https://www.gov.br/esocial/pt-br/documentacao-tecnica/documentacao-tecnica/",
+      "retrieved_on": "2026-08-06"
+    }
+  ],
+  "company": {
+    "code": "BR-PAYROLL-2026",
+    "legal_name": "Brazil Release Validation Ltda",
+    "tax_id": "BR-RELEASE-2026"
+  },
+  "payroll": {
+    "code": "BR-MONTHLY-2026",
+    "frequency": "monthly",
+    "periods_per_year": 12,
+    "fiscal_start_month": 1,
+    "fiscal_start_day": 1,
+    "days_per_month": 30,
+    "days_per_half_month": 15,
+    "days_per_year": 365,
+    "daily_hours": "8.00"
+  },
   "stress_case": {
     "employee_count": 100,
     "salary": "5000.00",
-    "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]],
-    "vacation": {"code": "BR-VACATION-2026", "accrual_rate_days": "1.00", "frequency": "monthly", "prorate_by_period_days": false, "unit_type": "days", "partial_units_allowed": false, "accrue_during_leave": true, "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"},
+    "periods": [
+      [
+        "2026-01-01",
+        "2026-01-31"
+      ],
+      [
+        "2026-02-01",
+        "2026-02-28"
+      ],
+      [
+        "2026-03-01",
+        "2026-03-31"
+      ]
+    ],
+    "vacation": {
+      "code": "BR-VACATION-2026",
+      "accrual_rate_days": "1.00",
+      "frequency": "monthly",
+      "prorate_by_period_days": false,
+      "unit_type": "days",
+      "partial_units_allowed": false,
+      "accrue_during_leave": true,
+      "usage_employee_index": 0,
+      "usage_period_index": 2,
+      "usage_days": "1.00"
+    },
     "benefits": {
-      "fgts_employer": {"code": "BR-FGTS-2026", "percentage": "8.00", "accumulation": "monthly"},
-      "thirteenth_provision": {"code": "BR-13TH-PROVISION-2026", "percentage": "8.3333", "accumulation": "annual"},
-      "vacation_provision": {"code": "BR-VACATION-PROVISION-2026", "percentage": "11.1111", "accumulation": "annual"}
+      "fgts_employer": {
+        "code": "BR-FGTS-2026",
+        "percentage": "8.00",
+        "accumulation": "monthly"
+      },
+      "thirteenth_provision": {
+        "code": "BR-13TH-PROVISION-2026",
+        "percentage": "8.3333",
+        "accumulation": "annual"
+      },
+      "vacation_provision": {
+        "code": "BR-VACATION-PROVISION-2026",
+        "percentage": "11.1111",
+        "accumulation": "annual"
+      }
     }
   },
   "rules": {
     "inss_employee": {
-      "code": "BR-INSS-EMPLOYEE-2026", "type": "deduction", "before_tax": true,
-      "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}], "steps": [{"name": "inss", "type": "tax_lookup", "table": "inss", "input": "salario_bruto"}], "tax_tables": {"inss": [
-        {"min": 0, "max": 1621, "rate": 0.075, "fixed": 0, "over": 0},
-        {"min": 1621.01, "max": 2902.84, "rate": 0.09, "fixed": 121.575, "over": 1621},
-        {"min": 2902.85, "max": 4354.27, "rate": 0.12, "fixed": 236.9406, "over": 2902.84},
-        {"min": 4354.28, "max": 8475.55, "rate": 0.14, "fixed": 411.1122, "over": 4354.27}
-      ]}, "output": "inss"}
+      "code": "BR-INSS-EMPLOYEE-2026",
+      "type": "deduction",
+      "before_tax": true,
+      "formula": {
+        "inputs": [
+          {"name": "salario_bruto", "type": "decimal", "default": 0},
+          {"name": "contribution_ceiling", "type": "decimal", "default": "8475.55"}
+        ],
+        "steps": [
+          {"name": "capped_salary", "type": "calculation", "formula": "min(salario_bruto, contribution_ceiling)"},
+          {"name": "inss", "type": "tax_lookup", "table": "inss", "input": "capped_salary"}
+        ],
+        "tax_tables": {
+          "inss": [
+            {
+              "min": 0,
+              "max": 1621,
+              "rate": 0.075,
+              "fixed": 0,
+              "over": 0
+            },
+            {
+              "min": 1621.01,
+              "max": 2902.84,
+              "rate": 0.09,
+              "fixed": 121.575,
+              "over": 1621
+            },
+            {
+              "min": 2902.85,
+              "max": 4354.27,
+              "rate": 0.12,
+              "fixed": 236.9406,
+              "over": 2902.84
+            },
+            {
+              "min": 4354.28,
+              "max": 8475.55,
+              "rate": 0.14,
+              "fixed": 411.1122,
+              "over": 4354.27
+            }
+          ]
+        },
+        "output": "inss"
+      }
     },
     "irrf_employee": {
-      "code": "BR-IRRF-EMPLOYEE-2026", "type": "tax", "before_tax": false,
-      "formula": {"inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}, {"name": "pre_tax_deductions", "type": "decimal", "default": 0}], "steps": [
-        {"name": "tax_base", "type": "calculation", "formula": "salario_bruto - pre_tax_deductions"},
-        {"name": "base_tax", "type": "tax_lookup", "table": "irrf", "input": "tax_base"},
-        {"name": "reduction", "type": "calculation", "formula": "max(0, 978.62 - 0.133145 * salario_bruto)"},
-        {"name": "irrf", "type": "calculation", "formula": "max(0, base_tax - reduction)"}
-      ], "tax_tables": {"irrf": [
-        {"min": 0, "max": 2428.8, "rate": 0, "fixed": 0, "over": 0},
-        {"min": 2428.81, "max": 2826.65, "rate": 0.075, "fixed": 0, "over": 2428.8},
-        {"min": 2826.66, "max": 3751.05, "rate": 0.15, "fixed": 29.83875, "over": 2826.65},
-        {"min": 3751.06, "max": 4664.68, "rate": 0.225, "fixed": 168.49875, "over": 3751.05},
-        {"min": 4664.69, "max": null, "rate": 0.275, "fixed": 374.0655, "over": 4664.68}
-      ]}, "output": "irrf"}
+      "code": "BR-IRRF-EMPLOYEE-2026",
+      "type": "tax",
+      "before_tax": false,
+      "formula": {
+        "inputs": [
+          {
+            "name": "salario_bruto",
+            "type": "decimal",
+            "default": 0
+          },
+          {"name": "pre_tax_deductions", "type": "decimal", "default": 0},
+          {"name": "simplified_deduction", "type": "decimal", "default": "607.20"}
+        ],
+        "steps": [
+          {
+            "name": "tax_base",
+            "type": "calculation",
+            "formula": "salario_bruto - max(pre_tax_deductions, simplified_deduction)"
+          },
+          {
+            "name": "base_tax",
+            "type": "tax_lookup",
+            "table": "irrf",
+            "input": "tax_base"
+          },
+          {
+            "name": "reduction",
+            "type": "calculation",
+            "formula": "max(0, 978.62 - 0.133145 * salario_bruto)"
+          },
+          {
+            "name": "irrf",
+            "type": "calculation",
+            "formula": "max(0, base_tax - reduction)"
+          }
+        ],
+        "tax_tables": {
+          "irrf": [
+            {
+              "min": 0,
+              "max": 2428.8,
+              "rate": 0,
+              "fixed": 0,
+              "over": 0
+            },
+            {
+              "min": 2428.81,
+              "max": 2826.65,
+              "rate": 0.075,
+              "fixed": 0,
+              "over": 2428.8
+            },
+            {
+              "min": 2826.66,
+              "max": 3751.05,
+              "rate": 0.15,
+              "fixed": 29.83875,
+              "over": 2826.65
+            },
+            {
+              "min": 3751.06,
+              "max": 4664.68,
+              "rate": 0.225,
+              "fixed": 168.49875,
+              "over": 3751.05
+            },
+            {
+              "min": 4664.69,
+              "max": null,
+              "rate": 0.275,
+              "fixed": 374.0655,
+              "over": 4664.68
+            }
+          ]
+        },
+        "output": "irrf"
+      }
     }
   },
-  "cases": [{"id": "monthly-5000-brl", "salary": "5000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["social_security", "income_tax"], "expected": {"social_security": "501.51", "income_tax": "23.78", "gross": "5000.00", "net": "4474.71"}}]
+  "cases": [
+    {
+      "id": "monthly-5000-brl",
+      "salary": "5000.00",
+      "period_start": "2026-01-01",
+      "period_end": "2026-01-31",
+      "deduction_keys": [
+        "social_security",
+        "income_tax"
+      ],
+      "expected": {
+        "social_security": "501.51",
+        "income_tax": "0.00",
+        "gross": "5000.00",
+        "net": "4498.49"
+      }
+    }
+  ]
 }

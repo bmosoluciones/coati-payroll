@@ -67,12 +67,35 @@
       }
     },
     "periods": [
-      ["2026-04-01", "2026-04-30"],
-      ["2026-05-01", "2026-05-31"],
-      ["2026-06-01", "2026-06-30"]
+      [
+        "2026-04-01",
+        "2026-04-30"
+      ],
+      [
+        "2026-05-01",
+        "2026-05-31"
+      ],
+      [
+        "2026-06-01",
+        "2026-06-30"
+      ]
     ]
   },
   "rules": {
+    "esi_employee": {
+      "code": "IN-ESI-EMPLOYEE-2026",
+      "type": "deduction",
+      "before_tax": true,
+      "formula": {
+        "inputs": [
+          {"name": "salario_bruto", "type": "decimal", "default": 0},
+          {"name": "employee_rate", "type": "decimal", "default": "0.0075"},
+          {"name": "eligible", "type": "decimal", "default": 0}
+        ],
+        "steps": [{"name": "esi_employee", "type": "calculation", "formula": "salario_bruto * employee_rate * eligible"}],
+        "output": "esi_employee"
+      }
+    },
     "epf_employee": {
       "code": "IN-EPF-EMPLOYEE-2026",
       "type": "deduction",
@@ -80,11 +103,23 @@
       "employee_rate": "0.12",
       "formula": {
         "inputs": [
-          {"name": "salario_bruto", "type": "decimal", "default": 0},
-          {"name": "employee_rate", "type": "decimal", "default": "0.12"}
+          {
+            "name": "salario_bruto",
+            "type": "decimal",
+            "default": 0
+          },
+          {
+            "name": "employee_rate",
+            "type": "decimal",
+            "default": "0.12"
+          }
         ],
         "steps": [
-          {"name": "epf_employee", "type": "calculation", "formula": "salario_bruto * employee_rate"}
+          {
+            "name": "epf_employee",
+            "type": "calculation",
+            "formula": "salario_bruto * employee_rate"
+          }
         ],
         "output": "epf_employee"
       }
@@ -95,37 +130,159 @@
       "before_tax": false,
       "tax_tables": {
         "annual_slabs": [
-          {"min": 0, "max": 400000, "rate": 0, "fixed": 0, "over": 0},
-          {"min": 400000.01, "max": 800000, "rate": 0.05, "fixed": 0, "over": 400000},
-          {"min": 800000.01, "max": 1200000, "rate": 0.10, "fixed": 20000, "over": 800000},
-          {"min": 1200000.01, "max": 1600000, "rate": 0.15, "fixed": 60000, "over": 1200000},
-          {"min": 1600000.01, "max": 2000000, "rate": 0.20, "fixed": 120000, "over": 1600000},
-          {"min": 2000000.01, "max": 2400000, "rate": 0.25, "fixed": 200000, "over": 2000000},
-          {"min": 2400000.01, "max": null, "rate": 0.30, "fixed": 300000, "over": 2400000}
+          {
+            "min": 0,
+            "max": 400000,
+            "rate": 0,
+            "fixed": 0,
+            "over": 0
+          },
+          {
+            "min": 400000.01,
+            "max": 800000,
+            "rate": 0.05,
+            "fixed": 0,
+            "over": 400000
+          },
+          {
+            "min": 800000.01,
+            "max": 1200000,
+            "rate": 0.10,
+            "fixed": 20000,
+            "over": 800000
+          },
+          {
+            "min": 1200000.01,
+            "max": 1600000,
+            "rate": 0.15,
+            "fixed": 60000,
+            "over": 1200000
+          },
+          {
+            "min": 1600000.01,
+            "max": 2000000,
+            "rate": 0.20,
+            "fixed": 120000,
+            "over": 1600000
+          },
+          {
+            "min": 2000000.01,
+            "max": 2400000,
+            "rate": 0.25,
+            "fixed": 200000,
+            "over": 2000000
+          },
+          {
+            "min": 2400000.01,
+            "max": null,
+            "rate": 0.30,
+            "fixed": 300000,
+            "over": 2400000
+          }
         ]
       },
       "formula": {
         "inputs": [
-          {"name": "salario_bruto", "type": "decimal", "default": 0},
-          {"name": "pre_tax_deductions", "type": "decimal", "default": 0},
-          {"name": "meses_restantes", "type": "decimal", "default": 12},
-          {"name": "salario_neto_acumulado", "type": "decimal", "default": 0},
-          {"name": "ir_retenido_acumulado", "type": "decimal", "default": 0}
+          {
+            "name": "salario_bruto",
+            "type": "decimal",
+            "default": 0
+          },
+          {
+            "name": "standard_deduction",
+            "type": "decimal",
+            "default": 75000
+          },
+          {
+            "name": "meses_restantes",
+            "type": "decimal",
+            "default": 12
+          },
+          {
+            "name": "salario_bruto_acumulado",
+            "type": "decimal",
+            "default": 0
+          },
+          {
+            "name": "ir_retenido_acumulado",
+            "type": "decimal",
+            "default": 0
+          }
         ],
         "steps": [
-          {"name": "annual_taxable_income", "type": "calculation", "formula": "(salario_bruto - pre_tax_deductions) * meses_restantes + salario_neto_acumulado"},
-          {"name": "annual_tax", "type": "tax_lookup", "table": "annual_slabs", "input": "annual_taxable_income"},
-          {"name": "monthly_tax", "type": "calculation", "formula": "(annual_tax - ir_retenido_acumulado) / meses_restantes"}
+          {
+            "name": "annual_taxable_income",
+            "type": "calculation",
+            "formula": "salario_bruto * meses_restantes + salario_bruto_acumulado - standard_deduction"
+          },
+          {
+            "name": "annual_tax",
+            "type": "tax_lookup",
+            "table": "annual_slabs",
+            "input": "annual_taxable_income"
+          },
+          {
+            "name": "rebate",
+            "type": "calculation",
+            "formula": "min(60000, annual_tax)"
+          },
+          {
+            "name": "monthly_tax",
+            "type": "calculation",
+            "formula": "max(0, annual_tax - rebate - ir_retenido_acumulado) / meses_restantes"
+          }
         ],
         "tax_tables": {
           "annual_slabs": [
-            {"min": 0, "max": 400000, "rate": 0, "fixed": 0, "over": 0},
-            {"min": 400000.01, "max": 800000, "rate": 0.05, "fixed": 0, "over": 400000},
-            {"min": 800000.01, "max": 1200000, "rate": 0.10, "fixed": 20000, "over": 800000},
-            {"min": 1200000.01, "max": 1600000, "rate": 0.15, "fixed": 60000, "over": 1200000},
-            {"min": 1600000.01, "max": 2000000, "rate": 0.20, "fixed": 120000, "over": 1600000},
-            {"min": 2000000.01, "max": 2400000, "rate": 0.25, "fixed": 200000, "over": 2000000},
-            {"min": 2400000.01, "max": null, "rate": 0.30, "fixed": 300000, "over": 2400000}
+            {
+              "min": 0,
+              "max": 400000,
+              "rate": 0,
+              "fixed": 0,
+              "over": 0
+            },
+            {
+              "min": 400000.01,
+              "max": 800000,
+              "rate": 0.05,
+              "fixed": 0,
+              "over": 400000
+            },
+            {
+              "min": 800000.01,
+              "max": 1200000,
+              "rate": 0.10,
+              "fixed": 20000,
+              "over": 800000
+            },
+            {
+              "min": 1200000.01,
+              "max": 1600000,
+              "rate": 0.15,
+              "fixed": 60000,
+              "over": 1200000
+            },
+            {
+              "min": 1600000.01,
+              "max": 2000000,
+              "rate": 0.20,
+              "fixed": 120000,
+              "over": 1600000
+            },
+            {
+              "min": 2000000.01,
+              "max": 2400000,
+              "rate": 0.25,
+              "fixed": 200000,
+              "over": 2000000
+            },
+            {
+              "min": 2400000.01,
+              "max": null,
+              "rate": 0.30,
+              "fixed": 300000,
+              "over": 2400000
+            }
           ]
         },
         "output": "monthly_tax"
@@ -140,9 +297,9 @@
       "period_end": "2026-04-30",
       "expected": {
         "epf_employee": "12000.00",
-        "tds": "3800.00",
+        "tds": "0.00",
         "gross": "100000.00",
-        "net": "84200.00"
+        "net": "88000.00"
       }
     }
   ]

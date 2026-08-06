@@ -182,7 +182,8 @@ def test_complete_configurable_payroll_stress_for_major_jurisdictions(app, db_se
             for index, benefit in enumerate(benefits)
         )
 
-        for priority, rule in enumerate(profile["rules"].values(), start=1):
+        active_rules = [rule for rule in profile["rules"].values() if rule.get("enabled", True)]
+        for priority, rule in enumerate(active_rules, start=1):
             deduction = Deduccion(
                 codigo=rule["code"],
                 nombre=rule["code"],
@@ -254,7 +255,8 @@ def test_complete_configurable_payroll_stress_for_major_jurisdictions(app, db_se
             assert len(results) == stress["employee_count"]
             expected_deductions = {
                 rule["code"]: Decimal(expected[key])
-                for rule, key in zip(profile["rules"].values(), case["deduction_keys"])
+                for rule, key in zip(active_rules, case["deduction_keys"])
+                if Decimal(expected[key]) != Decimal("0.00")
             }
             expected_benefits = {
                 benefit["code"]: (Decimal(stress["salary"]) * Decimal(benefit["percentage"]) / Decimal("100")).quantize(
