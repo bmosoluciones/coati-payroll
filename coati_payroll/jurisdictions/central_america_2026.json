@@ -144,7 +144,7 @@
               {
                 "name": "annual_taxable",
                 "type": "calculation",
-                "formula": "salario_bruto * meses_restantes * (1 - social_rate) - personal_deduction + pre_tax_deductions * meses_restantes"
+                "formula": "salario_bruto * meses_restantes * (1 - social_rate) - personal_deduction"
               },
               {
                 "name": "annual_tax",
@@ -322,7 +322,7 @@
               {
                 "name": "annual_taxable",
                 "type": "calculation",
-                "formula": "salario_bruto * meses_restantes * (1 - social_rate) + pre_tax_deductions * meses_restantes"
+                "formula": "salario_bruto * meses_restantes * (1 - social_rate)"
               },
               {
                 "name": "annual_tax",
@@ -750,7 +750,7 @@
               {
                 "name": "annual_taxable",
                 "type": "calculation",
-                "formula": "salario_bruto * meses_restantes * (1 - social_rate) + pre_tax_deductions * meses_restantes"
+                "formula": "salario_bruto * meses_restantes * (1 - social_rate)"
               },
               {
                 "name": "annual_tax",
