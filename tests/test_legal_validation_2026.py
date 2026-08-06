@@ -77,6 +77,29 @@ def test_nicaragua_ir_2026_table():
     assert _tax_rule(profile, "ir", Decimal(profile["stress_case"]["salary"])) == expected
 
 
+@pytest.mark.parametrize(
+    ("country", "rule", "months_remaining", "expected"),
+    [
+        ("HN", "isr", "11", "1273.99"),
+        ("HN", "isr", "10", "962.64"),
+        ("NI", "ir", "11", "3307.27"),
+        ("NI", "ir", "10", "3080.00"),
+    ],
+)
+def test_partial_year_withholding_matches_manual_projection(country, rule, months_remaining, expected):
+    """Partial-year projections must not add the social deduction twice.
+
+    HN: 30,000 x months x 97.5%, then the SAR table, divided by months.
+    NI: 30,000 x months x 93%, then the DGI table, divided by months.
+    """
+    profile = CA["countries"][country]
+    salary = Decimal(profile["stress_case"]["salary"])
+    result = FormulaEngine(profile["rules"][rule]["formula"]).execute(
+        {"salario_bruto": str(salary), "meses_restantes": months_remaining}
+    )
+    assert Decimal(result["output"]) == Decimal(expected)
+
+
 def test_costa_rica_income_tax_uses_base_after_ccss():
     """ISR asalariado 2026, salary CRC1,000,000/month.
 
