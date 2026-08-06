@@ -53,6 +53,13 @@ jobs:
           SECRET_KEY: "test-secret-key"
         run: |
           python -m pytest -m validation --cov=coati_payroll --cov-append --cov-report=xml --cov-report=term-missing
+      - name: Test with pytest (release validation)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DEVELOPMENT: True
+          SECRET_KEY: "test-secret-key"
+        run: |
+          python -m pytest -m release_validation --cov=coati_payroll --cov-append --cov-report=xml --cov-report=term-missing
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:

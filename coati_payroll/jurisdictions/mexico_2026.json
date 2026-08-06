@@ -1,0 +1,51 @@
+{
+  "country": "MX",
+  "name": "México ISR salarios 2026",
+  "currency": "MXN",
+  "effective_from": "2026-01-01",
+  "validation_scope": ["monthly salary income tax tariff, LISR article 96 / RMF Annex 8 section B.V"],
+  "sources": [
+    {"title": "SAT — RMF 2026 Anexo 8", "url": "https://www.sat.gob.mx/minisitio/NormatividadRMFyRGCE/documentos2026/rmf/anexos/Anexo-8-RMF-2026_DOF-28122025.pdf", "retrieved_on": "2026-08-06"},
+    {"title": "IMSS — SUA", "url": "https://www.imss.gob.mx/patrones/sua", "retrieved_on": "2026-08-06", "status": "not_included_in_this_profile"}
+  ],
+  "company": {"code": "MX-ISR-2026", "legal_name": "Mexico Release Validation SA de CV", "tax_id": "MX-RELEASE-2026"},
+  "payroll": {
+    "code": "MX-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12,
+    "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30,
+    "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"
+  },
+  "stress_case": {
+    "employee_count": 8,
+    "salary": "10000.00",
+    "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]],
+    "vacation": {"code": "MX-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"},
+    "benefits": {
+      "employer_social_security_provision": {"code": "MX-IMSS-PROVISION-2026", "percentage": "10.00", "accumulation": "annual"},
+      "employer_housing_provision": {"code": "MX-INFONAVIT-PROVISION-2026", "percentage": "5.00", "accumulation": "lifetime"}
+    }
+  },
+  "rules": {
+    "income_tax": {
+      "code": "MX-ISR-ART96-2026", "type": "tax", "before_tax": false,
+      "formula": {
+        "inputs": [{"name": "salario_bruto", "type": "decimal", "default": 0}],
+        "steps": [{"name": "monthly_tax", "type": "tax_lookup", "table": "monthly_tariff", "input": "salario_bruto"}],
+        "tax_tables": {"monthly_tariff": [
+          {"min": 0.01, "max": 844.59, "rate": 0.0192, "fixed": 0, "over": 0.01},
+          {"min": 844.60, "max": 7168.51, "rate": 0.0640, "fixed": 16.22, "over": 844.60},
+          {"min": 7168.52, "max": 12598.02, "rate": 0.1088, "fixed": 420.95, "over": 7168.52},
+          {"min": 12598.03, "max": 14644.64, "rate": 0.1600, "fixed": 1011.68, "over": 12598.03},
+          {"min": 14644.65, "max": 17533.64, "rate": 0.1792, "fixed": 1339.14, "over": 14644.65},
+          {"min": 17533.65, "max": 35362.83, "rate": 0.2136, "fixed": 1856.84, "over": 17533.65},
+          {"min": 35362.84, "max": 55736.68, "rate": 0.2352, "fixed": 5665.16, "over": 35362.84},
+          {"min": 55736.69, "max": 106410.50, "rate": 0.3000, "fixed": 10457.09, "over": 55736.69},
+          {"min": 106410.51, "max": 141880.66, "rate": 0.3200, "fixed": 25659.23, "over": 106410.51},
+          {"min": 141880.67, "max": 425641.99, "rate": 0.3400, "fixed": 37009.69, "over": 141880.67},
+          {"min": 425642.00, "max": null, "rate": 0.3500, "fixed": 133488.54, "over": 425642.00}
+        ]},
+        "output": "monthly_tax"
+      }
+    }
+  },
+  "cases": [{"id": "monthly-isr-10000-mxn", "salary": "10000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "expected": {"tax": "729.02", "gross": "10000.00", "net": "9270.98"}}]
+}

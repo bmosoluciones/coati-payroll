@@ -1,0 +1,56 @@
+{
+  "country": "US",
+  "name": "United States federal payroll 2026",
+  "currency": "USD",
+  "effective_from": "2026-01-01",
+  "validation_scope": ["FICA Social Security", "FICA Medicare"],
+  "sources": [
+    {"title": "IRS Publication 15 (2026)", "url": "https://www.irs.gov/publications/p15", "retrieved_on": "2026-08-06"},
+    {"title": "IRS Topic 751", "url": "https://www.irs.gov/taxtopics/tc751", "retrieved_on": "2026-08-06"}
+  ],
+  "company": {"code": "US-FED-2026", "legal_name": "US Release Validation LLC", "tax_id": "US-RELEASE-2026"},
+  "payroll": {
+    "code": "US-MONTHLY-2026", "frequency": "monthly", "periods_per_year": 12,
+    "fiscal_start_month": 1, "fiscal_start_day": 1, "days_per_month": 30,
+    "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"
+  },
+  "stress_case": {
+    "employee_count": 8,
+    "salary": "10000.00",
+    "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]],
+    "vacation": {"code": "US-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"},
+    "benefits": {
+      "social_security_employer": {"code": "US-FICA-SS-ER-2026", "percentage": "6.20", "accumulation": "annual"},
+      "medicare_employer": {"code": "US-FICA-MED-ER-2026", "percentage": "1.45", "accumulation": "monthly"}
+    }
+  },
+  "rules": {
+    "social_security_employee": {
+      "code": "US-FICA-SS-EMP-2026", "type": "deduction", "before_tax": false,
+      "formula": {"inputs": [
+        {"name": "salario_bruto", "type": "decimal", "default": 0},
+        {"name": "salario_acumulado", "type": "decimal", "default": 0},
+        {"name": "wage_base", "type": "decimal", "default": "184500"},
+        {"name": "employee_rate", "type": "decimal", "default": "0.062"}
+      ], "steps": [
+        {"name": "remaining_base", "type": "calculation", "formula": "max(0, wage_base - salario_acumulado)"},
+        {"name": "taxable_wages", "type": "calculation", "formula": "min(salario_bruto, remaining_base)"},
+        {"name": "social_security", "type": "calculation", "formula": "taxable_wages * employee_rate"}
+      ], "output": "social_security"}
+    },
+    "medicare_employee": {
+      "code": "US-FICA-MED-EMP-2026", "type": "deduction", "before_tax": false,
+      "formula": {"inputs": [
+        {"name": "salario_bruto", "type": "decimal", "default": 0},
+        {"name": "employee_rate", "type": "decimal", "default": "0.0145"}
+      ], "steps": [
+        {"name": "medicare", "type": "calculation", "formula": "salario_bruto * employee_rate"}
+      ], "output": "medicare"}
+    }
+  },
+  "cases": [{
+    "id": "monthly-fica-10000-usd", "salary": "10000.00",
+    "period_start": "2026-01-01", "period_end": "2026-01-31",
+    "expected": {"social_security": "620.00", "medicare": "145.00", "gross": "10000.00", "net": "9235.00"}
+  }]
+}
