@@ -1250,6 +1250,12 @@
           "title": "Belize Income Tax Act / tax regime",
           "url": "https://www.belize.org/trade-investment-zone/investment-regime/tax-regime/",
           "retrieved_on": "2026-08-06"
+        },
+        {
+          "title": "Belize Ministry of Finance — Income and Business Tax (Amendment) Act, marginal relief",
+          "url": "https://mof.gov.bz/",
+          "retrieved_on": "2026-08-06",
+          "note": "Relief BZD 20,000; 25% sobre la renta gravable; los primeros BZD 29,000 exentos vía crédito degresivo 2,250 - 0.75 x (renta - 29,000)."
         }
       ],
       "company": {
@@ -1360,9 +1366,14 @@
                 "default": 29000
               },
               {
-                "name": "marginal_relief_rate",
+                "name": "marginal_relief_max_credit",
                 "type": "decimal",
-                "default": "1.5"
+                "default": 2250
+              },
+              {
+                "name": "marginal_relief_phase_out_rate",
+                "type": "decimal",
+                "default": "0.75"
               }
             ],
             "steps": [
@@ -1372,9 +1383,19 @@
                 "formula": "max(0, salario_bruto * meses_restantes - personal_relief)"
               },
               {
+                "name": "gross_tax",
+                "type": "calculation",
+                "formula": "chargeable_income * 0.25"
+              },
+              {
+                "name": "relief_credit",
+                "type": "calculation",
+                "formula": "max(0, marginal_relief_max_credit - marginal_relief_phase_out_rate * max(0, salario_bruto * meses_restantes - marginal_relief_threshold))"
+              },
+              {
                 "name": "annual_tax",
                 "type": "calculation",
-                "formula": "max(0, chargeable_income * 0.25 - marginal_relief_rate * max(0, salario_bruto * meses_restantes - marginal_relief_threshold))"
+                "formula": "max(0, gross_tax - relief_credit)"
               },
               {
                 "name": "monthly_tax",
