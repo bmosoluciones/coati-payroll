@@ -17,6 +17,12 @@
       "url": "https://www.imss.gob.mx/patrones/sua",
       "retrieved_on": "2026-08-06",
       "status": "not_included_in_this_profile"
+    },
+    {
+      "title": "DOF 31/12/2025 — Decreto que otorga el subsidio para el empleo 2026",
+      "url": "https://www.dof.gob.mx/",
+      "retrieved_on": "2026-08-06",
+      "note": "Cuota fija 15.59% UMA 2025 (enero) / 15.02% UMA 2026 (feb-dic); solo si el ingreso mensual no excede $11,492.66."
     }
   ],
   "company": {
@@ -107,11 +113,19 @@
       "formula": {
         "inputs": [
           {"name": "salario_bruto", "type": "decimal", "default": 0},
-          {"name": "employment_subsidy", "type": "decimal", "default": "536.21"}
+          {"name": "employment_subsidy", "type": "decimal", "default": "536.21"},
+          {"name": "subsidy_threshold", "type": "decimal", "default": 11492.66}
         ],
         "steps": [
           {"name": "tax_before_subsidy", "type": "tax_lookup", "table": "monthly_tariff", "input": "salario_bruto"},
-          {"name": "monthly_tax", "type": "calculation", "formula": "max(0, tax_before_subsidy - employment_subsidy)"}
+          {
+            "name": "subsidy_allowed",
+            "type": "conditional",
+            "condition": {"left": "salario_bruto", "operator": "<=", "right": "subsidy_threshold"},
+            "if_true": "employment_subsidy",
+            "if_false": "0"
+          },
+          {"name": "monthly_tax", "type": "calculation", "formula": "max(0, tax_before_subsidy - subsidy_allowed)"}
         ],
         "tax_tables": {
           "monthly_tariff": [
@@ -211,6 +225,20 @@
         "tax": "192.81",
         "gross": "10000.00",
         "net": "9807.19"
+      }
+    },
+    {
+      "id": "monthly-isr-12000-mxn-above-subsidy-cap",
+      "salary": "12000.00",
+      "period_start": "2026-01-01",
+      "period_end": "2026-01-31",
+      "deduction_keys": [
+        "tax"
+      ],
+      "expected": {
+        "tax": "946.62",
+        "gross": "12000.00",
+        "net": "11053.38"
       }
     }
   ]

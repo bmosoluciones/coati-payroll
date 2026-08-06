@@ -21,6 +21,12 @@
       "title": "EPFO FAQ — contribution rate",
       "url": "https://www.epfindia.gov.in/site_en/FAQ.php/Contact_us.php",
       "retrieved_on": "2026-08-06"
+    },
+    {
+      "title": "Income Tax Department — section 87A rebate (Finance Act 2025)",
+      "url": "https://www.incometaxindia.gov.in/",
+      "retrieved_on": "2026-08-06",
+      "note": "Rebate up to INR60,000 under the new regime only while total income does not exceed INR12,00,000."
     }
   ],
   "company": {
@@ -207,6 +213,11 @@
             "name": "ir_retenido_acumulado",
             "type": "decimal",
             "default": 0
+          },
+          {
+            "name": "section_87a_limit",
+            "type": "decimal",
+            "default": 1200000
           }
         ],
         "steps": [
@@ -223,8 +234,14 @@
           },
           {
             "name": "rebate",
-            "type": "calculation",
-            "formula": "min(60000, annual_tax)"
+            "type": "conditional",
+            "condition": {
+              "left": "annual_taxable_income",
+              "operator": "<=",
+              "right": "section_87a_limit"
+            },
+            "if_true": "min(60000, annual_tax)",
+            "if_false": "0"
           },
           {
             "name": "monthly_tax",
