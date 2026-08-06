@@ -8,6 +8,7 @@ for tax lookup and capped deductions defined in jurisdiction profiles.
 from __future__ import annotations
 
 import json
+from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
@@ -59,6 +60,82 @@ def _us_ss_manual(salary: Decimal, accumulated: Decimal, wage_base: Decimal, rat
 def test_jurisdiction_profiles_have_no_duplicate_json_keys():
     for path in (ROOT / "coati_payroll" / "jurisdictions").glob("*.json"):
         json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_json_keys)
+
+
+def test_release_accumulations_are_isolated_between_companies(app, db_session):
+    """Fiscal accumulations must not leak between same-shaped company profiles."""
+    from coati_payroll.model import Empleado, Empresa, Moneda, TipoPlanilla
+    from coati_payroll.nomina_engine.repositories.acumulado_repository import AcumuladoRepository
+
+    with app.app_context():
+        currency = Moneda(codigo="ISO-USD", nombre="Dollar", simbolo="$", activo=True)
+        company_a = Empresa(codigo="ISO-A", razon_social="Isolation A", ruc="ISO-A")
+        company_b = Empresa(codigo="ISO-B", razon_social="Isolation B", ruc="ISO-B")
+        payroll_type = TipoPlanilla(
+            codigo="ISO-MONTHLY",
+            descripcion="Isolation monthly",
+            periodicidad="monthly",
+            dias=30,
+            periodos_por_anio=12,
+            mes_inicio_fiscal=1,
+            dia_inicio_fiscal=1,
+        )
+        db_session.add_all([currency, company_a, company_b, payroll_type])
+        db_session.flush()
+        employee_a = Empleado(
+            codigo_empleado="ISO-EMP-A",
+            primer_nombre="A",
+            primer_apellido="Employee",
+            identificacion_personal="ISO-A-EMP",
+            fecha_alta=date(2026, 1, 1),
+            salario_base=Decimal("30000.00"),
+            moneda_id=currency.id,
+            empresa_id=company_a.id,
+            activo=True,
+        )
+        employee_b = Empleado(
+            codigo_empleado="ISO-EMP-B",
+            primer_nombre="B",
+            primer_apellido="Employee",
+            identificacion_personal="ISO-B-EMP",
+            fecha_alta=date(2026, 1, 1),
+            salario_base=Decimal("30000.00"),
+            moneda_id=currency.id,
+            empresa_id=company_b.id,
+            activo=True,
+        )
+        db_session.add_all([employee_a, employee_b])
+        db_session.flush()
+
+        repository = AcumuladoRepository(db_session)
+        accumulation_a = repository.get_or_create(
+            empleado=employee_a,
+            tipo_planilla_id=payroll_type.id,
+            empresa_id=company_a.id,
+            periodo_fiscal_inicio=date(2026, 1, 1),
+            periodo_inicio=date(2026, 1, 1),
+            empresa_primer_mes_nomina=1,
+            empresa_primer_anio_nomina=2026,
+        )
+        accumulation_b = repository.get_or_create(
+            empleado=employee_b,
+            tipo_planilla_id=payroll_type.id,
+            empresa_id=company_b.id,
+            periodo_fiscal_inicio=date(2026, 1, 1),
+            periodo_inicio=date(2026, 1, 1),
+            empresa_primer_mes_nomina=1,
+            empresa_primer_anio_nomina=2026,
+        )
+
+        accumulation_a.salario_bruto_acumulado = Decimal("30000.00")
+        accumulation_a.impuesto_retenido_acumulado = Decimal("1545.30")
+        db_session.flush()
+
+        assert accumulation_a.id != accumulation_b.id
+        assert accumulation_a.empresa_id == company_a.id
+        assert accumulation_b.empresa_id == company_b.id
+        assert accumulation_b.salario_bruto_acumulado == Decimal("0.00")
+        assert accumulation_b.impuesto_retenido_acumulado == Decimal("0.00")
 
 
 def _india_annual_tax_manual(annual_taxable: Decimal, slabs: list[dict]) -> Decimal:
