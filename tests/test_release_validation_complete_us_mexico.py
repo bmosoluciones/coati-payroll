@@ -23,15 +23,25 @@ ROOT = Path(__file__).parents[1]
 
 
 def _profile(country: str) -> dict:
-    filename = {"US": "us_2026.json", "MX": "mexico_2026.json"}[country]
+    if country in {"GT", "HN", "SV", "NI", "CR", "PA", "BZ"}:
+        profiles = json.loads((ROOT / "coati_payroll" / "jurisdictions" / "central_america_2026.json").read_text(encoding="utf-8"))
+        profile = profiles["countries"][country]
+        profile["vacation_defaults"] = profiles["vacation_defaults"]
+        profile["stress_defaults"] = profiles["stress_defaults"]
+        return profile
+    filename = {"US": "us_2026.json", "MX": "mexico_2026.json", "BR": "brazil_2026.json"}[country]
     return json.loads((ROOT / "coati_payroll" / "jurisdictions" / filename).read_text(encoding="utf-8"))
 
 
-@pytest.mark.parametrize("country", ["US", "MX"])
-def test_complete_configurable_payroll_stress_for_us_and_mexico(app, db_session, country):
+@pytest.mark.parametrize(
+    "country",
+    ["US", "MX", "BR", "GT", "HN", "SV", "NI", "CR", "PA", "BZ"],
+    ids=["us", "mexico", "brazil", "guatemala", "honduras", "el-salvador", "nicaragua", "costa-rica", "panama", "belize"],
+)
+def test_complete_configurable_payroll_stress_for_major_jurisdictions(app, db_session, country):
     profile = _profile(country)
     case = profile["cases"][0]
-    stress = profile["stress_case"]
+    stress = {**profile["stress_case"], **profile.get("stress_defaults", {})}
     periods = [(date.fromisoformat(start), date.fromisoformat(end)) for start, end in stress["periods"]]
     expected = case["expected"]
 
@@ -80,12 +90,15 @@ def test_complete_configurable_payroll_stress_for_us_and_mexico(app, db_session,
         db_session.flush()
         db_session.add_all(PlanillaEmpleado(planilla_id=payroll.id, empleado_id=employee.id, activo=True) for employee in employees)
 
-        vacation_config = stress["vacation"]
+        vacation_config = {**profile.get("vacation_defaults", {}), **stress["vacation"]}
         policy = VacationPolicy(
             codigo=vacation_config["code"], nombre=vacation_config["code"], planilla_id=payroll.id,
             empresa_id=company.id, accrual_rate=Decimal(vacation_config["accrual_rate_days"]),
-            accrual_frequency=profile["payroll"]["frequency"], prorate_by_period_days=False,
-            unit_type="days", partial_units_allowed=False, accrue_during_leave=True,
+            accrual_frequency=vacation_config["frequency"],
+            prorate_by_period_days=vacation_config["prorate_by_period_days"],
+            unit_type=vacation_config["unit_type"],
+            partial_units_allowed=vacation_config["partial_units_allowed"],
+            accrue_during_leave=vacation_config["accrue_during_leave"],
         )
         db_session.add(policy)
         db_session.flush()
@@ -145,7 +158,7 @@ def test_complete_configurable_payroll_stress_for_us_and_mexico(app, db_session,
             assert len(results) == stress["employee_count"]
             expected_deductions = {
                 rule["code"]: Decimal(expected[key])
-                for rule, key in zip(profile["rules"].values(), ("social_security", "medicare") if country == "US" else ("tax",))
+                for rule, key in zip(profile["rules"].values(), case["deduction_keys"])
             }
             for result in results:
                 assert result.salario_bruto == Decimal(expected["gross"])

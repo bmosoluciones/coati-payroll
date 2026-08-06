@@ -40,7 +40,7 @@
     "daily_hours": "8.00"
   },
   "stress_case": {
-    "employee_count": 12,
+    "employee_count": 100,
     "salary": "100000.00",
     "vacation": {
       "code": "IN-VACATION-AY26-27",

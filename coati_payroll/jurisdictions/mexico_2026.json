@@ -15,10 +15,10 @@
     "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"
   },
   "stress_case": {
-    "employee_count": 8,
+    "employee_count": 100,
     "salary": "10000.00",
     "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]],
-    "vacation": {"code": "MX-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"},
+    "vacation": {"code": "MX-VACATION-2026", "accrual_rate_days": "1.00", "frequency": "monthly", "prorate_by_period_days": false, "unit_type": "days", "partial_units_allowed": false, "accrue_during_leave": true, "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"},
     "benefits": {
       "employer_social_security_provision": {"code": "MX-IMSS-PROVISION-2026", "percentage": "10.00", "accumulation": "annual"},
       "employer_housing_provision": {"code": "MX-INFONAVIT-PROVISION-2026", "percentage": "5.00", "accumulation": "lifetime"}
@@ -47,5 +47,5 @@
       }
     }
   },
-  "cases": [{"id": "monthly-isr-10000-mxn", "salary": "10000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "expected": {"tax": "729.02", "gross": "10000.00", "net": "9270.98"}}]
+  "cases": [{"id": "monthly-isr-10000-mxn", "salary": "10000.00", "period_start": "2026-01-01", "period_end": "2026-01-31", "deduction_keys": ["tax"], "expected": {"tax": "729.02", "gross": "10000.00", "net": "9270.98"}}]
 }

@@ -15,10 +15,10 @@
     "days_per_half_month": 15, "days_per_year": 365, "daily_hours": "8.00"
   },
   "stress_case": {
-    "employee_count": 8,
+    "employee_count": 100,
     "salary": "10000.00",
     "periods": [["2026-01-01", "2026-01-31"], ["2026-02-01", "2026-02-28"], ["2026-03-01", "2026-03-31"]],
-    "vacation": {"code": "US-VACATION-2026", "accrual_rate_days": "1.00", "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"},
+    "vacation": {"code": "US-VACATION-2026", "accrual_rate_days": "1.00", "frequency": "monthly", "prorate_by_period_days": false, "unit_type": "days", "partial_units_allowed": false, "accrue_during_leave": true, "usage_employee_index": 0, "usage_period_index": 2, "usage_days": "1.00"},
     "benefits": {
       "social_security_employer": {"code": "US-FICA-SS-ER-2026", "percentage": "6.20", "accumulation": "annual"},
       "medicare_employer": {"code": "US-FICA-MED-ER-2026", "percentage": "1.45", "accumulation": "monthly"}
@@ -51,6 +51,6 @@
   "cases": [{
     "id": "monthly-fica-10000-usd", "salary": "10000.00",
     "period_start": "2026-01-01", "period_end": "2026-01-31",
-    "expected": {"social_security": "620.00", "medicare": "145.00", "gross": "10000.00", "net": "9235.00"}
+    "deduction_keys": ["social_security", "medicare"], "expected": {"social_security": "620.00", "medicare": "145.00", "gross": "10000.00", "net": "9235.00"}
   }]
 }
