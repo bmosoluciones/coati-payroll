@@ -24,6 +24,15 @@ def _load_profile(filename: str) -> dict:
     return json.loads((ROOT / "coati_payroll" / "jurisdictions" / filename).read_text(encoding="utf-8"))
 
 
+def _reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise AssertionError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
 def _q2(value: Decimal) -> Decimal:
     return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
@@ -45,6 +54,11 @@ def _us_ss_manual(salary: Decimal, accumulated: Decimal, wage_base: Decimal, rat
     remaining = max(Decimal("0.00"), wage_base - accumulated)
     taxable = min(salary, remaining)
     return _q2(taxable * rate)
+
+
+def test_jurisdiction_profiles_have_no_duplicate_json_keys():
+    for path in (ROOT / "coati_payroll" / "jurisdictions").glob("*.json"):
+        json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_json_keys)
 
 
 def _india_annual_tax_manual(annual_taxable: Decimal, slabs: list[dict]) -> Decimal:

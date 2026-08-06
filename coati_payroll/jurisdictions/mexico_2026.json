@@ -106,13 +106,6 @@
       "before_tax": false,
       "formula": {
         "inputs": [
-          {
-            "name": "salario_bruto",
-            "type": "decimal",
-            "default": 0
-          }
-        ],
-        "inputs": [
           {"name": "salario_bruto", "type": "decimal", "default": 0},
           {"name": "employment_subsidy", "type": "decimal", "default": "536.21"}
         ],
