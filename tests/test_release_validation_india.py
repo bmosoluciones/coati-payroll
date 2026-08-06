@@ -33,12 +33,9 @@ from coati_payroll.model import (
 from coati_payroll.nomina_engine.services.payroll_execution_service import PayrollExecutionService
 from coati_payroll.vistas.planilla.nomina_routes import _aplicar_prestaciones_nomina, _aplicar_vacaciones_nomina
 
-
 pytestmark = pytest.mark.release_validation
 PROFILE = json.loads(
-    (Path(__file__).parents[1] / "coati_payroll" / "jurisdictions" / "india_2026_27.json").read_text(
-        encoding="utf-8"
-    )
+    (Path(__file__).parents[1] / "coati_payroll" / "jurisdictions" / "india_2026_27.json").read_text(encoding="utf-8")
 )
 
 
@@ -123,8 +120,7 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
         db_session.add_all(employees)
         db_session.flush()
         db_session.add_all(
-            PlanillaEmpleado(planilla_id=payroll.id, empleado_id=employee.id, activo=True)
-            for employee in employees
+            PlanillaEmpleado(planilla_id=payroll.id, empleado_id=employee.id, activo=True) for employee in employees
         )
 
         vacation_config = stress["vacation"]
@@ -189,12 +185,14 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
         )
         db_session.add_all([epf, tds])
         db_session.flush()
-        db_session.add_all([
-            _rule(PROFILE["rules"]["epf_employee"], deduction_id=epf.id, effective_from=start),
-            _rule(PROFILE["rules"]["income_tax"], deduction_id=tds.id, effective_from=start),
-            PlanillaDeduccion(planilla_id=payroll.id, deduccion_id=epf.id, prioridad=1, es_obligatoria=True),
-            PlanillaDeduccion(planilla_id=payroll.id, deduccion_id=tds.id, prioridad=2, es_obligatoria=True),
-        ])
+        db_session.add_all(
+            [
+                _rule(PROFILE["rules"]["epf_employee"], deduction_id=epf.id, effective_from=start),
+                _rule(PROFILE["rules"]["income_tax"], deduction_id=tds.id, effective_from=start),
+                PlanillaDeduccion(planilla_id=payroll.id, deduccion_id=epf.id, prioridad=1, es_obligatoria=True),
+                PlanillaDeduccion(planilla_id=payroll.id, deduccion_id=tds.id, prioridad=2, es_obligatoria=True),
+            ]
+        )
         db_session.commit()
         db_session.refresh(payroll)
 
@@ -229,9 +227,9 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
 
         expected = case["expected"]
         expected_benefits = {
-            item["code"]: (
-                Decimal(stress["salary"]) * Decimal(item["percentage"]) / Decimal("100")
-            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            item["code"]: (Decimal(stress["salary"]) * Decimal(item["percentage"]) / Decimal("100")).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
             for item in stress["benefits"].values()
         }
         executed = []
@@ -273,16 +271,24 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
             assert accumulated.impuesto_retenido_acumulado == Decimal(expected["tds"]) * len(runs)
             assert accumulated.periodos_procesados == len(runs)
 
-        benefit_transactions = db_session.execute(
-            db.select(PrestacionAcumulada).filter(PrestacionAcumulada.nomina_id.in_([item.id for item in executed]))
-        ).scalars().all()
+        benefit_transactions = (
+            db_session.execute(
+                db.select(PrestacionAcumulada).filter(PrestacionAcumulada.nomina_id.in_([item.id for item in executed]))
+            )
+            .scalars()
+            .all()
+        )
         assert len(benefit_transactions) == stress["employee_count"] * len(stress["benefits"]) * len(runs)
 
-        vacation_entries = db_session.execute(
-            db.select(VacationLedger).join(VacationAccount).filter(
-                VacationAccount.empleado_id.in_([item.id for item in employees])
+        vacation_entries = (
+            db_session.execute(
+                db.select(VacationLedger)
+                .join(VacationAccount)
+                .filter(VacationAccount.empleado_id.in_([item.id for item in employees]))
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(vacation_entries) == stress["employee_count"] * len(runs) + 1
         assert sum(item.quantity for item in vacation_entries if item.entry_type == "usage") == -Decimal(
             vacation_config["usage_days"]
