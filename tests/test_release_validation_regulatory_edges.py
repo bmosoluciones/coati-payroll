@@ -221,3 +221,59 @@ def test_india_profile_must_include_esi_employee_rule():
     # Compliance expectation: India payroll profile should include ESI when the
     # validation issue scope explicitly references EPF/ESI.
     assert "esi_employee" in rules
+
+
+def test_central_america_profiles_must_support_partial_year_annualization():
+    profiles = _load_profile("central_america_2026.json")
+
+    # Compliance expectation: annual tax projection for payroll must support
+    # partial-year employment (meses_restantes), not a fixed 12-month default.
+    for country in ["GT", "HN", "NI", "PA", "BZ"]:
+        rules = profiles["countries"][country]["rules"]
+        tax_rule = next(rule for rule in rules.values() if rule["type"] == "tax")
+        input_names = {item["name"] for item in tax_rule["formula"]["inputs"]}
+        assert "meses_restantes" in input_names
+
+
+def test_costa_rica_income_tax_must_use_taxable_salary_after_ccss():
+    profiles = _load_profile("central_america_2026.json")
+    cr = profiles["countries"]["CR"]
+    ccss_rule = cr["rules"]["ccss_employee"]
+    income_tax_rule = cr["rules"]["income_tax"]
+
+    salary = Decimal("1000000.00")
+    ccss_rate = Decimal(str(ccss_rule["formula"]["inputs"][1]["default"]))
+    ccss_employee = _q2(salary * ccss_rate)
+    taxable_salary = salary - ccss_employee
+
+    # If tax base uses salary after CCSS, this case should stay in the 0% bracket.
+    assert taxable_salary == Decimal("901700.00")
+    manual_expected_tax = Decimal("0.00")
+
+    engine = FormulaEngine(income_tax_rule["formula"])
+    engine_result = Decimal(engine.execute({"salario_bruto": str(salary)})["output"])
+    assert engine_result == manual_expected_tax
+
+
+def test_panama_income_tax_must_consider_pre_tax_social_contributions():
+    profiles = _load_profile("central_america_2026.json")
+    pa = profiles["countries"]["PA"]
+    css_rule = pa["rules"]["css_employee"]
+    educational_rule = pa["rules"]["educational_employee"]
+    income_tax_rule = pa["rules"]["income_tax"]
+
+    salary = Decimal("2000.00")
+    annual_months = Decimal("12")
+    css_rate = Decimal(str(css_rule["formula"]["inputs"][1]["default"]))
+    educational_rate = Decimal(str(educational_rule["formula"]["inputs"][1]["default"]))
+
+    monthly_pre_tax = _q2(salary * css_rate) + _q2(salary * educational_rate)
+    annual_taxable = (salary - monthly_pre_tax) * annual_months
+    # Annual tax per configured table with deductions included in tax base.
+    annual_tax = _q2((annual_taxable - Decimal("11000.00")) * Decimal("0.15"))
+    manual_expected_monthly_tax = _q2(annual_tax / annual_months)
+    assert manual_expected_monthly_tax == Decimal("129.50")
+
+    engine = FormulaEngine(income_tax_rule["formula"])
+    engine_result = Decimal(engine.execute({"salario_bruto": str(salary)})["output"])
+    assert engine_result == manual_expected_monthly_tax
