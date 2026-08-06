@@ -3,7 +3,7 @@
 
 import json
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 import pytest
@@ -228,6 +228,12 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
         db_session.commit()
 
         expected = case["expected"]
+        expected_benefits = {
+            item["code"]: (
+                Decimal(stress["salary"]) * Decimal(item["percentage"]) / Decimal("100")
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            for item in stress["benefits"].values()
+        }
         executed = []
         for period_start, period_end in runs:
             nomina, employee_results, errors, warnings = PayrollExecutionService(db_session).execute_payroll(
@@ -248,9 +254,7 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
                     PROFILE["rules"]["income_tax"]["code"]: Decimal(expected["tds"]),
                 }
                 assert employee_result.salario_neto == Decimal(expected["net"])
-                assert {item.codigo for item in employee_result.prestaciones} == {
-                    item["code"] for item in stress["benefits"].values()
-                }
+                assert {item.codigo: item.monto for item in employee_result.prestaciones} == expected_benefits
             nomina.estado = "approved"
             db_session.flush()
             _aplicar_prestaciones_nomina(nomina, payroll, "release-validation")

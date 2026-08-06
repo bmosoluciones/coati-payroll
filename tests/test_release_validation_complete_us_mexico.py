@@ -3,7 +3,7 @@
 
 import json
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 import pytest
@@ -160,11 +160,17 @@ def test_complete_configurable_payroll_stress_for_major_jurisdictions(app, db_se
                 rule["code"]: Decimal(expected[key])
                 for rule, key in zip(profile["rules"].values(), case["deduction_keys"])
             }
+            expected_benefits = {
+                benefit["code"]: (
+                    Decimal(stress["salary"]) * Decimal(benefit["percentage"]) / Decimal("100")
+                ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                for benefit in stress["benefits"].values()
+            }
             for result in results:
                 assert result.salario_bruto == Decimal(expected["gross"])
                 assert {item.codigo: item.monto for item in result.deducciones} == expected_deductions
                 assert result.salario_neto == Decimal(expected["net"])
-                assert {item.codigo for item in result.prestaciones} == {item["code"] for item in stress["benefits"].values()}
+                assert {item.codigo: item.monto for item in result.prestaciones} == expected_benefits
             nomina.estado = "approved"
             db_session.flush()
             _aplicar_prestaciones_nomina(nomina, payroll, "release-validation")
