@@ -17,7 +17,13 @@ A jurisdiction-agnostic payroll calculation engine developed by BMO Soluciones, 
 
 -----------
 
-[![ScreenShot](https://via.placeholder.com/200x150.png?text=Dashboard)](https://via.placeholder.com/800x600.png?text=Dashboard) [![ScreenShot](https://via.placeholder.com/200x150.png?text=Employee+Management)](https://via.placeholder.com/800x600.png?text=Employee+Management) [![ScreenShot](https://via.placeholder.com/200x150.png?text=Payroll+Processing)](https://via.placeholder.com/800x600.png?text=Payroll+Processing) [![ScreenShot](https://via.placeholder.com/200x150.png?text=Reports)](https://via.placeholder.com/800x600.png?text=Reports)
+<table>
+  <tr>
+    <td><a href="https://github.com/bmosoluciones/now-lms/blob/main/docs/images/bmo.png"><img src="https://raw.githubusercontent.com/bmosoluciones/coati-payroll/refs/heads/main/docs/Coaty-Sistema-de-Planillas-08-08-2026_12_21_PM.png" alt="BMO theme" width="140"></a></td>
+    <td><a href="https://github.com/bmosoluciones/now-lms/blob/main/docs/images/now-lms.png"><img src="https://raw.githubusercontent.com/bmosoluciones/coati-payroll/refs/heads/main/docs/Coaty-Sistema-de-Planillas-08-08-2026_12_23_PM.png" alt="NOW LMS landing page" width="140"></a></td>
+    <td><a href="https://github.com/bmosoluciones/now-lms/blob/main/docs/images/excel.png"><img src="https://raw.githubusercontent.com/bmosoluciones/coati-payroll/refs/heads/main/docs/Coaty-Sistema-de-Planillas-08-08-2026_12_24_PM.png" alt="Excel theme" width="140"></a></td>
+  </tr>
+</table>
 
 -----------
 
