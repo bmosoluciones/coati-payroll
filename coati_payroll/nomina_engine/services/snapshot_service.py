@@ -146,6 +146,7 @@ class SnapshotService:
             "percepciones": [],
             "deducciones": [],
             "prestaciones": [],
+            "contexto_planilla": {},
         }
 
         # Capture Percepciones linked to this planilla
@@ -249,6 +250,38 @@ class SnapshotService:
         prestaciones_ids = [association.prestacion_id for association in prestacion_associations]
         prestacion_association_by_id = {
             association.prestacion_id: association for association in prestacion_associations
+        }
+        snapshot["contexto_planilla"] = {
+            "percepciones": [
+                self._serialize_association(
+                    association,
+                    ("orden", "editable", "monto_predeterminado", "porcentaje", "activo"),
+                )
+                for association in percepcion_associations
+            ],
+            "deducciones": [
+                self._serialize_association(
+                    association,
+                    (
+                        "prioridad",
+                        "orden",
+                        "editable",
+                        "monto_predeterminado",
+                        "porcentaje",
+                        "activo",
+                        "es_obligatoria",
+                        "detener_si_insuficiente",
+                    ),
+                )
+                for association in deduccion_associations
+            ],
+            "prestaciones": [
+                self._serialize_association(
+                    association,
+                    ("orden", "editable", "monto_predeterminado", "porcentaje", "activo"),
+                )
+                for association in prestacion_associations
+            ],
         }
 
         # Capture linked ReglaCalculo for every concept type. A historical
@@ -426,9 +459,15 @@ class SnapshotService:
             ),
         )
         errors: list[str] = []
+        snapshot_context = catalogos.get("contexto_planilla")
         for key, association_model, concept_model, fields in definitions:
             entries = [entry for entry in catalogos.get(key, []) if entry.get("asociacion")]
-            if not entries:
+            expected_associations = (
+                snapshot_context.get(key) if isinstance(snapshot_context, dict) and key in snapshot_context else None
+            )
+            if expected_associations is None:
+                expected_associations = [entry["asociacion"] for entry in entries]
+            if snapshot_context is None and not expected_associations:
                 continue
 
             current_associations = (
@@ -441,7 +480,7 @@ class SnapshotService:
                 .scalars()
                 .all()
             )
-            expected_ids = {entry["id"] for entry in (entry["asociacion"] for entry in entries)}
+            expected_ids = {association["id"] for association in expected_associations}
             current_ids = {association.id for association in current_associations}
             if expected_ids != current_ids:
                 errors.append(
@@ -451,8 +490,7 @@ class SnapshotService:
                 continue
 
             current_by_id = {association.id: association for association in current_associations}
-            for entry in entries:
-                snapshot_association = entry["asociacion"]
+            for snapshot_association in expected_associations:
                 current = current_by_id.get(snapshot_association["id"])
                 if not current:
                     continue
@@ -471,6 +509,7 @@ class SnapshotService:
                         )
                         break
 
+            for entry in entries:
                 concept_id = entry.get("id")
                 concept = self.session.get(concept_model, concept_id)
                 if not concept or not concept.activo:
