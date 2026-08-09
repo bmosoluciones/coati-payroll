@@ -55,6 +55,11 @@ class LoanProcessor:
                     Adelanto.estado == AdelantoEstado.APROBADO,
                     Adelanto.saldo_pendiente > 0,
                     Adelanto.deduccion_id.isnot(None),  # Only loans, not advances
+                ).order_by(
+                    Adelanto.fecha_aprobacion.is_(None),
+                    Adelanto.fecha_aprobacion,
+                    Adelanto.creado,
+                    Adelanto.id,
                 )
             )
             .scalars()
@@ -120,6 +125,11 @@ class LoanProcessor:
                     Adelanto.estado == AdelantoEstado.APROBADO,
                     Adelanto.saldo_pendiente > 0,
                     Adelanto.deduccion_id.is_(None),  # Only advances, not loans
+                ).order_by(
+                    Adelanto.fecha_aprobacion.is_(None),
+                    Adelanto.fecha_aprobacion,
+                    Adelanto.creado,
+                    Adelanto.id,
                 )
             )
             .scalars()
