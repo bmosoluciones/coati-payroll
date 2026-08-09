@@ -421,12 +421,9 @@ class SnapshotService:
         payroll after an association, override, or active concept changes.
         """
         from coati_payroll.model import (
-            Deduccion,
-            Percepcion,
             PlanillaDeduccion,
             PlanillaIngreso,
             PlanillaPrestacion,
-            Prestacion,
         )
 
         definitions = (
