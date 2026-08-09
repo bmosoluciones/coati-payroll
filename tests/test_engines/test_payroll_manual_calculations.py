@@ -259,6 +259,26 @@ def test_employer_benefits_do_not_reduce_employee_net():
     assert net == Decimal("15450.00")
 
 
+def test_zero_benefit_cap_is_a_real_cap_not_an_unconfigured_cap():
+    """A configured 0.00 ceiling must suppress the benefit completely."""
+    calculator = ConceptCalculator(_ConfigRepository(), [])
+    benefit_calculator = BenefitCalculator(calculator)
+    employee = SimpleNamespace(
+        salario_base=Decimal("15000.00"), salario_bruto=Decimal("15000.00"),
+        salario_mensual=Decimal("15000.00"), novedades={}, planilla=SimpleNamespace(empresa_id="empresa-test"),
+    )
+    benefit = SimpleNamespace(
+        id="benefit-zero-cap", codigo="CAP0", nombre="Beneficio topado a cero", activo=True,
+        formula_tipo="fixed", monto_default=Decimal("100.00"), porcentaje=None, formula=None,
+        base_calculo=None, vigente_desde=None, valido_hasta=None, tope_aplicacion=Decimal("0.00"),
+    )
+    planilla = SimpleNamespace(planilla_prestaciones=[SimpleNamespace(
+        activo=True, orden=1, monto_predeterminado=None, porcentaje=None, prestacion=benefit,
+    )])
+
+    assert benefit_calculator.calculate(employee, planilla, date(2026, 2, 28)) == []
+
+
 def _personal_variables(employee, calculation_date):
     service = EmployeeProcessingService(None, None)
     service._get_acumulado_anual = lambda *_args: None

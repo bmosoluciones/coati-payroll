@@ -94,7 +94,7 @@ class BenefitCalculator:
             tope_aplicacion = snapshot_entry.get("tope_aplicacion") if snapshot_entry else None
             if tope_aplicacion is not None:
                 monto = min(monto, Decimal(str(tope_aplicacion)))
-            elif prestacion.tope_aplicacion:
+            elif prestacion.tope_aplicacion is not None:
                 monto = min(monto, Decimal(str(prestacion.tope_aplicacion)))
 
             if monto > 0:
