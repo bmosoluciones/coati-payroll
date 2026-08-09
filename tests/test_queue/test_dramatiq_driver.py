@@ -392,7 +392,9 @@ class DramatiqDriverTestCase(unittest.TestCase):
         app = middleware._get_app()
 
         self.assertIs(app, mock_app)
-        mock_create_app.assert_called_once_with(None)
+        from coati_payroll.config import configuration
+
+        mock_create_app.assert_called_once_with(dict(configuration))
 
         # Subsequent calls should return the cached app
         app_cached = middleware._get_app()
