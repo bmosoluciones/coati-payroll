@@ -120,7 +120,10 @@ class DramatiqDriver(QueueDriver):
             # RedisBroker already ships with the standard middleware. Add the
             # configured instances only when they are not present, otherwise
             # Dramatiq applies retries/time limits twice.
-            existing_middleware_types = {type(middleware) for middleware in broker.middleware}
+            broker_middleware = getattr(broker, "middleware", None)
+            if broker_middleware is None:
+                broker_middleware = getattr(broker, "middlewares", [])
+            existing_middleware_types = {type(middleware) for middleware in broker_middleware}
             for middleware in (
                 Retries(max_retries=3, min_backoff=15000, max_backoff=86400000),
                 TimeLimit(time_limit=3600000),  # 1 hour max
