@@ -22,6 +22,28 @@ from coati_payroll.model import db as _db
 from coati_payroll.log import log
 
 
+def pytest_addoption(parser):
+    """Add an explicit opt-in for the complete test suite.
+
+    The default configuration excludes the slower validation tests.  ``--full``
+    clears that default marker expression so CI and release checks can run the
+    entire repository with one unambiguous command.
+    """
+    parser.addoption(
+        "--full",
+        action="store_true",
+        default=False,
+        help="Run the complete suite, including validation and release-validation tests.",
+    )
+
+
+def pytest_configure(config):
+    """Make ``pytest --full`` include tests excluded by the default addopts."""
+    if config.getoption("--full"):
+        config.option.markexpr = ""
+        config.addinivalue_line("markers", "full: included in the complete payroll test suite")
+
+
 @pytest.fixture(scope="function")
 def app():
     """
