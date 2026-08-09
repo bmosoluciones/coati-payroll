@@ -753,24 +753,25 @@ def process_large_payroll(
             nomina.tipos_cambio_snapshot = snapshot["tipos_cambio"]
             nomina.catalogos_snapshot = snapshot["catalogos"]
 
+        catalogos = cast(dict[str, Any], snapshot["catalogos"] or {})
         execution_service.concept_calculator.warnings = WarningCollector()
         execution_service.deduction_calculator.warnings = execution_service.concept_calculator.warnings
         execution_service.concept_calculator.deducciones_snapshot = {
-            item["id"]: item for item in snapshot["catalogos"].get("deducciones", [])
+            item["id"]: item for item in catalogos.get("deducciones", [])
         }
         execution_service.concept_calculator.strict_formulas = True
         execution_service.concept_calculator.reglas_snapshot = {
             concept["id"]: concept["regla_calculo"]
             for concept_type in ("percepciones", "deducciones", "prestaciones")
-            for concept in snapshot["catalogos"].get(concept_type, [])
+            for concept in catalogos.get(concept_type, [])
             if concept.get("regla_calculo")
         }
         execution_service.concept_calculator.configuracion_snapshot = snapshot["configuracion"]
         execution_service.perception_calculator.percepciones_snapshot = {
-            item["id"]: item for item in snapshot["catalogos"].get("percepciones", [])
+            item["id"]: item for item in catalogos.get("percepciones", [])
         }
         execution_service.benefit_calculator.prestaciones_snapshot = {
-            item["id"]: item for item in snapshot["catalogos"].get("prestaciones", [])
+            item["id"]: item for item in catalogos.get("prestaciones", [])
         }
         warnings = execution_service.concept_calculator.warnings
         bootstrap_context = execution_service._resolve_company_bootstrap_context(
@@ -784,7 +785,7 @@ def process_large_payroll(
             calcular_interes=True,
             apply_side_effects=True,
         )
-        vacation_snapshot = snapshot["catalogos"].get("vacaciones", {}).copy()
+        vacation_snapshot = catalogos.get("vacaciones", {}).copy()
         vacation_snapshot["configuracion"] = snapshot["configuracion"]
         vacation_processor = VacationProcessor(
             planilla,
