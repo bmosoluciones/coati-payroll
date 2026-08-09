@@ -34,7 +34,11 @@ class ConceptCalculator:
         self.config_repo = config_repository
         self.warnings = warnings
         self.deducciones_snapshot: dict[str, Any] | None = None
+        self.reglas_snapshot: dict[str, Any] | None = None
         self.configuracion_snapshot: dict[str, Any] | None = None
+        # Unit-level callers retain the historical warning-and-zero behavior,
+        # while the payroll execution service enables fail-closed mode.
+        self.strict_formulas = False
 
     def calculate(
         self,
@@ -260,6 +264,8 @@ class ConceptCalculator:
             result = engine.execute(inputs)
             return Decimal(str(result.get("output", 0))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         except FormulaEngineError as e:
+            if self.strict_formulas:
+                raise
             self.warnings.append(f"Error en {label}: {str(e)}")
             return Decimal("0.00")
 
@@ -273,7 +279,23 @@ class ConceptCalculator:
 
     def _resolve_regla_from_snapshot(self, codigo_concepto: str | None) -> tuple[dict | None, str | None]:
         """Try to get ReglaCalculo from snapshot."""
-        if not self.deducciones_snapshot or not codigo_concepto:
+        if not codigo_concepto:
+            return None, None
+        if self.reglas_snapshot:
+            regla = self.reglas_snapshot.get(codigo_concepto)
+            if regla is None:
+                regla = next(
+                    (
+                        data
+                        for data in self.reglas_snapshot.values()
+                        if isinstance(data, dict) and data.get("codigo") == codigo_concepto
+                    ),
+                    None,
+                )
+            if isinstance(regla, dict) and regla.get("esquema_json"):
+                return regla["esquema_json"], regla.get("codigo")
+
+        if not self.deducciones_snapshot:
             return None, None
         # Snapshots are indexed by concept ID during payroll execution, while
         # formula dispatch provides the human-readable concept code. Resolve

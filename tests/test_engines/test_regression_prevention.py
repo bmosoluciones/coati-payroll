@@ -13,6 +13,7 @@ These tests validate:
 from datetime import date
 from decimal import Decimal
 import pytest
+from types import SimpleNamespace
 
 from coati_payroll.nomina_engine.calculators.salary_calculator import SalaryCalculator
 from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCalculator
@@ -21,6 +22,7 @@ from coati_payroll.nomina_engine.repositories.config_repository import ConfigRep
 from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
 from coati_payroll.nomina_engine.domain.calculation_items import DeduccionItem
 from coati_payroll.nomina_engine.validators import NominaEngineError
+from coati_payroll.formula_engine import FormulaEngineError
 from coati_payroll.model import (
     Empresa, Moneda, TipoPlanilla, Planilla, Empleado, PlanillaEmpleado, Deduccion, PlanillaDeduccion, db
 )
@@ -47,6 +49,36 @@ class TestRegressionPreventionCalculations:
 
         assert schema == {"output": "salario_bruto * 0.10"}
         assert code == "IR_CUSTOM_V1"
+
+    def test_custom_rule_snapshot_supports_non_deduction_concepts(self):
+        """Rules for perceptions and benefits must resolve from the frozen rule catalog too."""
+        concept_calc = ConceptCalculator(config_repository=None, warnings=[])
+        concept_calc.reglas_snapshot = {
+            "perception-id": {
+                "codigo": "BONUS_RULE_V1",
+                "esquema_json": {"steps": [], "output": "0"},
+            }
+        }
+
+        schema, code = concept_calc._resolve_regla_from_snapshot("BONUS_RULE_V1")
+
+        assert schema == {"steps": [], "output": "0"}
+        assert code == "BONUS_RULE_V1"
+
+    def test_strict_formula_mode_fails_closed(self):
+        """Payroll execution must reject an invalid formula instead of producing zero."""
+        concept_calc = ConceptCalculator(config_repository=None, warnings=[])
+        concept_calc.strict_formulas = True
+        emp_calculo = SimpleNamespace(
+            variables_calculo={},
+            salario_bruto=Decimal("100.00"),
+            total_percepciones=Decimal("0.00"),
+            total_deducciones=Decimal("0.00"),
+            deducciones=[],
+        )
+
+        with pytest.raises(FormulaEngineError):
+            concept_calc._execute_formula(emp_calculo, {"output": "invalid"}, "fórmula")
 
     def test_deduction_negative_clamping_regression(self, app, db_session):
         """Ensure negative deduction results do not create negative deductions in the system."""

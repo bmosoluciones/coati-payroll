@@ -151,9 +151,9 @@ class SnapshotService:
         # Capture Percepciones linked to this planilla
         from coati_payroll.model import PlanillaIngreso
 
-        percepciones_ids = (
+        percepcion_associations = (
             self.session.execute(
-                db.select(PlanillaIngreso.percepcion_id).filter(
+                db.select(PlanillaIngreso).filter(
                     PlanillaIngreso.planilla_id == planilla.id,
                     PlanillaIngreso.activo.is_(True),
                 )
@@ -161,6 +161,10 @@ class SnapshotService:
             .scalars()
             .all()
         )
+        percepciones_ids = [association.percepcion_id for association in percepcion_associations]
+        percepcion_association_by_id = {
+            association.percepcion_id: association for association in percepcion_associations
+        }
 
         if percepciones_ids:
             percepciones = (
@@ -192,15 +196,19 @@ class SnapshotService:
                     "estado_aprobacion": p.estado_aprobacion,
                     "vigente_desde": p.vigente_desde.isoformat() if p.vigente_desde else None,
                     "valido_hasta": p.valido_hasta.isoformat() if p.valido_hasta else None,
+                    "asociacion": self._serialize_association(
+                        percepcion_association_by_id.get(p.id),
+                        ("orden", "editable", "monto_predeterminado", "porcentaje", "activo"),
+                    ),
                 }
             )
 
         # Capture Deducciones linked to this planilla
         from coati_payroll.model import PlanillaDeduccion
 
-        deducciones_ids = (
+        deduccion_associations = (
             self.session.execute(
-                db.select(PlanillaDeduccion.deduccion_id).filter(
+                db.select(PlanillaDeduccion).filter(
                     PlanillaDeduccion.planilla_id == planilla.id,
                     PlanillaDeduccion.activo.is_(True),
                 )
@@ -208,6 +216,8 @@ class SnapshotService:
             .scalars()
             .all()
         )
+        deducciones_ids = [association.deduccion_id for association in deduccion_associations]
+        deduccion_association_by_id = {association.deduccion_id: association for association in deduccion_associations}
 
         if deducciones_ids:
             deducciones = (
@@ -223,15 +233,40 @@ class SnapshotService:
         else:
             deducciones = []
 
-        # Also capture linked ReglaCalculo for reproducibility
-        from coati_payroll.model import ReglaCalculo
+        # Capture Prestaciones linked to this planilla
+        from coati_payroll.model import PlanillaPrestacion
 
-        reglas_by_deduccion = {}
-        if deducciones_ids:
+        prestacion_associations = (
+            self.session.execute(
+                db.select(PlanillaPrestacion).filter(
+                    PlanillaPrestacion.planilla_id == planilla.id,
+                    PlanillaPrestacion.activo.is_(True),
+                )
+            )
+            .scalars()
+            .all()
+        )
+        prestaciones_ids = [association.prestacion_id for association in prestacion_associations]
+        prestacion_association_by_id = {
+            association.prestacion_id: association for association in prestacion_associations
+        }
+
+        # Capture linked ReglaCalculo for every concept type. A historical
+        # recalculation must never fall back to a mutable live rule.
+        from coati_payroll.model import ReglaCalculo
+        from sqlalchemy import or_
+
+        reglas_by_concept = {}
+        concept_ids = [*deducciones_ids, *percepciones_ids, *prestaciones_ids]
+        if concept_ids:
             reglas = (
                 self.session.execute(
                     db.select(ReglaCalculo).filter(
-                        ReglaCalculo.deduccion_id.in_(deducciones_ids),
+                        or_(
+                            ReglaCalculo.deduccion_id.in_(deducciones_ids or ["__none__"]),
+                            ReglaCalculo.percepcion_id.in_(percepciones_ids or ["__none__"]),
+                            ReglaCalculo.prestacion_id.in_(prestaciones_ids or ["__none__"]),
+                        ),
                         ReglaCalculo.activo.is_(True),
                     )
                 )
@@ -239,8 +274,10 @@ class SnapshotService:
                 .all()
             )
             for regla in reglas:
-                if regla.deduccion_id:
-                    reglas_by_deduccion[regla.deduccion_id] = {
+                for concept_id in (regla.deduccion_id, regla.percepcion_id, regla.prestacion_id):
+                    if not concept_id:
+                        continue
+                    reglas_by_concept[concept_id] = {
                         "id": regla.id,
                         "codigo": regla.codigo,
                         "nombre": regla.nombre,
@@ -248,6 +285,10 @@ class SnapshotService:
                         "vigente_desde": regla.vigente_desde.isoformat() if regla.vigente_desde else None,
                         "vigente_hasta": regla.vigente_hasta.isoformat() if regla.vigente_hasta else None,
                     }
+
+        for percepcion_data in snapshot["percepciones"]:
+            if percepcion_data["id"] in reglas_by_concept:
+                percepcion_data["regla_calculo"] = reglas_by_concept[percepcion_data["id"]]
 
         for d in deducciones:
             deduccion_data = {
@@ -265,25 +306,22 @@ class SnapshotService:
                 "estado_aprobacion": d.estado_aprobacion,
                 "vigente_desde": d.vigente_desde.isoformat() if d.vigente_desde else None,
                 "valido_hasta": d.valido_hasta.isoformat() if d.valido_hasta else None,
+                "regla_calculo": reglas_by_concept.get(d.id),
+                "asociacion": self._serialize_association(
+                    deduccion_association_by_id.get(d.id),
+                    (
+                        "prioridad",
+                        "orden",
+                        "editable",
+                        "monto_predeterminado",
+                        "porcentaje",
+                        "activo",
+                        "es_obligatoria",
+                        "detener_si_insuficiente",
+                    ),
+                ),
             }
-            # Include ReglaCalculo if linked
-            if d.id in reglas_by_deduccion:
-                deduccion_data["regla_calculo"] = reglas_by_deduccion[d.id]
             snapshot["deducciones"].append(deduccion_data)
-
-        # Capture Prestaciones linked to this planilla
-        from coati_payroll.model import PlanillaPrestacion
-
-        prestaciones_ids = (
-            self.session.execute(
-                db.select(PlanillaPrestacion.prestacion_id).filter(
-                    PlanillaPrestacion.planilla_id == planilla.id,
-                    PlanillaPrestacion.activo.is_(True),
-                )
-            )
-            .scalars()
-            .all()
-        )
 
         if prestaciones_ids:
             prestaciones = (
@@ -316,10 +354,131 @@ class SnapshotService:
                     "vigente_desde": pr.vigente_desde.isoformat() if pr.vigente_desde else None,
                     "valido_hasta": pr.valido_hasta.isoformat() if pr.valido_hasta else None,
                     "tope_aplicacion": str(pr.tope_aplicacion) if pr.tope_aplicacion is not None else None,
+                    "regla_calculo": reglas_by_concept.get(pr.id),
+                    "asociacion": self._serialize_association(
+                        prestacion_association_by_id.get(pr.id),
+                        ("orden", "editable", "monto_predeterminado", "porcentaje", "activo"),
+                    ),
                 }
             )
 
         return snapshot
+
+    @staticmethod
+    def _serialize_association(association, fields: tuple[str, ...]) -> dict[str, Any] | None:
+        """Serialize planilla-association inputs that affect a payroll result."""
+        if association is None:
+            return None
+        result: dict[str, Any] = {"id": association.id}
+        for field in fields:
+            value = getattr(association, field, None)
+            result[field] = (
+                str(value)
+                if value is not None and field in {"monto_predeterminado", "porcentaje"}
+                else value
+            )
+        return result
+
+    def validate_planilla_snapshot(self, planilla: Planilla, catalogos: dict[str, Any]) -> list[str]:
+        """Reject recalculation when the live planilla context differs from its snapshot.
+
+        Legacy payrolls without association metadata are intentionally skipped;
+        they cannot be proven reproducible and retain their historical fallback.
+        New snapshots fail closed instead of silently calculating a different
+        payroll after an association, override, or active concept changes.
+        """
+        from coati_payroll.model import (
+            Deduccion,
+            Percepcion,
+            PlanillaDeduccion,
+            PlanillaIngreso,
+            PlanillaPrestacion,
+            Prestacion,
+        )
+
+        definitions = (
+            (
+                "percepciones",
+                PlanillaIngreso,
+                Percepcion,
+                ("orden", "editable", "monto_predeterminado", "porcentaje", "activo"),
+            ),
+            (
+                "deducciones",
+                PlanillaDeduccion,
+                Deduccion,
+                (
+                    "prioridad",
+                    "orden",
+                    "editable",
+                    "monto_predeterminado",
+                    "porcentaje",
+                    "activo",
+                    "es_obligatoria",
+                    "detener_si_insuficiente",
+                ),
+            ),
+            (
+                "prestaciones",
+                PlanillaPrestacion,
+                Prestacion,
+                ("orden", "editable", "monto_predeterminado", "porcentaje", "activo"),
+            ),
+        )
+        errors: list[str] = []
+        for key, association_model, concept_model, fields in definitions:
+            entries = [entry for entry in catalogos.get(key, []) if entry.get("asociacion")]
+            if not entries:
+                continue
+
+            current_associations = (
+                self.session.execute(
+                    db.select(association_model).filter(
+                        association_model.planilla_id == planilla.id,
+                        association_model.activo.is_(True),
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            expected_ids = {entry["id"] for entry in (entry["asociacion"] for entry in entries)}
+            current_ids = {association.id for association in current_associations}
+            if expected_ids != current_ids:
+                errors.append(
+                    f"El contexto snapshot de {key} no coincide con las asociaciones activas actuales; "
+                    "se requiere una nueva nómina en lugar de un recálculo histórico."
+                )
+                continue
+
+            current_by_id = {association.id: association for association in current_associations}
+            for entry in entries:
+                snapshot_association = entry["asociacion"]
+                current = current_by_id.get(snapshot_association["id"])
+                if not current:
+                    continue
+                for field in fields:
+                    expected = snapshot_association.get(field)
+                    actual = getattr(current, field, None)
+                    actual = (
+                        str(actual)
+                        if actual is not None and field in {"monto_predeterminado", "porcentaje"}
+                        else actual
+                    )
+                    if expected != actual:
+                        errors.append(
+                            f"Cambió el campo {field} de la asociación {snapshot_association['id']} "
+                            f"para {key}; el recálculo histórico fue bloqueado."
+                        )
+                        break
+
+                concept_id = entry.get("id")
+                concept = self.session.get(concept_model, concept_id)
+                if not concept or not concept.activo:
+                    errors.append(
+                        f"El concepto {concept_id} de {key} ya no está activo o no existe; "
+                        "el recálculo histórico fue bloqueado."
+                    )
+        return errors
 
     def capture_vacation_snapshot(
         self,

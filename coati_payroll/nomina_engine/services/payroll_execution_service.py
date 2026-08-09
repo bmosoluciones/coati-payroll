@@ -148,6 +148,13 @@ class PayrollExecutionService:
             snapshot = self.snapshot_service.capture_complete_snapshot(
                 planilla, periodo_inicio, periodo_fin, fecha_calculo, excluded_nomina_id=excluded_nomina_id
             )
+        elif excluded_nomina_id:
+            snapshot_errors = self.snapshot_service.validate_planilla_snapshot(
+                planilla, snapshot.get("catalogos", {})
+            )
+            if snapshot_errors:
+                errors.extend(snapshot_errors)
+                return None, [], errors, warnings.to_list()
         deducciones_snapshot = {
             deduccion["id"]: deduccion for deduccion in snapshot.get("catalogos", {}).get("deducciones", [])
         }
@@ -158,6 +165,13 @@ class PayrollExecutionService:
             prestacion["id"]: prestacion for prestacion in snapshot.get("catalogos", {}).get("prestaciones", [])
         }
         self.concept_calculator.deducciones_snapshot = deducciones_snapshot
+        self.concept_calculator.strict_formulas = True
+        self.concept_calculator.reglas_snapshot = {
+            concept["id"]: concept["regla_calculo"]
+            for concept_type in ("percepciones", "deducciones", "prestaciones")
+            for concept in snapshot.get("catalogos", {}).get(concept_type, [])
+            if concept.get("regla_calculo")
+        }
         self.concept_calculator.configuracion_snapshot = snapshot.get("configuracion") or None
         self.perception_calculator.percepciones_snapshot = percepciones_snapshot
         self.benefit_calculator.prestaciones_snapshot = prestaciones_snapshot
