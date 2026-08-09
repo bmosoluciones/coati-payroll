@@ -32,6 +32,26 @@ export BACKGROUND_PAYROLL_THRESHOLD=100
 dramatiq coati_payroll.queue.tasks --threads 8 --processes 4
 ```
 
+### 4) Compose para nóminas grandes y pequeñas
+
+La imagen tiene dos modos operativos: `PROCESS_ROLE=web` para la aplicación
+HTTP y `PROCESS_ROLE=worker` para consumir trabajos desde Redis. Para escalar
+consumidores:
+
+```bash
+docker compose up -d --scale worker=3
+```
+
+Las nóminas que superan `BACKGROUND_PAYROLL_THRESHOLD` se publican en la cola
+`default` y las procesa Dramatiq en PostgreSQL. Las nóminas pequeñas se
+calculan directamente en el proceso web. El perfil aislado valida ambos modos:
+
+```bash
+docker compose --profile loadtest run --rm loadtest-runner
+docker compose --profile loadtest run --rm \
+  -e PAYROLL_EMPLOYEE_COUNT=10 -e EXPECT_BACKGROUND=0 loadtest-runner
+```
+
 ## Selección de backend
 
 `get_queue_driver()` aplica esta lógica:

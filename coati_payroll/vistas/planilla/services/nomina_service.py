@@ -11,6 +11,7 @@ from sqlalchemy import func
 from coati_payroll.model import db, Planilla, Nomina, AcumuladoAnual, Deduccion, Percepcion
 from coati_payroll.enums import NominaEstado
 from coati_payroll.nomina_engine import NominaEngine
+from coati_payroll.nomina_engine.services.snapshot_service import SnapshotService
 from coati_payroll.queue import get_queue_driver
 from coati_payroll.queue.drivers.dramatiq_driver import DramatiqDriver
 
@@ -469,6 +470,9 @@ class NominaService:
         if should_attempt_background:
             queue = get_queue_driver()
             if isinstance(queue, DramatiqDriver) and queue.is_available():
+                snapshot = SnapshotService(db.session).capture_complete_snapshot(
+                    planilla, periodo_inicio, periodo_fin, fecha_calculo
+                )
                 # Create nomina record with "calculating" status
                 nomina = Nomina(
                     planilla_id=planilla.id,
@@ -483,6 +487,10 @@ class NominaService:
                     empleados_procesados=0,
                     empleados_con_error=0,
                     procesamiento_en_background=True,
+                    fecha_calculo_original=fecha_calculo,
+                    configuracion_snapshot=snapshot["configuracion"],
+                    tipos_cambio_snapshot=snapshot["tipos_cambio"],
+                    catalogos_snapshot=snapshot["catalogos"],
                 )
                 db.session.add(nomina)
                 db.session.commit()

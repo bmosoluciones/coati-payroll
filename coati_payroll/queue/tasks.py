@@ -38,8 +38,12 @@ from coati_payroll.model import (
     InteresAdelanto,
 )
 from coati_payroll.nomina_engine import NominaEngine
+from coati_payroll.nomina_engine.processors.loan_processor import LoanProcessor
+from coati_payroll.nomina_engine.processors.vacation_processor import VacationProcessor
 from coati_payroll.nomina_engine.services.accounting_voucher_service import AccountingVoucherService
+from coati_payroll.nomina_engine.services.payroll_execution_service import PayrollExecutionService
 from coati_payroll.nomina_engine.validators import NominaEngineError, ValidationError as NominaValidationError
+from coati_payroll.nomina_engine.results.warning_collector import WarningCollector
 from coati_payroll.queue import get_queue_driver
 from coati_payroll.schema_validator import ValidationError as SchemaValidationError
 
@@ -728,6 +732,67 @@ def process_large_payroll(
         nomina.errores_calculo = {}
         nomina.log_procesamiento = []
 
+        # Use the current payroll execution service. The old queue path called
+        # NominaEngine._procesar_empleado, which was removed during the engine
+        # refactor; using the service keeps validation, concepts and persistence
+        # aligned with synchronous payroll execution.
+        execution_service = PayrollExecutionService(db.session)
+        snapshot = {
+            "configuracion": nomina.configuracion_snapshot or None,
+            "tipos_cambio": nomina.tipos_cambio_snapshot or None,
+            "catalogos": nomina.catalogos_snapshot or {},
+        }
+        if not snapshot["catalogos"]:
+            snapshot = execution_service.snapshot_service.capture_complete_snapshot(
+                planilla, periodo_inicio_date, periodo_fin_date, fecha_calculo_date
+            )
+            nomina.configuracion_snapshot = snapshot["configuracion"]
+            nomina.tipos_cambio_snapshot = snapshot["tipos_cambio"]
+            nomina.catalogos_snapshot = snapshot["catalogos"]
+
+        execution_service.concept_calculator.warnings = WarningCollector()
+        execution_service.deduction_calculator.warnings = execution_service.concept_calculator.warnings
+        execution_service.concept_calculator.deducciones_snapshot = {
+            item["id"]: item for item in snapshot["catalogos"].get("deducciones", [])
+        }
+        execution_service.concept_calculator.strict_formulas = True
+        execution_service.concept_calculator.reglas_snapshot = {
+            concept["id"]: concept["regla_calculo"]
+            for concept_type in ("percepciones", "deducciones", "prestaciones")
+            for concept in snapshot["catalogos"].get(concept_type, [])
+            if concept.get("regla_calculo")
+        }
+        execution_service.concept_calculator.configuracion_snapshot = snapshot["configuracion"]
+        execution_service.perception_calculator.percepciones_snapshot = {
+            item["id"]: item for item in snapshot["catalogos"].get("percepciones", [])
+        }
+        execution_service.benefit_calculator.prestaciones_snapshot = {
+            item["id"]: item for item in snapshot["catalogos"].get("prestaciones", [])
+        }
+        warnings = execution_service.concept_calculator.warnings
+        bootstrap_context = execution_service._resolve_company_bootstrap_context(planilla, periodo_inicio_date, warnings)
+        loan_processor = LoanProcessor(
+            nomina,
+            fecha_calculo_date or periodo_fin_date,
+            periodo_inicio_date,
+            periodo_fin_date,
+            calcular_interes=True,
+            apply_side_effects=True,
+        )
+        vacation_snapshot = snapshot["catalogos"].get("vacaciones", {}).copy()
+        vacation_snapshot["configuracion"] = snapshot["configuracion"]
+        vacation_processor = VacationProcessor(
+            planilla,
+            periodo_inicio_date,
+            periodo_fin_date,
+            usuario,
+            warnings,
+            apply_side_effects=False,
+            snapshot=vacation_snapshot,
+            nomina_id=nomina.id,
+        )
+        planilla_empleado_by_id = {pe.empleado_id: pe for pe in planilla_empleados}
+
         # Initialize progress tracking in separate session
         tracking_session = _get_tracking_session()
         try:
@@ -789,24 +854,30 @@ def process_large_payroll(
                     finally:
                         _release_tracking_session(tracking_session)
 
-                    # Initialize engine for single employee
-                    engine = NominaEngine(
-                        planilla=planilla,
-                        periodo_inicio=periodo_inicio_date,
-                        periodo_fin=periodo_fin_date,
-                        fecha_calculo=fecha_calculo_date,
-                        usuario=usuario,
+                    emp_calculo = execution_service._process_employee(
+                        empleado,
+                        planilla,
+                        periodo_inicio_date,
+                        periodo_fin_date,
+                        fecha_calculo_date or periodo_fin_date,
+                        loan_processor,
+                        snapshot["configuracion"],
+                        snapshot["tipos_cambio"],
+                        bootstrap_context,
+                        warnings,
+                        nomina_id=nomina.id,
+                        planilla_empleado=planilla_empleado_by_id.get(empleado.id),
                     )
-                    # Set nomina in engine so it can create related records
-                    engine.nomina = nomina
-
-                    # Process this employee (creates NominaEmpleado, NominaDetalle, etc.)
-                    procesar_empleado = getattr(engine, "_procesar_empleado", None)
-                    if not callable(procesar_empleado):
-                        raise AttributeError("NominaEngine does not expose '_procesar_empleado'")
-                    # Dynamic method resolution; validated as callable above.
-                    # pylint: disable=not-callable
-                    emp_calculo = cast(Any, cast(Any, procesar_empleado)(empleado))
+                    execution_service._apply_employee_side_effects(
+                        emp_calculo,
+                        nomina,
+                        planilla,
+                        periodo_inicio_date,
+                        periodo_fin_date,
+                        vacation_processor,
+                        execution_service.concept_calculator.deducciones_snapshot,
+                        bootstrap_context,
+                    )
 
                     # Commit this employee's savepoint (employee processed successfully)
                     emp_savepoint.commit()

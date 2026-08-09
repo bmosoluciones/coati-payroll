@@ -313,6 +313,14 @@ class PayrollExecutionService:
                     f"{type(e).__name__}: {e!s}"
                 )
 
+        # Keep the same processing counters used by the background path so
+        # synchronous and queued payrolls expose a consistent audit contract.
+        nomina.total_empleados = len(
+            [pe for pe in planilla_empleados if pe.activo and pe.empleado and pe.empleado.activo]
+        )
+        nomina.empleados_procesados = len(empleados_calculo)
+        nomina.empleados_con_error = len(errors)
+
         # Calculate totals
         self._calculate_totals(nomina, empleados_calculo)
 

@@ -22,8 +22,6 @@
 # For more deployment options, see README.md
 # =============================================================================
 
-version: '3.8'
-
 services:
   # ===========================================================================
   # Database Service - PostgreSQL (recommended)
@@ -108,7 +106,6 @@ services:
       context: .
       dockerfile: Dockerfile
     image: coati-payroll:latest
-    container_name: coati-worker
     restart: unless-stopped
     environment:
       # Process role
@@ -116,6 +113,7 @@ services:
       
       # Flask configuration
       FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY:-change-this-to-a-random-secret-in-production}
       
       # Database connection (PostgreSQL)
       DATABASE_URL: postgresql://coati:${DB_PASSWORD:-changeme}@postgres:5432/coati_payroll
@@ -250,6 +248,97 @@ services:
       start_period: 10s
 
   # ===========================================================================
+  # Isolated 1,000-employee background payroll validation
+  # ===========================================================================
+  # Run with:
+  #   docker compose --profile loadtest run --rm loadtest-runner
+  # These services use the same application image in its worker and runner
+  # modes, but have their own PostgreSQL and Redis state.
+  loadtest-postgres:
+    profiles: ["loadtest"]
+    image: postgres:15-alpine
+    container_name: coati-loadtest-postgres
+    environment:
+      POSTGRES_DB: coati_loadtest
+      POSTGRES_USER: coati
+      POSTGRES_PASSWORD: loadtest
+    volumes:
+      - loadtest-postgres-data:/var/lib/postgresql/data
+    networks:
+      - coati-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coati -d coati_loadtest"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  loadtest-redis:
+    profiles: ["loadtest"]
+    image: redis:7-alpine
+    container_name: coati-loadtest-redis
+    command: redis-server --save "" --appendonly no
+    networks:
+      - coati-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 12
+
+  loadtest-worker:
+    profiles: ["loadtest"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: coati-payroll:latest
+    container_name: coati-loadtest-worker
+    environment:
+      PROCESS_ROLE: worker
+      FLASK_ENV: production
+      SECRET_KEY: loadtest-secret
+      DATABASE_URL: postgresql://coati:loadtest@loadtest-postgres:5432/coati_loadtest
+      QUEUE_ENABLED: 1
+      REDIS_URL: redis://loadtest-redis:6379/0
+      DRAMATIQ_WORKER_THREADS: 4
+      DRAMATIQ_WORKER_PROCESSES: 1
+      PAYROLL_MAX_RETRIES: 0
+    depends_on:
+      loadtest-postgres:
+        condition: service_healthy
+      loadtest-redis:
+        condition: service_healthy
+    networks:
+      - coati-network
+
+  loadtest-runner:
+    profiles: ["loadtest"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: coati-payroll:latest
+    container_name: coati-loadtest-runner
+    entrypoint: ["/opt/venv/bin/python"]
+    command: ["scripts/validate_background_payroll_1000.py"]
+    environment:
+      DATABASE_URL: postgresql://coati:loadtest@loadtest-postgres:5432/coati_loadtest
+      QUEUE_ENABLED: 1
+      REDIS_URL: redis://loadtest-redis:6379/0
+      BACKGROUND_PAYROLL_THRESHOLD: 100
+      COATI_AUTO_MIGRATE: 0
+      START_WORKER: 0
+      FLASK_ENV: production
+      SECRET_KEY: loadtest-secret
+    depends_on:
+      loadtest-postgres:
+        condition: service_healthy
+      loadtest-redis:
+        condition: service_healthy
+      loadtest-worker:
+        condition: service_started
+    networks:
+      - coati-network
+
+  # ===========================================================================
   # Certbot - Let's Encrypt SSL Certificate Manager (Optional)
   # ===========================================================================
   # Uncomment this service to enable automatic SSL certificate management
@@ -280,6 +369,8 @@ volumes:
   # mysql-data:
   #   driver: local
   redis-data:
+    driver: local
+  loadtest-postgres-data:
     driver: local
   # Uncomment these when using Let's Encrypt SSL certificates
   # certbot-conf:

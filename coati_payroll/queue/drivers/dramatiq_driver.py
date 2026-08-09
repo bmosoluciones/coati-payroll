@@ -35,9 +35,10 @@ try:
 
                     module = importlib.import_module("coati_payroll")
                     create_app = module.create_app
+                    from coati_payroll.config import configuration
 
                     # Create the Flask application instance once.
-                    self._app = create_app(None)
+                    self._app = create_app(dict(configuration))
                 except Exception as e:
                     log.error("Failed to create Flask app inside Dramatiq middleware: %s", e)
                     raise
@@ -116,10 +117,17 @@ class DramatiqDriver(QueueDriver):
             self._broker = RedisBroker(url=self._redis_url)
             broker = self._broker
 
-            # Add middleware for retries, age limits, and time limits
-            broker.add_middleware(Retries(max_retries=3, min_backoff=15000, max_backoff=86400000))
-            broker.add_middleware(TimeLimit(time_limit=3600000))  # 1 hour max
-            broker.add_middleware(AgeLimit(max_age=86400000))  # 24 hours max age
+            # RedisBroker already ships with the standard middleware. Add the
+            # configured instances only when they are not present, otherwise
+            # Dramatiq applies retries/time limits twice.
+            existing_middleware_types = {type(middleware) for middleware in broker.middleware}
+            for middleware in (
+                Retries(max_retries=3, min_backoff=15000, max_backoff=86400000),
+                TimeLimit(time_limit=3600000),  # 1 hour max
+                AgeLimit(max_age=86400000),  # 24 hours max age
+            ):
+                if type(middleware) not in existing_middleware_types:
+                    broker.add_middleware(middleware)
             broker.add_middleware(FlaskAPPContextMiddleware())
 
             results_cls = cast(Any, getattr(dramatiq_middleware, "Results", None))
