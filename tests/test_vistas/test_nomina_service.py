@@ -20,11 +20,14 @@ from coati_payroll.model import (
     ComprobanteContable,
     Prestacion,
     PrestacionAcumulada,
+    Deduccion,
+    PlanillaDeduccion,
     Planilla,
     PlanillaEmpleado,
     TipoPlanilla,
 )
 from coati_payroll.vistas.planilla.services.nomina_service import NominaService
+from coati_payroll.nomina_engine.services.snapshot_service import SnapshotService
 from coati_payroll.queue.drivers.dramatiq_driver import DramatiqDriver
 
 
@@ -512,6 +515,38 @@ class TestEjecutarNomina:
 
 class TestRecalcularNomina:
     """Tests for NominaService.recalcular_nomina method."""
+
+    def test_snapshot_context_rejects_changed_association_override(
+        self, app, db_session, planilla
+    ):
+        """Historical recalculation must fail closed when an association override changes."""
+        with app.app_context():
+            deduction = Deduccion(
+                codigo="DED_SNAPSHOT",
+                nombre="Snapshot deduction",
+                formula_tipo="fixed",
+                monto_default=Decimal("100.00"),
+                activo=True,
+            )
+            db_session.add(deduction)
+            db_session.flush()
+            association = PlanillaDeduccion(
+                planilla_id=planilla.id,
+                deduccion_id=deduction.id,
+                prioridad=1,
+                monto_predeterminado=Decimal("100.00"),
+                activo=True,
+            )
+            db_session.add(association)
+            db_session.commit()
+
+            snapshot = SnapshotService(db_session).capture_catalogs_snapshot(planilla)
+            association.monto_predeterminado = Decimal("200.00")
+            db_session.flush()
+
+            errors = SnapshotService(db_session).validate_planilla_snapshot(planilla, snapshot)
+
+            assert any("monto_predeterminado" in error for error in errors)
 
     @patch("coati_payroll.audit_helpers.crear_log_auditoria_nomina")
     @patch("coati_payroll.vistas.planilla.services.nomina_service.NominaEngine")
