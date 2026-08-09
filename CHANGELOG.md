@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-08-09
+
+### Added
+
+- Docker Compose load-test profile with isolated PostgreSQL, Redis, worker, and runner services for reproducible payroll validation with 1,000 employees.
+- Explicit synchronous validation for small payrolls and for deployments without Redis.
+
+### Changed
+
+- Background payrolls now reuse the payroll execution service with frozen configuration/catalog snapshots and consistent progress and audit counters.
+- Worker startup now loads the application configuration correctly, avoids duplicate queue middleware, and supports horizontal scaling with `docker compose up -d --scale worker=3`.
+
 ## [1.11.2] - 2026-08-07
 
 ### Changed
