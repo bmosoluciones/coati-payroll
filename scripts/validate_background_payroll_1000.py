@@ -62,6 +62,7 @@ def main() -> int:
     _assert(not missing, f"Missing required environment variables: {', '.join(missing)}")
     employee_count = int(os.environ.get("PAYROLL_EMPLOYEE_COUNT", "1000"))
     expect_background = os.environ.get("EXPECT_BACKGROUND", "1").strip().lower() not in {"0", "false", "no", "off"}
+    expected_queue_backend = os.environ.get("EXPECTED_QUEUE_BACKEND", "dramatiq").strip().lower()
 
     from coati_payroll import create_app, ensure_database_initialized
     from coati_payroll.config import configuration
@@ -96,8 +97,10 @@ def main() -> int:
             db.create_all()
 
             queue = get_queue_driver()
-            _assert(queue.__class__.__name__ == "DramatiqDriver", f"Expected Dramatiq, got {queue!r}")
-            _assert(queue.is_available(), "Dramatiq driver is not available")
+            queue_backend = queue.__class__.__name__.replace("QueueDriver", "").lower()
+            _assert(queue_backend == expected_queue_backend, f"Expected {expected_queue_backend}, got {queue!r}")
+            if expected_queue_backend == "dramatiq":
+                _assert(queue.is_available(), "Dramatiq driver is not available")
 
             empresa = Empresa(
                 codigo="LOAD1000",
