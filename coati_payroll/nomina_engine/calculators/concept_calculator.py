@@ -275,9 +275,22 @@ class ConceptCalculator:
         """Try to get ReglaCalculo from snapshot."""
         if not self.deducciones_snapshot or not codigo_concepto:
             return None, None
+        # Snapshots are indexed by concept ID during payroll execution, while
+        # formula dispatch provides the human-readable concept code. Resolve
+        # both forms so recalculation never falls back to a mutable live rule.
         deduccion_data = self.deducciones_snapshot.get(codigo_concepto)
-        if deduccion_data and "regla_calculo" in deduccion_data:
-            return deduccion_data["regla_calculo"]["esquema_json"], deduccion_data["regla_calculo"]["codigo"]
+        if deduccion_data is None:
+            deduccion_data = next(
+                (
+                    data
+                    for data in self.deducciones_snapshot.values()
+                    if isinstance(data, dict) and data.get("codigo") == codigo_concepto
+                ),
+                None,
+            )
+        regla = deduccion_data.get("regla_calculo") if isinstance(deduccion_data, dict) else None
+        if isinstance(regla, dict) and regla.get("esquema_json"):
+            return regla["esquema_json"], regla.get("codigo")
         return None, None
 
     def _find_regla_by_concept_id(self, codigo_concepto: str):

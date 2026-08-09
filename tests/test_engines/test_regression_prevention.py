@@ -29,6 +29,25 @@ from coati_payroll.model import (
 class TestRegressionPreventionCalculations:
     """Regression-prevention tests for critical calculation rules."""
 
+    def test_custom_rule_uses_snapshot_when_indexed_by_concept_id(self):
+        """A recalculation must not consult a changed live rule when its snapshot is present."""
+        concept_calc = ConceptCalculator(config_repository=None, warnings=[])
+        concept_calc.deducciones_snapshot = {
+            "deduction-id": {
+                "id": "deduction-id",
+                "codigo": "IR_CUSTOM",
+                "regla_calculo": {
+                    "codigo": "IR_CUSTOM_V1",
+                    "esquema_json": {"output": "salario_bruto * 0.10"},
+                },
+            }
+        }
+
+        schema, code = concept_calc._resolve_regla_from_snapshot("IR_CUSTOM")
+
+        assert schema == {"output": "salario_bruto * 0.10"}
+        assert code == "IR_CUSTOM_V1"
+
     def test_deduction_negative_clamping_regression(self, app, db_session):
         """Ensure negative deduction results do not create negative deductions in the system."""
         with app.app_context():
