@@ -770,7 +770,9 @@ def process_large_payroll(
             item["id"]: item for item in snapshot["catalogos"].get("prestaciones", [])
         }
         warnings = execution_service.concept_calculator.warnings
-        bootstrap_context = execution_service._resolve_company_bootstrap_context(planilla, periodo_inicio_date, warnings)
+        bootstrap_context = execution_service._resolve_company_bootstrap_context(
+            planilla, periodo_inicio_date, warnings
+        )
         loan_processor = LoanProcessor(
             nomina,
             fecha_calculo_date or periodo_fin_date,
