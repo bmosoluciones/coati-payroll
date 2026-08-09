@@ -7,7 +7,7 @@ under test, which makes these tests useful as calculation regressions.
 """
 
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from types import SimpleNamespace
 
 import pytest
@@ -16,6 +16,8 @@ from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCa
 from coati_payroll.nomina_engine.calculators.deduction_calculator import DeductionCalculator
 from coati_payroll.nomina_engine.calculators.benefit_calculator import BenefitCalculator
 from coati_payroll.nomina_engine.calculators.salary_calculator import SalaryCalculator
+from coati_payroll.nomina_engine.services.employee_processing_service import EmployeeProcessingService
+from coati_payroll.formula_engine import FormulaEngine
 
 
 pytestmark = pytest.mark.full
@@ -255,3 +257,143 @@ def test_employer_benefits_do_not_reduce_employee_net():
     assert result[0].monto == Decimal("1249.50")  # 15,000 * 8.33%
     assert gross == Decimal("16500.00")
     assert net == Decimal("15450.00")
+
+
+def _personal_variables(employee, calculation_date):
+    service = EmployeeProcessingService(None, None)
+    service._get_acumulado_anual = lambda *_args: None
+    calculation = SimpleNamespace(
+        empleado=employee,
+        salario_base=Decimal("15000.00"),
+        salario_mensual=Decimal("15000.00"),
+        salario_neto_inasistencia=Decimal("15000.00"),
+        tipo_cambio=Decimal("1.00"),
+        salario_gravable=Decimal("0.00"),
+        inasistencia_dias=Decimal("0.00"),
+        inasistencia_horas=Decimal("0.00"),
+        inasistencia_descuento=Decimal("0.00"),
+        novedades={},
+    )
+    planilla = SimpleNamespace(
+        empresa_id="empresa-test",
+        empresa=SimpleNamespace(primer_mes_nomina=None, primer_anio_nomina=None),
+        mes_inicio_fiscal=1,
+        tipo_planilla=SimpleNamespace(
+            mes_inicio_fiscal=1, dia_inicio_fiscal=1, periodos_por_anio=12, periodicidad="monthly"
+        ),
+    )
+    return service.build_calculation_variables(
+        calculation,
+        planilla,
+        calculation_date.replace(day=1),
+        calculation_date,
+        calculation_date,
+        configuracion_snapshot={
+            "dias_mes_nomina": 30,
+            "horas_jornada_diaria": "8.00",
+            "dias_mes_antiguedad": 30,
+            "dias_anio_antiguedad": 365,
+            "meses_anio_financiero": 12,
+        },
+        bootstrap_context={"is_initial_period": False},
+    )
+
+
+def test_birthday_bonus_flag_is_available_only_on_employee_birthday():
+    employee = SimpleNamespace(
+        fecha_alta=date(2023, 1, 1), fecha_nacimiento=date(1990, 5, 15),
+        datos_adicionales={}, salario_acumulado=0, impuesto_acumulado=0, codigo_empleado="EMP-BDAY",
+    )
+
+    birthday = _personal_variables(employee, date(2026, 5, 15))
+    ordinary_day = _personal_variables(employee, date(2026, 5, 14))
+
+    assert birthday["es_cumpleanos"] == Decimal("1")
+    assert ordinary_day["es_cumpleanos"] == Decimal("0")
+
+
+def test_mothers_day_bonus_requires_mother_and_mothers_day():
+    mother = SimpleNamespace(
+        fecha_alta=date(2023, 1, 1), fecha_nacimiento=date(1990, 2, 1),
+        datos_adicionales={"es_madre": True}, salario_acumulado=0, impuesto_acumulado=0,
+        codigo_empleado="EMP-MOTHER",
+    )
+    non_mother = SimpleNamespace(**{**mother.__dict__, "datos_adicionales": {"es_madre": False}})
+
+    mother_day = _personal_variables(mother, date(2026, 5, 30))
+    non_mother_day = _personal_variables(non_mother, date(2026, 5, 30))
+
+    assert mother_day["es_dia_madre"] == Decimal("1")
+    assert mother_day["es_madre"] == Decimal("1")
+    assert non_mother_day["es_madre"] == Decimal("0")
+
+
+def test_seniority_bonus_formula_is_5_10_15_percent_by_completed_years():
+    # Independent acceptance points for years 1, 2, and 3.
+    for years, threshold, expected_rate in ((1, 1, "5.00"), (2, 2, "10.00"), (3, 3, "15.00")):
+        schema = {
+            "inputs": [{"name": "antiguedad_anios", "type": "decimal", "default": 0}],
+            "steps": [{
+                "name": "bono",
+                "type": "conditional",
+                "condition": {"left": "antiguedad_anios", "operator": ">=", "right": threshold},
+                "if_true": expected_rate,
+                "if_false": "0",
+            }],
+            "output": "bono",
+        }
+        result = FormulaEngine(schema).execute({"antiguedad_anios": Decimal(str(years))})
+        assert result["output"] == expected_rate
+
+
+@pytest.mark.parametrize(
+    "annual_income,expected_tax",
+    (("50000.00", "0.00"), ("100000.00", "0.00"), ("100000.01", "0.00"),
+     ("125000.00", "3750.00"), ("150000.00", "7500.00"), ("200000.00", "15000.00"),
+     ("200000.01", "15000.00"), ("250000.00", "25000.00"), ("300000.00", "35000.00"),
+     ("600000.00", "105000.00")),
+)
+def test_progressive_legal_tax_brackets_and_boundaries(annual_income, expected_tax):
+    """Test progressive legal brackets, exact boundaries, and fixed amounts."""
+    schema = {
+        "inputs": [{"name": "income", "type": "decimal", "default": 0}],
+        "steps": [{"name": "tax", "type": "tax_lookup", "table": "annual_tax", "input": "income"}],
+        "tax_tables": {"annual_tax": [
+            {"min": 0, "max": 100000, "rate": 0, "fixed": 0, "over": 0},
+            {"min": 100000.01, "max": 200000, "rate": 0.15, "fixed": 0, "over": 100000},
+            {"min": 200000.01, "max": 500000, "rate": 0.20, "fixed": 15000, "over": 200000},
+            {"min": 500000.01, "max": None, "rate": 0.30, "fixed": 75000, "over": 500000},
+        ]},
+        "output": "tax",
+    }
+    result = FormulaEngine(schema).execute({"income": Decimal(annual_income)})
+    assert result["output"] == expected_tax
+
+
+@pytest.mark.parametrize(
+    "base,commission,overtime,absence_days,loan,expected_net",
+    (("15000", "0", "0", "0", "0", "13950.00"),
+     ("15000", "1000", "0", "0", "0", "14880.00"),
+     ("15000", "0", "468.75", "0", "0", "14385.94"),
+     ("15000", "2500", "468.75", "1", "1000", "15245.94"),
+     ("22500", "1250", "937.50", "2", "2500", "19064.37"),
+     ("3333", "333.33", "104.16", "3", "500", "2696.59"),
+     ("4999", "999.80", "249.95", "0", "1200", "4611.34"),
+     ("10000", "5000", "625.00", "5", "3000", "9981.25")),
+)
+def test_variable_income_absence_and_complex_deduction_ledger(
+    base, commission, overtime, absence_days, loan, expected_net
+):
+    """Reconcile variable income, absence, and loan deduction in one ledger."""
+    base = Decimal(base)
+    commission = Decimal(commission)
+    overtime = Decimal(overtime)
+    absence_days = Decimal(absence_days)
+    loan = Decimal(loan)
+    daily = base / Decimal("30")
+    # Payroll money uses half-up rounding, not the Decimal default half-even.
+    absence = (daily * absence_days).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    gross = base + commission + overtime - absence
+    social_security = (gross * Decimal("0.07")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    net = gross - social_security - min(loan, gross - social_security)
+    assert net == Decimal(expected_net)

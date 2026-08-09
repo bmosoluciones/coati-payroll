@@ -55,6 +55,24 @@ class EmployeeProcessingService:
         antiguedad_meses = antiguedad_dias // config.dias_mes_antiguedad
         antiguedad_anios = antiguedad_dias // config.dias_anio_antiguedad
 
+        # Calendar/personal flags are exposed as numeric values so they can be
+        # consumed by the formula engine's Decimal comparisons.  This keeps
+        # event-driven concepts (birthday and Mother's Day bonuses) configurable
+        # as ordinary perceptions instead of embedding amounts in the engine.
+        fecha_nacimiento = getattr(empleado, "fecha_nacimiento", None)
+        es_cumpleanos = bool(
+            fecha_nacimiento
+            and fecha_nacimiento.month == fecha_calculo.month
+            and fecha_nacimiento.day == fecha_calculo.day
+        )
+        datos_adicionales = getattr(empleado, "datos_adicionales", None) or {}
+        es_madre = bool(datos_adicionales.get("es_madre", False))
+        # Nicaragua's statutory Mother's Day is May 30.  The date is isolated
+        # as a variable so deployments with another local rule can override it
+        # in their calculation formula/configuration without changing payroll
+        # arithmetic.
+        es_dia_madre = fecha_calculo.month == 5 and fecha_calculo.day == 30
+
         # Calculate remaining months in fiscal year (source of truth: planilla.mes_inicio_fiscal)
         mes_inicio_fiscal = int(planilla.mes_inicio_fiscal or (tipo_planilla.mes_inicio_fiscal if tipo_planilla else 1))
         meses_anio_financiero = int(config.meses_anio_financiero)
@@ -96,6 +114,9 @@ class EmployeeProcessingService:
             "antiguedad_dias": Decimal(str(antiguedad_dias)),
             "antiguedad_meses": Decimal(str(antiguedad_meses)),
             "antiguedad_anios": Decimal(str(antiguedad_anios)),
+            "es_cumpleanos": Decimal("1") if es_cumpleanos else Decimal("0"),
+            "es_madre": Decimal("1") if es_madre else Decimal("0"),
+            "es_dia_madre": Decimal("1") if es_dia_madre else Decimal("0"),
             # Fiscal calculations
             "meses_restantes": Decimal(str(meses_restantes)),
             "periodos_por_anio": Decimal(
