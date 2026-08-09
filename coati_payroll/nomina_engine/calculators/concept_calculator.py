@@ -160,13 +160,13 @@ class ConceptCalculator:
                 f"horas_jornada_diaria={horas_dia}). Retornando 0.00."
             )
             return Decimal("0.00")
-        tasa_hora = (base / dias_base / horas_dia).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        # Keep full Decimal precision until the concept total is known. Rounding
+        # the hourly rate first can over/underpay when the rate is fractional.
+        tasa_hora = base / dias_base / horas_dia
 
         # Apply percentage
         if porcentaje:
-            tasa_hora = (tasa_hora * Decimal(str(porcentaje)) / Decimal("100")).quantize(
-                Decimal("0.01"), rounding=ROUND_HALF_UP
-            )
+            tasa_hora = tasa_hora * Decimal(str(porcentaje)) / Decimal("100")
 
         # Calculate total for hours
         return (tasa_hora * horas).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -201,13 +201,13 @@ class ConceptCalculator:
                 f"Retornando 0.00."
             )
             return Decimal("0.00")
-        tasa_dia = (base / dias_base).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        # Round only the final concept amount; intermediate rate rounding loses
+        # cents and makes the result differ from the configured formula.
+        tasa_dia = base / dias_base
 
         # Apply percentage
         if porcentaje:
-            tasa_dia = (tasa_dia * Decimal(str(porcentaje)) / Decimal("100")).quantize(
-                Decimal("0.01"), rounding=ROUND_HALF_UP
-            )
+            tasa_dia = tasa_dia * Decimal(str(porcentaje)) / Decimal("100")
 
         # Calculate total for days
         return (tasa_dia * dias).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

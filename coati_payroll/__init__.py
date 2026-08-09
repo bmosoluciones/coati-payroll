@@ -390,3 +390,31 @@ def ensure_database_initialized(app: Flask | None = None) -> None:
             initialize_language_from_env()
         except Exception as exc:
             log.trace("Could not initialize language from environment: %s", exc)
+
+
+def drop_database_schema(app: Flask | None = None) -> None:
+    """Drop the application schema, including MariaDB/MySQL FK graphs.
+
+    SQLAlchemy cannot always derive a safe drop order for an existing MySQL
+    schema when foreign keys form cycles or were created outside the current
+    metadata. This helper is intended for controlled maintenance and test
+    teardown; it does not run as part of normal application startup.
+    """
+    ctx = app
+    if ctx is None:
+        from flask import current_app
+
+        ctx = current_app
+
+    with ctx.app_context():
+        engine = db.engine
+        if engine.dialect.name in {"mysql", "mariadb"}:
+            with engine.begin() as connection:
+                connection.exec_driver_sql("SET FOREIGN_KEY_CHECKS=0")
+                try:
+                    db.metadata.drop_all(bind=connection)
+                finally:
+                    connection.exec_driver_sql("SET FOREIGN_KEY_CHECKS=1")
+            return
+
+        db.drop_all()

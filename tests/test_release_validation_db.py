@@ -17,7 +17,7 @@ pytestmark = pytest.mark.skipif(
 
 def test_database_create_all_works_with_external_engine():
     """Validate schema creation succeeds with database.create_all()."""
-    from coati_payroll import create_app, ensure_database_initialized
+    from coati_payroll import create_app, drop_database_schema, ensure_database_initialized
     from coati_payroll.model import db
 
     app = create_app(
@@ -30,7 +30,7 @@ def test_database_create_all_works_with_external_engine():
     )
 
     with app.app_context():
-        db.drop_all()
+        drop_database_schema(app)
         ensure_database_initialized(app)
 
         table_names = inspect(db.engine).get_table_names()
@@ -40,7 +40,7 @@ def test_database_create_all_works_with_external_engine():
 @pytest.mark.xfail
 def test_alembic_can_downgrade_and_upgrade_on_external_engine():
     """Validate alembic migrations run from head to base and back to head."""
-    from coati_payroll import alembic, create_app, ensure_database_initialized
+    from coati_payroll import alembic, create_app, drop_database_schema, ensure_database_initialized
     from coati_payroll.model import db
 
     app = create_app(
@@ -54,7 +54,7 @@ def test_alembic_can_downgrade_and_upgrade_on_external_engine():
     )
 
     with app.app_context():
-        db.drop_all()
+        drop_database_schema(app)
         ensure_database_initialized(app)
 
         alembic.stamp("head")

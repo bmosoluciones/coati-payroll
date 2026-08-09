@@ -80,6 +80,42 @@ class TestRegressionPreventionCalculations:
         with pytest.raises(FormulaEngineError):
             concept_calc._execute_formula(emp_calculo, {"output": "invalid"}, "fórmula")
 
+    @pytest.mark.parametrize(
+        ("formula_tipo", "base", "novedad", "porcentaje", "expected"),
+        [
+            ("horas", Decimal("1000.00"), Decimal("3"), Decimal("100"), Decimal("12.50")),
+            ("dias", Decimal("1000.00"), Decimal("7"), Decimal("100"), Decimal("233.33")),
+        ],
+    )
+    def test_fractional_rates_round_only_after_concept_total(
+        self, formula_tipo, base, novedad, porcentaje, expected
+    ):
+        """Rounding a rate before multiplication must not change the pay amount."""
+        calculator = ConceptCalculator(config_repository=None, warnings=[])
+        calculator.configuracion_snapshot = {
+            "dias_mes_nomina": 30,
+            "horas_jornada_diaria": Decimal("8"),
+        }
+        emp_calculo = SimpleNamespace(
+            novedades={"UNIT": novedad},
+            salario_bruto=base,
+            salario_mensual=base,
+            planilla=SimpleNamespace(empresa_id="empresa"),
+        )
+
+        actual = calculator.calculate(
+            emp_calculo=emp_calculo,
+            formula_tipo=formula_tipo,
+            monto_default=None,
+            porcentaje=porcentaje,
+            formula=None,
+            monto_override=None,
+            porcentaje_override=None,
+            codigo_concepto="UNIT",
+        )
+
+        assert actual == expected
+
     def test_deduction_negative_clamping_regression(self, app, db_session):
         """Ensure negative deduction results do not create negative deductions in the system."""
         with app.app_context():
