@@ -736,6 +736,9 @@ def process_large_payroll(
         # NominaEngine._procesar_empleado, which was removed during the engine
         # refactor; using the service keeps validation, concepts and persistence
         # aligned with synchronous payroll execution.
+        # These service helpers are intentionally reused here so queued and
+        # synchronous payrolls share the same execution semantics.
+        # pylint: disable=protected-access
         execution_service = PayrollExecutionService(db.session)
         snapshot = {
             "configuracion": nomina.configuracion_snapshot or None,
@@ -880,6 +883,7 @@ def process_large_payroll(
                         execution_service.concept_calculator.deducciones_snapshot,
                         bootstrap_context,
                     )
+                    # pylint: enable=protected-access
 
                     # Commit this employee's savepoint (employee processed successfully)
                     emp_savepoint.commit()
