@@ -29,6 +29,7 @@ from coati_payroll.rbac import require_role
 
 # Constants
 MAX_DISPLAYED_ERRORS = 10  # Maximum number of errors to display in bulk upload results
+INITIAL_BALANCE_BULK_ENDPOINT = "prestacion_management.initial_balance_bulk"
 
 prestacion_management_bp = Blueprint("prestacion_management", __name__, url_prefix="/prestacion-management")
 
@@ -107,17 +108,17 @@ def initial_balance_bulk():
         # Check if file was uploaded
         if "file" not in request.files:
             flash(_("No se seleccionó ningún archivo."), "warning")
-            return redirect(url_for("prestacion_management.initial_balance_bulk"))
+            return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
         file = request.files["file"]
 
         if file.filename == "":
             flash(_("No se seleccionó ningún archivo."), "warning")
-            return redirect(url_for("prestacion_management.initial_balance_bulk"))
+            return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
         if not file.filename.endswith((".xlsx", ".xls")):
             flash(_("Por favor, suba un archivo Excel (.xlsx o .xls)."), "warning")
-            return redirect(url_for("prestacion_management.initial_balance_bulk"))
+            return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
         try:
             import openpyxl
@@ -255,6 +256,6 @@ def initial_balance_bulk():
         except Exception as e:
             flash(_("Error al procesar el archivo Excel: {}").format(str(e)), "danger")
 
-        return redirect(url_for("prestacion_management.initial_balance_bulk"))
+        return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
     return render_template("modules/prestacion_management/initial_balance_bulk.html")

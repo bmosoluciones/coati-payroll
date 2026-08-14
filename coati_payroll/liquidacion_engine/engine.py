@@ -241,20 +241,10 @@ class LiquidacionEngine:
         monto_total = Decimal("0.00")
         for account in accounts:
             policy = cast(Any, account.policy)
-            if not policy.payout_on_termination:
+            payout = self._calculate_vacation_payout(policy, account, horas_jornada, tasa_dia)
+            if payout is None:
                 continue
-
-            balance = Decimal(str(account.current_balance or 0))
-            if balance <= 0:
-                continue
-
-            if policy.unit_type == "hours":
-                monto = (balance / horas_jornada * tasa_dia).quantize(Decimal("0.01"))
-            else:
-                monto = (balance * tasa_dia).quantize(Decimal("0.01"))
-
-            if monto <= 0:
-                continue
+            balance, monto = payout
 
             liquidacion.detalles.append(
                 LiquidacionDetalle(
@@ -303,6 +293,27 @@ class LiquidacionEngine:
             account.current_balance = Decimal("0.0000")
 
         return monto_total
+
+    @staticmethod
+    def _calculate_vacation_payout(
+        policy: Any, account: Any, hours_per_day: Decimal, daily_rate: Decimal
+    ) -> tuple[Decimal, Decimal] | None:
+        """Calculate a positive vacation payout, or return ``None`` when ineligible."""
+        if not policy.payout_on_termination:
+            return None
+
+        balance = Decimal(str(account.current_balance or 0))
+        if balance <= 0:
+            return None
+
+        if policy.unit_type == "hours":
+            amount = (balance / hours_per_day * daily_rate).quantize(Decimal("0.01"))
+        else:
+            amount = (balance * daily_rate).quantize(Decimal("0.01"))
+
+        if amount <= 0:
+            return None
+        return balance, amount
 
 
 def recalcular_liquidacion(liquidacion_id: str, fecha_calculo: date | None = None, usuario: str | None = None):
