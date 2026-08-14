@@ -292,6 +292,69 @@ def reporte():
     )
 
 
+def _get_report_transactions():
+    """Load report transactions using the optional request filters."""
+    query = PrestacionAcumulada.query
+    filters = (
+        ("empleado_id", PrestacionAcumulada.empleado_id),
+        ("prestacion_id", PrestacionAcumulada.prestacion_id),
+        ("fecha_desde", PrestacionAcumulada.fecha_transaccion),
+        ("fecha_hasta", PrestacionAcumulada.fecha_transaccion),
+    )
+    operators = (lambda field, value: field == value, lambda field, value: field == value,
+                 lambda field, value: field >= value, lambda field, value: field <= value)
+    for (parameter, field), operator in zip(filters, operators):
+        value = request.args.get(parameter)
+        if value:
+            query = query.filter(operator(field, value))
+    return query.order_by(
+        PrestacionAcumulada.empleado_id,
+        PrestacionAcumulada.prestacion_id,
+        PrestacionAcumulada.fecha_transaccion,
+    ).all()
+
+
+def _report_row_values(trans):
+    """Return the audit fields for one accumulated-benefit transaction."""
+    return (
+        trans.id,
+        trans.fecha_transaccion.strftime("%Y-%m-%d"),
+        trans.empleado.codigo_empleado,
+        f"{trans.empleado.primer_nombre} {trans.empleado.primer_apellido}",
+        trans.prestacion.codigo,
+        trans.prestacion.nombre,
+        trans.prestacion.tipo_acumulacion,
+        trans.tipo_transaccion,
+        trans.anio,
+        trans.mes,
+        float(trans.monto_transaccion),
+        float(trans.saldo_anterior),
+        float(trans.saldo_nuevo),
+        trans.moneda.codigo,
+        trans.nomina_id or "",
+        trans.carga_inicial_id or "",
+        trans.procesado_por or "",
+        trans.creado.strftime("%Y-%m-%d"),
+        trans.creado_por or "",
+        trans.observaciones or "",
+    )
+
+
+def _write_report_rows(ws, transactions):
+    """Write transaction rows to the report worksheet."""
+    for row_num, trans in enumerate(transactions, 2):
+        for column_num, value in enumerate(_report_row_values(trans), 1):
+            ws.cell(row=row_num, column=column_num, value=value)
+
+
+def _set_report_column_widths(ws):
+    """Set bounded widths based on the rendered worksheet values."""
+    for column in ws.columns:
+        values = (str(cell.value) for cell in column if cell.value is not None)
+        max_length = max((len(value) for value in values), default=0)
+        ws.column_dimensions[column[0].column_letter].width = min(max_length + 2, 50)
+
+
 @carga_inicial_prestacion_bp.route("/reporte/excel", methods=["GET"])
 @require_read_access()
 def reporte_excel():
@@ -305,30 +368,7 @@ def reporte_excel():
         flash(_("La librería openpyxl no está instalada. No se puede generar el reporte Excel."), "danger")
         return redirect(url_for("carga_inicial_prestacion.reporte"))
 
-    # Get filter parameters (same as reporte)
-    empleado_id = request.args.get("empleado_id")
-    prestacion_id = request.args.get("prestacion_id")
-    fecha_desde = request.args.get("fecha_desde")
-    fecha_hasta = request.args.get("fecha_hasta")
-
-    # Build query
-    query = PrestacionAcumulada.query
-
-    if empleado_id:
-        query = query.filter(PrestacionAcumulada.empleado_id == empleado_id)
-
-    if prestacion_id:
-        query = query.filter(PrestacionAcumulada.prestacion_id == prestacion_id)
-
-    if fecha_desde:
-        query = query.filter(PrestacionAcumulada.fecha_transaccion >= fecha_desde)
-
-    if fecha_hasta:
-        query = query.filter(PrestacionAcumulada.fecha_transaccion <= fecha_hasta)
-
-    transacciones = query.order_by(
-        PrestacionAcumulada.empleado_id, PrestacionAcumulada.prestacion_id, PrestacionAcumulada.fecha_transaccion
-    ).all()
+    transacciones = _get_report_transactions()
 
     # Create Excel workbook
     wb = Workbook()
@@ -368,46 +408,9 @@ def reporte_excel():
         cell.fill = header_fill
         cell.font = header_font
 
-    # Data rows - Enhanced with all audit fields
-    for row_num, trans in enumerate(transacciones, 2):
-        ws.cell(row=row_num, column=1, value=trans.id)
-        ws.cell(row=row_num, column=2, value=trans.fecha_transaccion.strftime("%Y-%m-%d"))
-        ws.cell(row=row_num, column=3, value=trans.empleado.codigo_empleado)
-        ws.cell(
-            row=row_num,
-            column=4,
-            value=f"{trans.empleado.primer_nombre} {trans.empleado.primer_apellido}",
-        )
-        ws.cell(row=row_num, column=5, value=trans.prestacion.codigo)
-        ws.cell(row=row_num, column=6, value=trans.prestacion.nombre)
-        ws.cell(row=row_num, column=7, value=trans.prestacion.tipo_acumulacion)
-        ws.cell(row=row_num, column=8, value=trans.tipo_transaccion)
-        ws.cell(row=row_num, column=9, value=trans.anio)
-        ws.cell(row=row_num, column=10, value=trans.mes)
-        ws.cell(row=row_num, column=11, value=float(trans.monto_transaccion))
-        ws.cell(row=row_num, column=12, value=float(trans.saldo_anterior))
-        ws.cell(row=row_num, column=13, value=float(trans.saldo_nuevo))
-        ws.cell(row=row_num, column=14, value=trans.moneda.codigo)
-        ws.cell(row=row_num, column=15, value=trans.nomina_id or "")
-        ws.cell(row=row_num, column=16, value=trans.carga_inicial_id or "")
-        ws.cell(row=row_num, column=17, value=trans.procesado_por or "")
-        ws.cell(row=row_num, column=18, value=trans.creado.strftime("%Y-%m-%d"))
-        ws.cell(row=row_num, column=19, value=trans.creado_por or "")
-        ws.cell(row=row_num, column=20, value=trans.observaciones or "")
+    _write_report_rows(ws, transacciones)
 
-    # Auto-adjust column widths
-    for column in ws.columns:
-        max_length = 0
-        column_letter = column[0].column_letter
-        for cell in column:
-            try:
-                if cell.value is not None and len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except (TypeError, AttributeError):
-                # Skip cells with values that can't be converted to string
-                pass
-        adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column_letter].width = adjusted_width
+    _set_report_column_widths(ws)
 
     # Save to BytesIO
     output = io.BytesIO()
