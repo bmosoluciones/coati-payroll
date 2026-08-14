@@ -264,7 +264,7 @@ def run_stress_test():
         # Verify result with a tollerance of 0.05 due to roundings in sub-steps vs precise math
         diff = abs(actual - expected)
         assert diff <= Decimal("0.05"), f"Diferencia de {diff} detectada en {profile}"
-        print(f"      [APROBADO] Coincidencia matemática exacta.")
+        print("      [APROBADO] Coincidencia matemática exacta.")
 
     print("\n" + "-" * 70)
     print("3. Ejecutando PRUEBA DE CARGA DE ESTRÉS (10,000 cálculos de nómina complejos)...")

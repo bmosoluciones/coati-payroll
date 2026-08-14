@@ -7,7 +7,6 @@ from __future__ import annotations
 from coati_payroll.log import log
 from coati_payroll.model import Empleado, NominaEmpleado, Planilla
 
-from ..domain.employee_calculation import EmpleadoCalculo
 from ..results.warning_collector import WarningCollectorProtocol
 
 
@@ -34,9 +33,7 @@ class VacationProcessor:
         self.snapshot = snapshot
         self.nomina_id = nomina_id
 
-    def process_vacations(
-        self, empleado: Empleado, emp_calculo: EmpleadoCalculo, nomina_empleado: NominaEmpleado
-    ) -> dict | None:
+    def process_vacations(self, empleado: Empleado, nomina_empleado: NominaEmpleado) -> dict | None:
         """Process vacation accrual and usage for an employee."""
         from coati_payroll.nomina_engine.validators import (
             NominaEngineError,

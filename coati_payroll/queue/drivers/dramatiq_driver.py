@@ -52,12 +52,12 @@ try:
                 self._local.ctx = ctx
 
         def after_process_message(self, broker, message, *, result=None, exception=None):
-            ctx = getattr(self._local, "ctx", None)
-            if ctx is not None:
-                ctx.pop()
-                self._local.ctx = None
+            self._clear_context()
 
         def after_skip_message(self, broker, message):
+            self._clear_context()
+
+        def _clear_context(self):
             ctx = getattr(self._local, "ctx", None)
             if ctx is not None:
                 ctx.pop()
