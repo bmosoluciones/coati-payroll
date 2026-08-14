@@ -182,6 +182,56 @@ def _clear_nomina_job_lock(nomina_id: str) -> None:
     )
 
 
+def _create_nomina_progress(
+    tracking_session,
+    nomina_id: str,
+    job_id: str,
+    total_empleados: int | None,
+    empleados_procesados: int | None,
+    empleados_con_error: int | None,
+    errores_calculo: dict | None,
+    log_procesamiento: list | None,
+    empleado_actual: str | None,
+) -> NominaProgressModel:
+    progress = NominaProgressModel(
+        nomina_id=nomina_id,
+        job_id=job_id,
+        total_empleados=total_empleados or 0,
+        empleados_procesados=empleados_procesados or 0,
+        empleados_con_error=empleados_con_error or 0,
+        errores_calculo=errores_calculo or {},
+        log_procesamiento=log_procesamiento or [],
+        empleado_actual=empleado_actual,
+        actualizado_en=datetime.now(timezone.utc),
+    )
+    tracking_session.add(progress)
+    return progress
+
+
+def _update_nomina_progress(
+    progress: NominaProgressModel,
+    job_id: str,
+    total_empleados: int | None,
+    empleados_procesados: int | None,
+    empleados_con_error: int | None,
+    errores_calculo: dict | None,
+    log_procesamiento: list | None,
+    empleado_actual: str | None,
+) -> None:
+    progress.job_id = job_id
+    for field, value in (
+        ("total_empleados", total_empleados),
+        ("empleados_procesados", empleados_procesados),
+        ("empleados_con_error", empleados_con_error),
+        ("errores_calculo", errores_calculo),
+        ("log_procesamiento", log_procesamiento),
+        ("empleado_actual", empleado_actual),
+    ):
+        if value is not None:
+            setattr(progress, field, value)
+    progress.actualizado_en = datetime.now(timezone.utc)
+
+
 def _upsert_nomina_progress(
     tracking_session,
     nomina_id: str,
@@ -201,33 +251,28 @@ def _upsert_nomina_progress(
     )
 
     if not progress:
-        progress = NominaProgressModel(
-            nomina_id=nomina_id,
-            job_id=job_id,
-            total_empleados=total_empleados or 0,
-            empleados_procesados=empleados_procesados or 0,
-            empleados_con_error=empleados_con_error or 0,
-            errores_calculo=errores_calculo or {},
-            log_procesamiento=log_procesamiento or [],
-            empleado_actual=empleado_actual,
-            actualizado_en=datetime.now(timezone.utc),
+        _create_nomina_progress(
+            tracking_session,
+            nomina_id,
+            job_id,
+            total_empleados,
+            empleados_procesados,
+            empleados_con_error,
+            errores_calculo,
+            log_procesamiento,
+            empleado_actual,
         )
-        tracking_session.add(progress)
     else:
-        progress.job_id = job_id
-        if total_empleados is not None:
-            progress.total_empleados = total_empleados
-        if empleados_procesados is not None:
-            progress.empleados_procesados = empleados_procesados
-        if empleados_con_error is not None:
-            progress.empleados_con_error = empleados_con_error
-        if errores_calculo is not None:
-            progress.errores_calculo = errores_calculo
-        if log_procesamiento is not None:
-            progress.log_procesamiento = log_procesamiento
-        if empleado_actual is not None:
-            progress.empleado_actual = empleado_actual
-        progress.actualizado_en = datetime.now(timezone.utc)
+        _update_nomina_progress(
+            progress,
+            job_id,
+            total_empleados,
+            empleados_procesados,
+            empleados_con_error,
+            errores_calculo,
+            log_procesamiento,
+            empleado_actual,
+        )
 
     tracking_session.commit()
 

@@ -298,6 +298,24 @@ def create_app(config) -> Flask:
     return app
 
 
+def _ensure_admin_user(proteger_passwd) -> None:
+    """Create the default administrator when no administrator exists."""
+    registro_admin = db.session.execute(db.select(Usuario).filter_by(tipo="admin")).scalar_one_or_none()
+    if registro_admin is not None:
+        return
+
+    nuevo = Usuario()
+    nuevo.usuario = environ.get("ADMIN_USER", "coati-admin")
+    nuevo.acceso = proteger_passwd(environ.get("ADMIN_PASSWORD", "coati-admin"))
+    nuevo.nombre = "Administrador"
+    nuevo.apellido = ""
+    nuevo.correo_electronico = None
+    nuevo.tipo = "admin"
+    nuevo.activo = True
+    db.session.add(nuevo)
+    db.session.commit()
+
+
 def ensure_database_initialized(app: Flask | None = None) -> None:
     """Verifica que la base de datos haya sido inicializada.
 
@@ -351,24 +369,7 @@ def ensure_database_initialized(app: Flask | None = None) -> None:
                     pass
 
         # Comprobar existencia de al menos un admin.
-        registro_admin = db.session.execute(db.select(Usuario).filter_by(tipo="admin")).scalar_one_or_none()
-
-        if registro_admin is None:
-            # Leer credenciales de entorno o usar valores por defecto.
-            admin_user = environ.get("ADMIN_USER", "coati-admin")
-            admin_pass = environ.get("ADMIN_PASSWORD", "coati-admin")
-
-            nuevo = Usuario()
-            nuevo.usuario = admin_user
-            nuevo.acceso = _proteger_passwd(admin_pass)
-            nuevo.nombre = "Administrador"
-            nuevo.apellido = ""
-            nuevo.correo_electronico = None
-            nuevo.tipo = "admin"
-            nuevo.activo = True
-
-            db.session.add(nuevo)
-            db.session.commit()
+        _ensure_admin_user(_proteger_passwd)
 
         # Handle database migrations with Alembic
         # Check if AUTO_MIGRATE is enabled and run migrations if database is already initialized
