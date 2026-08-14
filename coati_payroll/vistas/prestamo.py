@@ -314,25 +314,7 @@ def approve(prestamo_id):
             prestamo.estado = AdelantoEstado.APROBADO
             prestamo.aprobado_por = current_user.usuario
 
-            # Calculate installment amount based on amortization method
-            if prestamo.cuotas_pactadas and prestamo.cuotas_pactadas > 0:
-                from coati_payroll.interes_engine import calcular_cuota_frances
-
-                tasa_interes = prestamo.tasa_interes or Decimal("0.0000")
-                metodo = prestamo.metodo_amortizacion or "frances"
-
-                # For French method, calculate constant payment
-                # For German method, payment varies so we store the first payment
-                if metodo == "frances":
-                    prestamo.monto_por_cuota = calcular_cuota_frances(
-                        prestamo.monto_aprobado, tasa_interes, prestamo.cuotas_pactadas
-                    )
-                else:
-                    # For German method, store average payment for reference
-                    # Actual payment will be calculated per installment
-                    prestamo.monto_por_cuota = prestamo.monto_aprobado / prestamo.cuotas_pactadas
-            else:
-                prestamo.monto_por_cuota = prestamo.monto_aprobado
+            prestamo.monto_por_cuota = _calculate_installment_amount(prestamo)
 
             # Set pending balance and initialize interest tracking
             prestamo.saldo_pendiente = prestamo.monto_aprobado
@@ -361,6 +343,19 @@ def approve(prestamo_id):
         form.fecha_aprobacion.data = date.today()
 
     return render_template("modules/prestamo/approve.html", form=form, prestamo=prestamo)
+
+
+def _calculate_installment_amount(prestamo) -> Decimal:
+    """Calculate the first installment for an approved loan."""
+    if not prestamo.cuotas_pactadas or prestamo.cuotas_pactadas <= 0:
+        return prestamo.monto_aprobado
+
+    from coati_payroll.interes_engine import calcular_cuota_frances
+
+    tasa_interes = prestamo.tasa_interes or Decimal("0.0000")
+    if (prestamo.metodo_amortizacion or "frances") == "frances":
+        return calcular_cuota_frances(prestamo.monto_aprobado, tasa_interes, prestamo.cuotas_pactadas)
+    return prestamo.monto_aprobado / prestamo.cuotas_pactadas
 
 
 @prestamo_bp.route("/<prestamo_id>/cancel", methods=["POST"])
