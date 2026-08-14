@@ -32,15 +32,13 @@ class ExchangeRateCalculator:
         if empleado.moneda_id == planilla.moneda_id:
             return Decimal("1.00")
 
-        if tipos_cambio_snapshot:
-            snapshot_rate = tipos_cambio_snapshot.get(empleado.moneda_id)
-            if snapshot_rate and snapshot_rate.get("tasa"):
-                # Validate that the snapshot rate is for the correct destination currency
-                snapshot_dest = snapshot_rate.get("moneda_destino_id")
-                if snapshot_dest and snapshot_dest != planilla.moneda_id:
-                    pass  # Wrong destination — fall through to DB lookup
-                else:
-                    return Decimal(str(snapshot_rate["tasa"]))
+        snapshot_rate = self._get_snapshot_rate(
+            tipos_cambio_snapshot,
+            empleado.moneda_id,
+            planilla.moneda_id,
+        )
+        if snapshot_rate is not None:
+            return snapshot_rate
 
         rate = self.exchange_rate_repo.get_rate(empleado.moneda_id, planilla.moneda_id, fecha_calculo)
         if rate is None:
@@ -55,3 +53,23 @@ class ExchangeRateCalculator:
             )
 
         return Decimal(str(rate))
+
+    @staticmethod
+    def _get_snapshot_rate(
+        snapshot: dict[str, Any] | None,
+        source_currency_id: str,
+        destination_currency_id: str,
+    ) -> Decimal | None:
+        """Return a snapshot rate only when it targets the requested currency."""
+        if not snapshot:
+            return None
+
+        snapshot_rate = snapshot.get(source_currency_id)
+        if not snapshot_rate or not snapshot_rate.get("tasa"):
+            return None
+
+        snapshot_destination = snapshot_rate.get("moneda_destino_id")
+        if snapshot_destination and snapshot_destination != destination_currency_id:
+            return None
+
+        return Decimal(str(snapshot_rate["tasa"]))

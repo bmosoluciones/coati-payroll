@@ -70,22 +70,14 @@ class LoanProcessor:
             if saldo_disponible <= 0:
                 break
 
-            # Calculate and apply interest if applicable
-            if self.calcular_interes and self.apply_side_effects:
-                self._calculate_interest(prestamo)
+            self._calculate_interest_if_needed(prestamo)
 
             monto_cuota = Decimal(str(prestamo.monto_por_cuota or 0))
             if monto_cuota <= 0:
                 continue
 
             saldo_pendiente = Decimal(str(prestamo.saldo_pendiente or 0))
-            if self.liquidacion is not None:
-                # Termination settlement: the full outstanding balance is due,
-                # not a single installment, otherwise the rest becomes
-                # uncollectible once the employee is inactive.
-                monto_aplicar = min(saldo_pendiente, saldo_disponible)
-            else:
-                monto_aplicar = min(monto_cuota, saldo_pendiente, saldo_disponible)
+            monto_aplicar = self._payment_amount(monto_cuota, saldo_pendiente, saldo_disponible)
 
             item = DeduccionItem(
                 codigo=f"PRESTAMO_{prestamo.id[:8]}",
@@ -99,13 +91,27 @@ class LoanProcessor:
             deductions.append(item)
             saldo_disponible -= monto_aplicar
 
-            # Record the payment
-            if self.apply_side_effects:
-                self._record_payment(prestamo, monto_aplicar)
-            else:
-                self._pending_actions.append((prestamo, monto_aplicar, True))
+            self._record_or_queue_payment(prestamo, monto_aplicar)
 
         return deductions
+
+    def _calculate_interest_if_needed(self, prestamo: Adelanto) -> None:
+        """Calculate interest only when processing real side effects."""
+        if self.calcular_interes and self.apply_side_effects:
+            self._calculate_interest(prestamo)
+
+    def _payment_amount(self, installment: Decimal, balance: Decimal, available: Decimal) -> Decimal:
+        """Calculate the collectible amount for a loan or termination settlement."""
+        if self.liquidacion is not None:
+            return min(balance, available)
+        return min(installment, balance, available)
+
+    def _record_or_queue_payment(self, prestamo: Adelanto, amount: Decimal) -> None:
+        """Persist a payment or defer it until side effects are enabled."""
+        if self.apply_side_effects:
+            self._record_payment(prestamo, amount)
+        else:
+            self._pending_actions.append((prestamo, amount, True))
 
     def process_advances(
         self, empleado_id: str, saldo_disponible: Decimal, aplicar_adelantos: bool, prioridad_adelantos: int
