@@ -42,9 +42,13 @@ def process_line(line: str) -> str:
         return raw  # preserve special entries as-is
 
     # Separate inline comment (a '#' preceded by whitespace)
-    parts = re.split(r"[ \t]+#", raw, maxsplit=1)
-    left = parts[0].rstrip()
-    comment = ("  #" + parts[1]) if len(parts) > 1 else ""
+    comment_match = re.search(r"[ \t]+#", raw)
+    if comment_match:
+        left = raw[: comment_match.start()].rstrip()
+        comment = "  #" + raw[comment_match.end() :]
+    else:
+        left = raw
+        comment = ""
 
     # Separate environment marker (';') if present, preserve it
     left_parts = left.split(";", 1)

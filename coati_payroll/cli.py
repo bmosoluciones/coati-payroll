@@ -393,7 +393,7 @@ def system_check(ctx):
             click.echo("Running system checks...")
             click.echo()
             for check in checks:
-                status_symbol = "✓" if check["status"] == "OK" else ("⚠" if check["status"] == "WARNING" else "✗")
+                status_symbol = _status_symbol(check["status"])
                 click.echo(f"{status_symbol} {check['name']}: {check['status']}")
                 if "error" in check:
                     click.echo(f"  Error: {check['error']}")
@@ -403,6 +403,11 @@ def system_check(ctx):
     except Exception as e:
         output_result(ctx, f"System check failed: {e}", None, False)
         sys.exit(1)
+
+
+def _status_symbol(status: str) -> str:
+    """Return the terminal symbol for a system-check status."""
+    return {"OK": "✓", "WARNING": "⚠"}.get(status, "✗")
 
 
 def _system_info():
