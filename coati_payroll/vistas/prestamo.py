@@ -379,6 +379,59 @@ def cancel(prestamo_id):
     return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
 
+def _apply_extraordinary_payment(prestamo, form):
+    """Create an extraordinary payment and update its loan terms."""
+    monto_abonado = form.monto_abonado.data
+    abono = AdelantoAbono(
+        adelanto_id=prestamo.id,
+        fecha_abono=form.fecha_abono.data,
+        monto_abonado=monto_abonado,
+        saldo_anterior=prestamo.saldo_pendiente,
+        saldo_posterior=prestamo.saldo_pendiente - monto_abonado,
+        tipo_abono="manual",
+        observaciones=form.observaciones.data or "Pago extraordinario",
+        tipo_comprobante=form.tipo_comprobante.data,
+        numero_comprobante=form.numero_comprobante.data,
+        referencia_bancaria=form.referencia_bancaria.data,
+        cuenta_debe=form.cuenta_debe.data,
+        cuenta_haber=form.cuenta_haber.data,
+        creado_por=current_user.usuario,
+    )
+    prestamo.saldo_pendiente = abono.saldo_posterior
+    prestamo.modificado_por = current_user.usuario
+    _adjust_payment_terms(prestamo, abono, form.tipo_aplicacion.data, monto_abonado)
+    if prestamo.saldo_pendiente <= Decimal("0.01"):
+        prestamo.saldo_pendiente = Decimal("0.00")
+        prestamo.estado = AdelantoEstado.PAGADO
+    return abono
+
+
+def _adjust_payment_terms(prestamo, abono, tipo_aplicacion, monto_abonado):
+    """Apply the selected installment adjustment after a payment."""
+    total_abonado_previo = sum(a.monto_abonado for a in prestamo.abonos if a.tipo_abono in ["nomina", "manual"])
+    cuotas_pagadas = 0
+    if prestamo.monto_por_cuota and prestamo.monto_por_cuota > 0:
+        cuotas_pagadas = int(total_abonado_previo / prestamo.monto_por_cuota)
+    cuotas_pendientes = prestamo.cuotas_pactadas - cuotas_pagadas
+
+    if tipo_aplicacion == "reducir_cuotas" and prestamo.monto_por_cuota and prestamo.monto_por_cuota > 0:
+        cuotas_a_eliminar = int(monto_abonado / prestamo.monto_por_cuota)
+        cuotas_originales = prestamo.cuotas_pactadas
+        prestamo.cuotas_pactadas = max(cuotas_pagadas, prestamo.cuotas_pactadas - cuotas_a_eliminar)
+        abono.observaciones = (
+            f"{abono.observaciones or 'Pago extraordinario'} - "
+            f"Cuotas reducidas de {cuotas_originales} a {prestamo.cuotas_pactadas}"
+        )
+    elif tipo_aplicacion == "reducir_monto" and cuotas_pendientes > 0:
+        nueva_cuota = prestamo.saldo_pendiente / cuotas_pendientes
+        monto_original = prestamo.monto_por_cuota
+        prestamo.monto_por_cuota = nueva_cuota
+        abono.observaciones = (
+            f"{abono.observaciones or 'Pago extraordinario'} - "
+            f"Monto por cuota reducido de {monto_original:.2f} a {nueva_cuota:.2f}"
+        )
+
+
 @prestamo_bp.route("/<prestamo_id>/pago-extraordinario", methods=["GET", "POST"])
 @require_write_access()
 def pago_extraordinario(prestamo_id):
@@ -419,71 +472,7 @@ def pago_extraordinario(prestamo_id):
                 prestamo=prestamo,
             )
 
-        # Record the payment
-        abono = AdelantoAbono()
-        abono.adelanto_id = prestamo.id
-        abono.fecha_abono = form.fecha_abono.data
-        abono.monto_abonado = monto_abonado
-        abono.saldo_anterior = prestamo.saldo_pendiente
-        abono.saldo_posterior = prestamo.saldo_pendiente - monto_abonado
-        abono.tipo_abono = "manual"
-        abono.observaciones = form.observaciones.data or "Pago extraordinario"
-        # Audit trail information
-        abono.tipo_comprobante = form.tipo_comprobante.data
-        abono.numero_comprobante = form.numero_comprobante.data
-        abono.referencia_bancaria = form.referencia_bancaria.data
-        # Optional accounting entries
-        abono.cuenta_debe = form.cuenta_debe.data
-        abono.cuenta_haber = form.cuenta_haber.data
-        abono.creado_por = current_user.usuario
-
-        # Update loan balance
-        prestamo.saldo_pendiente = abono.saldo_posterior
-        prestamo.modificado_por = current_user.usuario
-
-        # Apply payment according to selected method
-        tipo_aplicacion = form.tipo_aplicacion.data
-
-        # Calculate remaining installments (those not yet paid)
-        total_abonado_previo = sum(a.monto_abonado for a in prestamo.abonos if a.tipo_abono in ["nomina", "manual"])
-        cuotas_pagadas = 0
-        if prestamo.monto_por_cuota and prestamo.monto_por_cuota > 0:
-            cuotas_pagadas = int(total_abonado_previo / prestamo.monto_por_cuota)
-
-        cuotas_pendientes = prestamo.cuotas_pactadas - cuotas_pagadas
-
-        if tipo_aplicacion == "reducir_cuotas":
-            # Option 1: Reduce number of installments, keep installment amount
-            if prestamo.monto_por_cuota and prestamo.monto_por_cuota > 0:
-                cuotas_a_eliminar = int(monto_abonado / prestamo.monto_por_cuota)
-                # Store original values for the observation
-                cuotas_originales = prestamo.cuotas_pactadas
-                # Adjust total installments
-                nueva_cuotas_pactadas = max(cuotas_pagadas, prestamo.cuotas_pactadas - cuotas_a_eliminar)
-                prestamo.cuotas_pactadas = nueva_cuotas_pactadas
-
-                abono.observaciones = (
-                    f"{abono.observaciones or 'Pago extraordinario'} - "
-                    f"Cuotas reducidas de {cuotas_originales} a {nueva_cuotas_pactadas}"
-                )
-
-        elif tipo_aplicacion == "reducir_monto":
-            # Option 2: Reduce installment amount, keep number of installments
-            if cuotas_pendientes > 0:
-                # Recalculate installment amount based on remaining balance
-                nueva_cuota = prestamo.saldo_pendiente / cuotas_pendientes
-                monto_original = prestamo.monto_por_cuota
-                prestamo.monto_por_cuota = nueva_cuota
-
-                abono.observaciones = (
-                    f"{abono.observaciones or 'Pago extraordinario'} - "
-                    f"Monto por cuota reducido de {monto_original:.2f} a {nueva_cuota:.2f}"
-                )
-
-        # Check if loan is fully paid
-        if prestamo.saldo_pendiente <= Decimal("0.01"):  # Allow for rounding
-            prestamo.saldo_pendiente = Decimal("0.00")
-            prestamo.estado = AdelantoEstado.PAGADO
+        abono = _apply_extraordinary_payment(prestamo, form)
 
         db.session.add(abono)
         db.session.commit()
