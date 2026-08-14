@@ -26,6 +26,8 @@ from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vistas.constants import PER_PAGE
 
 carga_inicial_prestacion_bp = Blueprint("carga_inicial_prestacion", __name__, url_prefix="/carga-inicial-prestaciones")
+INITIAL_BALANCE_INDEX_ENDPOINT = "carga_inicial_prestacion.index"
+INITIAL_BALANCE_FORM_TEMPLATE = "modules/carga_inicial_prestacion/form.html"
 
 
 @carga_inicial_prestacion_bp.route("/", methods=["GET"])
@@ -94,7 +96,7 @@ def nueva():
                 _("Ya existe una carga inicial para este empleado, prestación y periodo."),
                 "warning",
             )
-            return render_template("modules/carga_inicial_prestacion/form.html", form=form)
+            return render_template(INITIAL_BALANCE_FORM_TEMPLATE, form=form)
 
         carga = CargaInicialPrestacion(
             empleado_id=form.empleado_id.data,
@@ -114,9 +116,9 @@ def nueva():
         db.session.commit()
 
         flash(_("Carga inicial creada exitosamente en estado borrador."), "success")
-        return redirect(url_for("carga_inicial_prestacion.index"))
+        return redirect(url_for(INITIAL_BALANCE_INDEX_ENDPOINT))
 
-    return render_template("modules/carga_inicial_prestacion/form.html", form=form)
+    return render_template(INITIAL_BALANCE_FORM_TEMPLATE, form=form)
 
 
 @carga_inicial_prestacion_bp.route("/<carga_id>/editar", methods=["GET", "POST"])
@@ -129,7 +131,7 @@ def editar(carga_id):
 
     if carga.estado == "applied":
         flash(_("No se puede editar una carga inicial ya aplicada."), "warning")
-        return redirect(url_for("carga_inicial_prestacion.index"))
+        return redirect(url_for(INITIAL_BALANCE_INDEX_ENDPOINT))
 
     form = CargaInicialPrestacionForm(obj=carga)
 
@@ -166,9 +168,9 @@ def editar(carga_id):
         db.session.commit()
 
         flash(_("Carga inicial actualizada exitosamente."), "success")
-        return redirect(url_for("carga_inicial_prestacion.index"))
+        return redirect(url_for(INITIAL_BALANCE_INDEX_ENDPOINT))
 
-    return render_template("modules/carga_inicial_prestacion/form.html", form=form, carga=carga)
+    return render_template(INITIAL_BALANCE_FORM_TEMPLATE, form=form, carga=carga)
 
 
 @carga_inicial_prestacion_bp.route("/<carga_id>/aplicar", methods=["POST"])
@@ -181,7 +183,7 @@ def aplicar(carga_id):
 
     if carga.estado == CargaInicialEstado.APLICADO:
         flash(_("Esta carga inicial ya ha sido aplicada."), "warning")
-        return redirect(url_for("carga_inicial_prestacion.index"))
+        return redirect(url_for(INITIAL_BALANCE_INDEX_ENDPOINT))
 
     try:
         # Create transaction in prestacion_acumulada
@@ -218,7 +220,7 @@ def aplicar(carga_id):
         db.session.rollback()
         flash(_("Error al aplicar la carga inicial: %(error)s", error=str(e)), "danger")
 
-    return redirect(url_for("carga_inicial_prestacion.index"))
+    return redirect(url_for(INITIAL_BALANCE_INDEX_ENDPOINT))
 
 
 @carga_inicial_prestacion_bp.route("/<carga_id>/eliminar", methods=["POST"])
@@ -231,7 +233,7 @@ def eliminar(carga_id):
 
     if carga.estado == CargaInicialEstado.APLICADO:
         flash(_("No se puede eliminar una carga inicial ya aplicada."), "warning")
-        return redirect(url_for("carga_inicial_prestacion.index"))
+        return redirect(url_for(INITIAL_BALANCE_INDEX_ENDPOINT))
 
     try:
         db.session.delete(carga)
@@ -241,7 +243,7 @@ def eliminar(carga_id):
         db.session.rollback()
         flash(_("Error al eliminar la carga inicial: %(error)s", error=str(e)), "danger")
 
-    return redirect(url_for("carga_inicial_prestacion.index"))
+    return redirect(url_for(INITIAL_BALANCE_INDEX_ENDPOINT))
 
 
 @carga_inicial_prestacion_bp.route("/reporte", methods=["GET"])

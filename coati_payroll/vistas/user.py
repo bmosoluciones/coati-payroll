@@ -17,6 +17,7 @@ from coati_payroll.vistas.constants import PER_PAGE
 
 user_bp = Blueprint("user", __name__, url_prefix="/user")
 USER_INDEX_ENDPOINT = "user.index"
+USER_FORM_TEMPLATE = "modules/user/form.html"
 
 
 @user_bp.route("/", methods=["GET"])
@@ -46,7 +47,7 @@ def new():
             user.acceso = proteger_passwd(form.password.data)
         else:
             flash(_("La contraseña es requerida para nuevos usuarios."), "error")
-            return render_template("modules/user/form.html", form=form, title=_("Nuevo Usuario"))
+            return render_template(USER_FORM_TEMPLATE, form=form, title=_("Nuevo Usuario"))
 
         user.nombre = form.nombre.data
         user.apellido = form.apellido.data
@@ -60,7 +61,7 @@ def new():
         flash(_("Usuario creado exitosamente."), "success")
         return redirect(url_for(USER_INDEX_ENDPOINT))
 
-    return render_template("modules/user/form.html", form=form, title=_("Nuevo Usuario"))
+    return render_template(USER_FORM_TEMPLATE, form=form, title=_("Nuevo Usuario"))
 
 
 @user_bp.route("/edit/<string:id_>", methods=["GET", "POST"])
@@ -91,7 +92,7 @@ def edit(id_: str):
 
     # Don't show password in form
     form.password.data = ""
-    return render_template("modules/user/form.html", form=form, title=_("Editar Usuario"), user=user)
+    return render_template(USER_FORM_TEMPLATE, form=form, title=_("Editar Usuario"), user=user)
 
 
 @user_bp.route("/delete/<string:id_>", methods=["POST"])

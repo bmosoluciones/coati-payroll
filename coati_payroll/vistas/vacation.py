@@ -31,6 +31,16 @@ from coati_payroll.rbac import require_role, require_read_access, require_write_
 from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
 
 vacation_bp = Blueprint("vacation", __name__, url_prefix="/vacation")
+POLICY_INDEX_ENDPOINT = "vacation.policy_index"
+ACCOUNT_DETAIL_ENDPOINT = "vacation.account_detail"
+LEAVE_REQUEST_DETAIL_ENDPOINT = "vacation.leave_request_detail"
+LEAVE_REQUEST_INDEX_ENDPOINT = "vacation.leave_request_index"
+INITIAL_BALANCE_BULK_ENDPOINT = "vacation.initial_balance_bulk"
+LEAVE_REQUEST_FORM_TEMPLATE = "modules/vacation/leave_request_form.html"
+REGISTER_TAKEN_FORM_TEMPLATE = "modules/vacation/register_taken_form.html"
+NEW_LEAVE_REQUEST_TITLE = "Nueva Solicitud de Vacaciones"
+REGISTER_TAKEN_TITLE = "Registrar Vacaciones Descansadas"
+LEAVE_REQUEST_NOT_FOUND_MESSAGE = "Solicitud no encontrada."
 
 
 # ============================================================================
@@ -106,7 +116,7 @@ def policy_new():
         try:
             db.session.commit()
             flash(_("Política de vacaciones creada exitosamente."), "success")
-            return redirect(url_for("vacation.policy_index"))
+            return redirect(url_for(POLICY_INDEX_ENDPOINT))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al crear la política: {}").format(str(e)), "danger")
@@ -128,7 +138,7 @@ def policy_edit(policy_id):
     policy = db.session.get(VacationPolicy, policy_id)
     if not policy:
         flash(_("Política no encontrada."), "warning")
-        return redirect(url_for("vacation.policy_index"))
+        return redirect(url_for(POLICY_INDEX_ENDPOINT))
 
     form = VacationPolicyForm(obj=policy)
 
@@ -163,7 +173,7 @@ def policy_edit(policy_id):
         try:
             db.session.commit()
             flash(_("Política actualizada exitosamente."), "success")
-            return redirect(url_for("vacation.policy_index"))
+            return redirect(url_for(POLICY_INDEX_ENDPOINT))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al actualizar la política: {}").format(str(e)), "danger")
@@ -183,7 +193,7 @@ def policy_detail(policy_id):
     policy = db.session.get(VacationPolicy, policy_id)
     if not policy:
         flash(_("Política no encontrada."), "warning")
-        return redirect(url_for("vacation.policy_index"))
+        return redirect(url_for(POLICY_INDEX_ENDPOINT))
 
     # Get statistics
     total_accounts = (
@@ -283,7 +293,7 @@ def account_new():
         try:
             db.session.commit()
             flash(_("Cuenta de vacaciones creada exitosamente."), "success")
-            return redirect(url_for("vacation.account_detail", account_id=account.id))
+            return redirect(url_for(ACCOUNT_DETAIL_ENDPOINT, account_id=account.id))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al crear la cuenta: {}").format(str(e)), "danger")
@@ -357,9 +367,9 @@ def leave_request_new():
         if not account:
             flash(_("El empleado no tiene una cuenta de vacaciones activa."), "danger")
             return render_template(
-                "modules/vacation/leave_request_form.html",
+                LEAVE_REQUEST_FORM_TEMPLATE,
                 form=form,
-                titulo=_("Nueva Solicitud de Vacaciones"),
+                titulo=_(NEW_LEAVE_REQUEST_TITLE),
             )
 
         # Check balance
@@ -367,9 +377,9 @@ def leave_request_new():
             if not account.policy.allow_negative:
                 flash(_("Saldo insuficiente para la solicitud."), "danger")
                 return render_template(
-                    "modules/vacation/leave_request_form.html",
+                    LEAVE_REQUEST_FORM_TEMPLATE,
                     form=form,
-                    titulo=_("Nueva Solicitud de Vacaciones"),
+                    titulo=_(NEW_LEAVE_REQUEST_TITLE),
                 )
 
         # Create leave request
@@ -382,15 +392,15 @@ def leave_request_new():
         try:
             db.session.commit()
             flash(_("Solicitud de vacaciones creada exitosamente."), "success")
-            return redirect(url_for("vacation.leave_request_detail", request_id=leave_request.id))
+            return redirect(url_for(LEAVE_REQUEST_DETAIL_ENDPOINT, request_id=leave_request.id))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al crear la solicitud: {}").format(str(e)), "danger")
 
     return render_template(
-        "modules/vacation/leave_request_form.html",
+        LEAVE_REQUEST_FORM_TEMPLATE,
         form=form,
-        titulo=_("Nueva Solicitud de Vacaciones"),
+        titulo=_(NEW_LEAVE_REQUEST_TITLE),
     )
 
 
@@ -400,8 +410,8 @@ def leave_request_detail(request_id):
     """View vacation leave request details."""
     leave_request = db.session.get(VacationNovelty, request_id)
     if not leave_request:
-        flash(_("Solicitud no encontrada."), "warning")
-        return redirect(url_for("vacation.leave_request_index"))
+        flash(_(LEAVE_REQUEST_NOT_FOUND_MESSAGE), "warning")
+        return redirect(url_for(LEAVE_REQUEST_INDEX_ENDPOINT))
 
     return render_template(
         "modules/vacation/leave_request_detail.html",
@@ -415,18 +425,18 @@ def leave_request_approve(request_id):
     """Approve a vacation leave request."""
     leave_request = db.session.get(VacationNovelty, request_id)
     if not leave_request:
-        flash(_("Solicitud no encontrada."), "warning")
-        return redirect(url_for("vacation.leave_request_index"))
+        flash(_(LEAVE_REQUEST_NOT_FOUND_MESSAGE), "warning")
+        return redirect(url_for(LEAVE_REQUEST_INDEX_ENDPOINT))
 
     if leave_request.estado != VacacionEstado.PENDIENTE:
         flash(_("Solo se pueden aprobar solicitudes pendientes."), "warning")
-        return redirect(url_for("vacation.leave_request_detail", request_id=request_id))
+        return redirect(url_for(LEAVE_REQUEST_DETAIL_ENDPOINT, request_id=request_id))
 
     # Get the vacation account
     account = leave_request.account
     if not account:
         flash(_("Cuenta de vacaciones no encontrada."), "danger")
-        return redirect(url_for("vacation.leave_request_detail", request_id=request_id))
+        return redirect(url_for(LEAVE_REQUEST_DETAIL_ENDPOINT, request_id=request_id))
 
     # Check if there's enough balance (validation only; discount happens via payroll execution)
     if account.current_balance < leave_request.units and not account.policy.allow_negative:
@@ -436,7 +446,7 @@ def leave_request_approve(request_id):
             ),
             "danger",
         )
-        return redirect(url_for("vacation.leave_request_detail", request_id=request_id))
+        return redirect(url_for(LEAVE_REQUEST_DETAIL_ENDPOINT, request_id=request_id))
 
     # Update request status; accounting/balance impact is deferred to payroll novelties execution
     leave_request.estado = VacacionEstado.APROBADO
@@ -451,7 +461,7 @@ def leave_request_approve(request_id):
         db.session.rollback()
         flash(_("Error al aprobar la solicitud: {}").format(str(e)), "danger")
 
-    return redirect(url_for("vacation.leave_request_detail", request_id=request_id))
+    return redirect(url_for(LEAVE_REQUEST_DETAIL_ENDPOINT, request_id=request_id))
 
 
 @vacation_bp.route("/leave-requests/<string:request_id>/reject", methods=["POST"])
@@ -460,12 +470,12 @@ def leave_request_reject(request_id):
     """Reject a vacation leave request."""
     leave_request = db.session.get(VacationNovelty, request_id)
     if not leave_request:
-        flash(_("Solicitud no encontrada."), "warning")
-        return redirect(url_for("vacation.leave_request_index"))
+        flash(_(LEAVE_REQUEST_NOT_FOUND_MESSAGE), "warning")
+        return redirect(url_for(LEAVE_REQUEST_INDEX_ENDPOINT))
 
     if leave_request.estado != VacacionEstado.PENDIENTE:
         flash(_("Solo se pueden rechazar solicitudes pendientes."), "warning")
-        return redirect(url_for("vacation.leave_request_detail", request_id=request_id))
+        return redirect(url_for(LEAVE_REQUEST_DETAIL_ENDPOINT, request_id=request_id))
 
     # Get rejection reason from form
     motivo_rechazo = request.form.get("motivo_rechazo", "")
@@ -482,7 +492,7 @@ def leave_request_reject(request_id):
         db.session.rollback()
         flash(_("Error al rechazar la solicitud: {}").format(str(e)), "danger")
 
-    return redirect(url_for("vacation.leave_request_detail", request_id=request_id))
+    return redirect(url_for(LEAVE_REQUEST_DETAIL_ENDPOINT, request_id=request_id))
 
 
 # ============================================================================
@@ -553,9 +563,9 @@ def register_vacation_taken():
         if not empleado:
             flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "danger")
             return render_template(
-                "modules/vacation/register_taken_form.html",
+                REGISTER_TAKEN_FORM_TEMPLATE,
                 form=form,
-                titulo=_("Registrar Vacaciones Descansadas"),
+                titulo=_(REGISTER_TAKEN_TITLE),
             )
 
         # Validate tipo_concepto and associated percepcion/deduccion
@@ -566,17 +576,17 @@ def register_vacation_taken():
         if tipo_concepto == "income" and not percepcion_id:
             flash(_("Debe seleccionar una percepción cuando el tipo de concepto es percepción."), "danger")
             return render_template(
-                "modules/vacation/register_taken_form.html",
+                REGISTER_TAKEN_FORM_TEMPLATE,
                 form=form,
-                titulo=_("Registrar Vacaciones Descansadas"),
+                titulo=_(REGISTER_TAKEN_TITLE),
             )
 
         if tipo_concepto == "deduction" and not deduccion_id:
             flash(_("Debe seleccionar una deducción cuando el tipo de concepto es deducción."), "danger")
             return render_template(
-                "modules/vacation/register_taken_form.html",
+                REGISTER_TAKEN_FORM_TEMPLATE,
                 form=form,
-                titulo=_("Registrar Vacaciones Descansadas"),
+                titulo=_(REGISTER_TAKEN_TITLE),
             )
 
         # Get the concepto for codigo
@@ -597,9 +607,9 @@ def register_vacation_taken():
         if not account:
             flash(_("El empleado no tiene una cuenta de vacaciones activa. Cree una cuenta primero."), "danger")
             return render_template(
-                "modules/vacation/register_taken_form.html",
+                REGISTER_TAKEN_FORM_TEMPLATE,
                 form=form,
-                titulo=_("Registrar Vacaciones Descansadas"),
+                titulo=_(REGISTER_TAKEN_TITLE),
             )
 
         # Check balance (considering dias_descontados, not calendar days)
@@ -611,9 +621,9 @@ def register_vacation_taken():
                     "danger",
                 )
                 return render_template(
-                    "modules/vacation/register_taken_form.html",
+                    REGISTER_TAKEN_FORM_TEMPLATE,
                     form=form,
-                    titulo=_("Registrar Vacaciones Descansadas"),
+                    titulo=_(REGISTER_TAKEN_TITLE),
                 )
 
         # Create VacationNovelty (leave record)
@@ -668,15 +678,15 @@ def register_vacation_taken():
         try:
             db.session.commit()
             flash(_(f"Vacaciones registradas exitosamente. {dias_descontados} días descontados del saldo."), "success")
-            return redirect(url_for("vacation.account_detail", account_id=account.id))
+            return redirect(url_for(ACCOUNT_DETAIL_ENDPOINT, account_id=account.id))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al registrar vacaciones: {}").format(str(e)), "danger")
 
     return render_template(
-        "modules/vacation/register_taken_form.html",
+        REGISTER_TAKEN_FORM_TEMPLATE,
         form=form,
-        titulo=_("Registrar Vacaciones Descansadas"),
+        titulo=_(REGISTER_TAKEN_TITLE),
     )
 
 
@@ -830,7 +840,7 @@ def initial_balance_form():
                 ).format(empleado.codigo_empleado),
                 "warning",
             )
-            return redirect(url_for("vacation.account_detail", account_id=account.id))
+            return redirect(url_for(ACCOUNT_DETAIL_ENDPOINT, account_id=account.id))
 
         # Create ledger entry for initial balance
         ledger_entry = VacationLedger(
@@ -862,7 +872,7 @@ def initial_balance_form():
                 ),
                 "success",
             )
-            return redirect(url_for("vacation.account_detail", account_id=account.id))
+            return redirect(url_for(ACCOUNT_DETAIL_ENDPOINT, account_id=account.id))
         except Exception as e:
             db.session.rollback()
             flash(_("Error al cargar saldo inicial: {}").format(str(e)), "danger")
@@ -889,17 +899,17 @@ def initial_balance_bulk():
         # Check if file was uploaded
         if "file" not in request.files:
             flash(_("No se seleccionó ningún archivo."), "warning")
-            return redirect(url_for("vacation.initial_balance_bulk"))
+            return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
         file = request.files["file"]
 
         if file.filename == "":
             flash(_("No se seleccionó ningún archivo."), "warning")
-            return redirect(url_for("vacation.initial_balance_bulk"))
+            return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
         if not file.filename.endswith((".xlsx", ".xls")):
             flash(_("Por favor, suba un archivo Excel (.xlsx o .xls)."), "warning")
-            return redirect(url_for("vacation.initial_balance_bulk"))
+            return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
         try:
             import openpyxl
@@ -1025,6 +1035,6 @@ def initial_balance_bulk():
         except Exception as e:
             flash(_("Error al procesar el archivo Excel: {}").format(str(e)), "danger")
 
-        return redirect(url_for("vacation.initial_balance_bulk"))
+        return redirect(url_for(INITIAL_BALANCE_BULK_ENDPOINT))
 
     return render_template("modules/vacation/initial_balance_bulk.html")
