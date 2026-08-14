@@ -207,6 +207,16 @@ def ver_nomina(planilla_id: str, nomina_id: str):
     )
 
 
+def _get_valid_comparison_base(planilla_id: str, base_id: str | None, nomina_actual: Nomina) -> str | None:
+    if not base_id:
+        return None
+    nomina_base = db.session.get(Nomina, base_id)
+    if nomina_base and nomina_base.planilla_id == planilla_id and nomina_base.id != nomina_actual.id:
+        return None
+    target_planilla_id = nomina_base.planilla_id if nomina_base else planilla_id
+    return target_planilla_id
+
+
 @planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/comparar", methods=["GET"])
 @require_read_access()
 def comparar_nomina(planilla_id: str, nomina_id: str):
@@ -231,19 +241,13 @@ def comparar_nomina(planilla_id: str, nomina_id: str):
     base_seleccionada_id = request.args.get("nomina_base_id")
     ejecutar = request.args.get("ejecutar") == "1"
 
-    if base_seleccionada_id:
-        nomina_base_referenciada = db.session.get(Nomina, base_seleccionada_id)
-        if (
-            not nomina_base_referenciada
-            or nomina_base_referenciada.planilla_id != planilla_id
-            or nomina_base_referenciada.id == nomina_actual.id
-        ):
-            target_planilla_id = nomina_base_referenciada.planilla_id if nomina_base_referenciada else planilla_id
-            flash(
-                _("No se encontro la comparativa solicitada porque una de las nominas no esta disponible."),
-                "warning",
-            )
-            return redirect(url_for(ROUTE_LISTAR_NOMINAS, planilla_id=target_planilla_id))
+    invalid_base_planilla_id = _get_valid_comparison_base(planilla_id, base_seleccionada_id, nomina_actual)
+    if invalid_base_planilla_id:
+        flash(
+            _("No se encontro la comparativa solicitada porque una de las nominas no esta disponible."),
+            "warning",
+        )
+        return redirect(url_for(ROUTE_LISTAR_NOMINAS, planilla_id=invalid_base_planilla_id))
 
     nomina_base = None
     comparacion_payload: dict[str, Any] | None = None
