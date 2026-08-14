@@ -48,6 +48,9 @@ from coati_payroll.enums import AdelantoEstado, AdelantoTipo
 from coati_payroll.rbac import require_read_access, require_write_access
 
 prestamo_bp = Blueprint("prestamo", __name__, url_prefix="/prestamo")
+LOAN_INDEX_ENDPOINT = "prestamo.index"
+LOAN_DETAIL_ENDPOINT = "prestamo.detail"
+LOAN_NOT_FOUND_MESSAGE = "Préstamo no encontrado."
 
 
 @prestamo_bp.route("/", methods=["GET"])
@@ -146,7 +149,7 @@ def new():
             _("Préstamo/Adelanto creado exitosamente. Estado: Borrador."),
             "success",
         )
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo.id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo.id))
 
     # Set default values
     if request.method == "GET":
@@ -164,8 +167,8 @@ def detail(prestamo_id):
     """View loan details including payment schedule."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash("Préstamo no encontrado.", "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     # Generate payment schedule
     tabla_pago = generar_tabla_pago(prestamo)
@@ -209,13 +212,13 @@ def edit(prestamo_id):
     """Edit a loan (only allowed in draft or pending state)."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash(_("Préstamo no encontrado."), "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     # Only allow editing in draft or pending state
     if prestamo.estado not in [AdelantoEstado.BORRADOR, AdelantoEstado.PENDIENTE]:
         flash(_(f"No se puede editar un préstamo en estado '{prestamo.estado}'."), "warning")
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     form = PrestamoForm(obj=prestamo)
 
@@ -261,7 +264,7 @@ def edit(prestamo_id):
         db.session.commit()
 
         flash(_("Préstamo/Adelanto actualizado exitosamente."), "success")
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     return render_template("modules/prestamo/form.html", form=form, prestamo=prestamo)
 
@@ -272,19 +275,19 @@ def submit(prestamo_id):
     """Submit a loan for approval (change from draft to pending)."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash(_("Préstamo no encontrado."), "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     if prestamo.estado != AdelantoEstado.BORRADOR:
         flash(_("Solo los préstamos en borrador pueden ser enviados."), "warning")
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     prestamo.estado = AdelantoEstado.PENDIENTE
     prestamo.modificado_por = current_user.usuario
     db.session.commit()
 
     flash(_("Préstamo enviado para aprobación."), "success")
-    return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+    return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
 
 @prestamo_bp.route("/<prestamo_id>/approve", methods=["GET", "POST"])
@@ -293,12 +296,12 @@ def approve(prestamo_id):
     """Approve a loan and set it as active."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash(_("Préstamo no encontrado."), "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     if prestamo.estado not in [AdelantoEstado.PENDIENTE, AdelantoEstado.BORRADOR]:
         flash(_("Este préstamo no puede ser aprobado en su estado actual."), "warning")
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     form = PrestamoApprovalForm()
 
@@ -350,7 +353,7 @@ def approve(prestamo_id):
             db.session.commit()
             flash(_("Préstamo rechazado."), "info")
 
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     # Pre-populate form with loan data
     if request.method == "GET":
@@ -366,19 +369,19 @@ def cancel(prestamo_id):
     """Cancel a loan."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash(_("Préstamo no encontrado."), "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     if prestamo.estado in [AdelantoEstado.PAGADO, AdelantoEstado.CANCELADO]:
         flash(_("Este préstamo ya está finalizado."), "warning")
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     prestamo.estado = AdelantoEstado.CANCELADO
     prestamo.modificado_por = current_user.usuario
     db.session.commit()
 
     flash(_("Préstamo cancelado."), "info")
-    return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+    return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
 
 @prestamo_bp.route("/<prestamo_id>/pago-extraordinario", methods=["GET", "POST"])
@@ -387,8 +390,8 @@ def pago_extraordinario(prestamo_id):
     """Register an extraordinary/manual payment on a loan."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash("Préstamo no encontrado.", "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     # Only allow payments on approved/active loans
     if prestamo.estado not in [AdelantoEstado.APROBADO, AdelantoEstado.APLICADO]:
@@ -396,11 +399,11 @@ def pago_extraordinario(prestamo_id):
             _("Solo se pueden registrar pagos en préstamos aprobados o aplicados."),
             "warning",
         )
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     if prestamo.saldo_pendiente <= 0:
         flash(_("Este préstamo ya está totalmente pagado."), "info")
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     form = PagoExtraordinarioForm()
 
@@ -494,7 +497,7 @@ def pago_extraordinario(prestamo_id):
             _("Pago extraordinario registrado exitosamente."),
             "success",
         )
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     # Pre-populate form
     if request.method == "GET":
@@ -515,8 +518,8 @@ def condonacion(prestamo_id):
     """Record a loan forgiveness/write-off (condonación de deuda)."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash(_("Préstamo no encontrado."), "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     # Only allow forgiveness on approved/active loans
     if prestamo.estado not in [AdelantoEstado.APROBADO, AdelantoEstado.APLICADO]:
@@ -524,11 +527,11 @@ def condonacion(prestamo_id):
             _("Solo se pueden condonar préstamos aprobados o aplicados."),
             "warning",
         )
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     if prestamo.saldo_pendiente <= 0:
         flash(_("Este préstamo ya está totalmente pagado."), "info")
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     form = CondonacionForm()
 
@@ -595,7 +598,7 @@ def condonacion(prestamo_id):
             _("Condonación de deuda registrada exitosamente. Monto condonado: {monto}").format(monto=monto_condonado),
             "success",
         )
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     # Pre-populate form
     if request.method == "GET":
@@ -615,8 +618,8 @@ def export_excel(prestamo_id):
     """Export payment schedule to Excel."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash(_("Préstamo no encontrado."), "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     try:
         from openpyxl import Workbook
@@ -626,7 +629,7 @@ def export_excel(prestamo_id):
             _("Excel export no disponible. Instale openpyxl."),
             "warning",
         )
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
     # Generate payment schedule
     tabla_pago = generar_tabla_pago(prestamo)
@@ -696,8 +699,8 @@ def export_pdf(prestamo_id):
     """Export payment schedule to PDF."""
     prestamo = db.session.get(Adelanto, prestamo_id)
     if not prestamo:
-        flash(_("Préstamo no encontrado."), "danger")
-        return redirect(url_for("prestamo.index"))
+        flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(LOAN_INDEX_ENDPOINT))
 
     # Generate payment schedule
     tabla_pago = generar_tabla_pago(prestamo)
@@ -726,7 +729,7 @@ def export_pdf(prestamo_id):
             _("PDF export no disponible. Instale WeasyPrint."),
             "warning",
         )
-        return redirect(url_for("prestamo.detail", prestamo_id=prestamo_id))
+        return redirect(url_for(LOAN_DETAIL_ENDPOINT, prestamo_id=prestamo_id))
 
 
 def generar_tabla_pago(prestamo: Adelanto) -> list[dict]:

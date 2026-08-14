@@ -27,6 +27,9 @@ from coati_payroll.log import log
 from coati_payroll.vistas.constants import PER_PAGE
 
 report_bp = Blueprint("report", __name__, url_prefix="/report")
+REPORT_INDEX_ENDPOINT = "report.index"
+REPORT_ADMIN_INDEX_ENDPOINT = "report.admin_index"
+REPORT_NOT_FOUND_MESSAGE = "Reporte no encontrado."
 
 
 # ============================================================================
@@ -154,23 +157,23 @@ def execute_form(report_id: str):
     """
     report = db.session.get(Report, report_id)
     if not report:
-        flash(_("Reporte no encontrado."), "danger")
-        return redirect(url_for("report.index"))
+        flash(_(REPORT_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(REPORT_INDEX_ENDPOINT))
 
     # Check if report is enabled
     if report.status != ReportStatus.ENABLED and current_user.tipo != TipoUsuario.ADMIN:
         flash(_("Este reporte está deshabilitado."), "warning")
-        return redirect(url_for("report.index"))
+        return redirect(url_for(REPORT_INDEX_ENDPOINT))
 
     # Check view permission
     if not can_view_report(report, current_user.tipo):
         flash(_("No tiene permisos para ver este reporte."), "danger")
-        return redirect(url_for("report.index"))
+        return redirect(url_for(REPORT_INDEX_ENDPOINT))
 
     # Check execute permission
     if not can_execute_report(report, current_user.tipo):
         flash(_("No tiene permisos para ejecutar este reporte."), "danger")
-        return redirect(url_for("report.index"))
+        return redirect(url_for(REPORT_INDEX_ENDPOINT))
 
     # Get metadata for system reports
     metadata = None
@@ -291,8 +294,8 @@ def toggle_status(report_id: str):
     """
     report = db.session.get(Report, report_id)
     if not report:
-        flash(_("Reporte no encontrado."), "danger")
-        return redirect(url_for("report.admin_index"))
+        flash(_(REPORT_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(REPORT_ADMIN_INDEX_ENDPOINT))
 
     # Toggle status
     old_status = report.status
@@ -309,7 +312,7 @@ def toggle_status(report_id: str):
     db.session.commit()
 
     flash(_("Estado del reporte actualizado."), "success")
-    return redirect(url_for("report.admin_index"))
+    return redirect(url_for(REPORT_ADMIN_INDEX_ENDPOINT))
 
 
 @report_bp.route("/<report_id>/permissions", methods=["GET"])
@@ -321,8 +324,8 @@ def permissions_form(report_id: str):
     """
     report = db.session.get(Report, report_id)
     if not report:
-        flash(_("Reporte no encontrado."), "danger")
-        return redirect(url_for("report.admin_index"))
+        flash(_(REPORT_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(REPORT_ADMIN_INDEX_ENDPOINT))
 
     # Get existing permissions
     permissions = cast(list[Any], report.permissions)
@@ -342,8 +345,8 @@ def update_permissions(report_id: str):
     """
     report = db.session.get(Report, report_id)
     if not report:
-        flash(_("Reporte no encontrado."), "danger")
-        return redirect(url_for("report.admin_index"))
+        flash(_(REPORT_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(REPORT_ADMIN_INDEX_ENDPOINT))
 
     # Process permissions for each role
     for role in [TipoUsuario.ADMIN, TipoUsuario.HHRR, TipoUsuario.AUDIT]:
@@ -377,7 +380,7 @@ def update_permissions(report_id: str):
     db.session.commit()
 
     flash(_("Permisos actualizados correctamente."), "success")
-    return redirect(url_for("report.admin_index"))
+    return redirect(url_for(REPORT_ADMIN_INDEX_ENDPOINT))
 
 
 # ============================================================================
@@ -394,13 +397,13 @@ def detail(report_id: str):
     """
     report = db.session.get(Report, report_id)
     if not report:
-        flash(_("Reporte no encontrado."), "danger")
-        return redirect(url_for("report.index"))
+        flash(_(REPORT_NOT_FOUND_MESSAGE), "danger")
+        return redirect(url_for(REPORT_INDEX_ENDPOINT))
 
     # Check view permission
     if not can_view_report(report, current_user.tipo):
         flash(_("No tiene permisos para ver este reporte."), "danger")
-        return redirect(url_for("report.index"))
+        return redirect(url_for(REPORT_INDEX_ENDPOINT))
 
     # Get recent executions
     executions = (
