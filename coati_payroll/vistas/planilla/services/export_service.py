@@ -31,6 +31,7 @@ LABEL_PLANILLA_STATUS = "Status Planilla:"
 LABEL_APPLIED_BY = "Aplicado por:"
 LABEL_CONCEPT = "Concepto:"
 LABEL_CALCULATION_DATE = "Fecha de Cálculo:"
+LABEL_PERIOD = "Período:"
 DATE_FORMAT = "%d/%m/%Y"
 DATETIME_FORMAT = "%d/%m/%Y %H:%M"
 
@@ -99,7 +100,7 @@ class ExportService:
     def _write_nomina_info(ws, row: int, planilla, nomina) -> int:
         """Write payroll metadata."""
         rows = (
-            ("Período:", f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"),
+            (LABEL_PERIOD, f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"),
             (LABEL_PLANILLA_ID, planilla.id),
             (LABEL_PLANILLA_STATUS, planilla.estado_aprobacion or ""),
             ("Estado Nomina:", nomina.estado),
@@ -1021,7 +1022,7 @@ class ExportService:
         ws[f"B{row}"] = comprobante.fecha_calculo.strftime(DATE_FORMAT)
         row += 1
 
-        ws[f"A{row}"] = "Período:"
+        ws[f"A{row}"] = LABEL_PERIOD
         ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
         row += 1
 
@@ -1212,7 +1213,7 @@ class ExportService:
         ws[f"B{row}"] = comprobante.fecha_calculo.strftime(DATE_FORMAT)
         row += 1
 
-        ws[f"A{row}"] = "Período:"
+        ws[f"A{row}"] = LABEL_PERIOD
         ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
         row += 1
 

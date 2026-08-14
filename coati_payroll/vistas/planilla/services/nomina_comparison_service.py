@@ -35,6 +35,7 @@ from coati_payroll.model import (
 class NominaComparisonService:
     """Build and cache comparison KPIs between payroll runs."""
 
+    BUCKET_NEGATIVE_TEN_PERCENT = "<=-10%"
     OUTLIER_DELTA_ABS = Decimal("100.00")
     OUTLIER_DELTA_PCT = Decimal("5.00")
     ESTABILIDAD_PESO_AFECTACION = Decimal("0.35")
@@ -706,7 +707,7 @@ class NominaComparisonService:
     @classmethod
     def _build_bucket_variacion_neto(cls, variaciones_neto_detalle: list[dict[str, Any]]) -> list[dict[str, Any]]:
         buckets = {
-            "<=-10%": 0,
+            cls.BUCKET_NEGATIVE_TEN_PERCENT: 0,
             "-10% a 0%": 0,
             "0%": 0,
             "0% a 10%": 0,
@@ -719,12 +720,12 @@ class NominaComparisonService:
                 if delta_neto > 0:
                     buckets[">10%"] += 1
                 elif delta_neto < 0:
-                    buckets["<=-10%"] += 1
+                    buckets[cls.BUCKET_NEGATIVE_TEN_PERCENT] += 1
                 else:
                     buckets["0%"] += 1
                 continue
             if delta_pct <= Decimal("-10"):
-                buckets["<=-10%"] += 1
+                buckets[cls.BUCKET_NEGATIVE_TEN_PERCENT] += 1
             elif delta_pct < Decimal("0"):
                 buckets["-10% a 0%"] += 1
             elif delta_pct == Decimal("0"):
