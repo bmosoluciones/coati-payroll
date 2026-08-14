@@ -47,57 +47,64 @@ class PerceptionCalculator:
         planilla_percepciones = cast(list[Any], planilla.planilla_percepciones)
 
         for planilla_percepcion in planilla_percepciones:
-            if not planilla_percepcion.activo:
-                continue
-
-            percepcion = planilla_percepcion.percepcion
-            if not percepcion or not percepcion.activo:
-                continue
-
-            snapshot_entry = self._snapshot_for(percepcion)
-            if not self._snapshot_valido(snapshot_entry, fecha_calculo):
-                continue
-
-            # When the perception exists in the catalog snapshot, prefer the
-            # frozen formula/amount so recalculation reproduces the original
-            # payroll even if the live catalog changed since.
-            snap_val = snapshot_entry or {}
-            formula_tipo = snap_val.get("formula_tipo", percepcion.formula_tipo)
-            monto_default = snap_val.get("monto_default", percepcion.monto_default)
-            porcentaje = snap_val.get("porcentaje", percepcion.porcentaje)
-            formula = snap_val.get("formula", percepcion.formula)
-            base_calculo = snap_val.get("base_calculo", getattr(percepcion, "base_calculo", None))
-
-            # Check validity dates against the live object only when there is no snapshot
-            if not snapshot_entry:
-                if percepcion.vigente_desde and percepcion.vigente_desde > fecha_calculo:
-                    continue
-                if percepcion.valido_hasta and percepcion.valido_hasta < fecha_calculo:
-                    continue
-
-            # Calculate perception amount
-            monto = self.concept_calculator.calculate(
-                emp_calculo,
-                formula_tipo,
-                monto_default,
-                porcentaje,
-                formula,
-                planilla_percepcion.monto_predeterminado,
-                planilla_percepcion.porcentaje,
-                codigo_concepto=percepcion.codigo,
-                base_calculo=base_calculo,
-                unidad_calculo=getattr(percepcion, "unidad_calculo", None),
-            )
-
-            if monto > 0:
-                item = PercepcionItem(
-                    codigo=percepcion.codigo,
-                    nombre=percepcion.nombre,
-                    monto=monto,
-                    prioridad=planilla_percepcion.orden or 0,
-                    gravable=percepcion.gravable,
-                    percepcion_id=percepcion.id,
-                )
+            item = self._calculate_item(planilla_percepcion, emp_calculo, fecha_calculo)
+            if item is not None:
                 percepciones.append(item)
 
         return percepciones
+
+    def _calculate_item(self, association, emp_calculo, fecha_calculo) -> PercepcionItem | None:
+        """Calculate one active perception association."""
+        if not association.activo:
+            return None
+
+        percepcion = association.percepcion
+        if not percepcion or not percepcion.activo:
+            return None
+
+        snapshot_entry = self._snapshot_for(percepcion)
+        if not self._snapshot_valido(snapshot_entry, fecha_calculo):
+            return None
+
+        snap_val = snapshot_entry or {}
+        formula_tipo = snap_val.get("formula_tipo", percepcion.formula_tipo)
+        monto_default = snap_val.get("monto_default", percepcion.monto_default)
+        porcentaje = snap_val.get("porcentaje", percepcion.porcentaje)
+        formula = snap_val.get("formula", percepcion.formula)
+        base_calculo = snap_val.get("base_calculo", getattr(percepcion, "base_calculo", None))
+
+        if not snapshot_entry and not self._live_perception_is_valid(percepcion, fecha_calculo):
+            return None
+
+        monto = self.concept_calculator.calculate(
+            emp_calculo,
+            formula_tipo,
+            monto_default,
+            porcentaje,
+            formula,
+            association.monto_predeterminado,
+            association.porcentaje,
+            codigo_concepto=percepcion.codigo,
+            base_calculo=base_calculo,
+            unidad_calculo=getattr(percepcion, "unidad_calculo", None),
+        )
+        if monto <= 0:
+            return None
+
+        return PercepcionItem(
+            codigo=percepcion.codigo,
+            nombre=percepcion.nombre,
+            monto=monto,
+            prioridad=association.orden or 0,
+            gravable=percepcion.gravable,
+            percepcion_id=percepcion.id,
+        )
+
+    @staticmethod
+    def _live_perception_is_valid(percepcion, fecha_calculo: date) -> bool:
+        """Check validity dates on the live catalog entry."""
+        if percepcion.vigente_desde and percepcion.vigente_desde > fecha_calculo:
+            return False
+        if percepcion.valido_hasta and percepcion.valido_hasta < fecha_calculo:
+            return False
+        return True
