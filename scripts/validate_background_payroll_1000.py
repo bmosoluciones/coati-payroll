@@ -16,6 +16,7 @@ import time
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy import func
 
@@ -54,6 +55,35 @@ def _stop_worker(worker: subprocess.Popen[str]) -> str:
         os.killpg(worker.pid, signal.SIGKILL)
         output, _ = worker.communicate()
     return output
+
+
+def _start_worker_if_requested() -> subprocess.Popen[str] | None:
+    """Start the worker when background validation is enabled."""
+    enabled = os.environ.get("START_WORKER", "1").strip().lower() not in {"0", "false", "no", "off"}
+    if not enabled:
+        return None
+    worker = _start_worker()
+    time.sleep(2)
+    _assert(worker.poll() is None, "Dramatiq worker exited before dispatch")
+    return worker
+
+
+def _wait_for_nomina(db: Any, nomina_model: Any, nomina_id: str, terminal_states: set[Any]) -> tuple[Any, list[str]]:
+    """Wait for a background payroll to reach a terminal state."""
+    deadline = time.monotonic() + 180
+    observed_states: list[str] = []
+    while time.monotonic() < deadline:
+        current = db.session.get(nomina_model, nomina_id)
+        _assert(current is not None, "Nomina disappeared during processing")
+        state = str(current.estado)
+        if not observed_states or observed_states[-1] != state:
+            observed_states.append(state)
+        if current.estado in terminal_states:
+            return current, observed_states
+        db.session.expire_all()
+        time.sleep(1)
+
+    return db.session.get(nomina_model, nomina_id), observed_states
 
 
 def main() -> int:
@@ -178,10 +208,7 @@ def main() -> int:
             )
             db.session.commit()
 
-            if os.environ.get("START_WORKER", "1").strip().lower() not in {"0", "false", "no", "off"}:
-                worker = _start_worker()
-                time.sleep(2)
-                _assert(worker.poll() is None, "Dramatiq worker exited before dispatch")
+            worker = _start_worker_if_requested()
 
             started = time.monotonic()
             nomina, errors, warnings = NominaService.ejecutar_nomina(
@@ -203,18 +230,12 @@ def main() -> int:
             nomina_id = nomina.id
             db.session.expire_all()
 
-            deadline = time.monotonic() + 180
-            observed_states: list[str] = []
-            while time.monotonic() < deadline:
-                current = db.session.get(Nomina, nomina_id)
-                _assert(current is not None, "Nomina disappeared during processing")
-                state = str(current.estado)
-                if not observed_states or observed_states[-1] != state:
-                    observed_states.append(state)
-                if current.estado in {NominaEstado.GENERADO, NominaEstado.GENERADO_CON_ERRORES, NominaEstado.ERROR}:
-                    break
-                db.session.expire_all()
-                time.sleep(1)
+            current, observed_states = _wait_for_nomina(
+                db,
+                Nomina,
+                nomina_id,
+                {NominaEstado.GENERADO, NominaEstado.GENERADO_CON_ERRORES, NominaEstado.ERROR},
+            )
 
             current = db.session.get(Nomina, nomina_id)
             progress = db.session.execute(
