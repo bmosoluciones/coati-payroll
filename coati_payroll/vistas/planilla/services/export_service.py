@@ -110,6 +110,11 @@ class ExportService:
             ws[f"A{row}"] = label
             ws[f"B{row}"] = value
             row += 1
+        return ExportService._write_optional_nomina_info(ws, row, nomina)
+
+    @staticmethod
+    def _write_optional_nomina_info(ws, row: int, nomina) -> int:
+        """Write optional payroll metadata when it is available."""
         for label, attribute in (("Aprobado por:", "aprobado_por"), (LABEL_APPLIED_BY, "aplicado_por")):
             value = getattr(nomina, attribute, None)
             if value:
