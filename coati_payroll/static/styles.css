@@ -358,7 +358,7 @@ main h2 {
 .btn-outline-danger:hover {
   background: rgba(220,53,69,0.08);
   border-color: #dc3545;
-  color: #b71c1c;
+  color: #8b0000;
 }
 .btn-outline-secondary {
   border-color: var(--coati-border);
@@ -970,22 +970,22 @@ a:hover{ color: var(--coati-primary-hover); }
 
 .bg-success-light {
   background-color: rgba(46,125,50,0.12);
-  color: #1B5E20;
+  color: #0B3D14;
 }
 
 .bg-warning-light {
   background-color: rgba(237,108,2,0.12);
-  color: #7A3B00;
+  color: #5A2500;
 }
 
 .bg-info-light {
   background-color: rgba(2,136,209,0.12);
-  color: #01579B;
+  color: #003B6B;
 }
 
 .bg-danger-light {
   background-color: rgba(211,47,47,0.12);
-  color: #8B1E1E;
+  color: #5A0B0B;
 }
 
 .bg-secondary-light {

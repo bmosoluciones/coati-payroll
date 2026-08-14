@@ -339,7 +339,7 @@ class ExportService:
                     bucket[detalle.percepcion_id] = bucket.get(detalle.percepcion_id, 0.0) + monto
                 else:
                     extra_key = (
-                        f"income:{detalle.percepcion_id or ''}:" f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
+                        f"income:{detalle.percepcion_id or ''}:{detalle.codigo or ''}:{detalle.descripcion or ''}"
                     )
                     bucket = ingresos_extra_by_ne.setdefault(ne_id, {})
                     bucket[extra_key] = bucket.get(extra_key, 0.0) + monto
@@ -350,7 +350,7 @@ class ExportService:
                     bucket[detalle.deduccion_id] = bucket.get(detalle.deduccion_id, 0.0) + monto
                 else:
                     extra_key = (
-                        f"deduction:{detalle.deduccion_id or ''}:" f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
+                        f"deduction:{detalle.deduccion_id or ''}:{detalle.codigo or ''}:{detalle.descripcion or ''}"
                     )
                     bucket = deducciones_extra_by_ne.setdefault(ne_id, {})
                     bucket[extra_key] = bucket.get(extra_key, 0.0) + monto
@@ -361,7 +361,7 @@ class ExportService:
                     bucket[detalle.prestacion_id] = bucket.get(detalle.prestacion_id, 0.0) + monto
                 else:
                     extra_key = (
-                        f"benefit:{detalle.prestacion_id or ''}:" f"{detalle.codigo or ''}:{detalle.descripcion or ''}"
+                        f"benefit:{detalle.prestacion_id or ''}:{detalle.codigo or ''}:{detalle.descripcion or ''}"
                     )
                     bucket = prestaciones_extra_by_ne.setdefault(ne_id, {})
                     bucket[extra_key] = bucket.get(extra_key, 0.0) + monto
@@ -531,7 +531,7 @@ class ExportService:
         row += 1
 
         ws[f"A{row}"] = "Periodo:"
-        ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - " f"{nomina.periodo_fin.strftime('%d/%m/%Y')}"
+        ws[f"B{row}"] = f"{nomina.periodo_inicio.strftime('%d/%m/%Y')} - {nomina.periodo_fin.strftime('%d/%m/%Y')}"
         row += 1
 
         ws[f"A{row}"] = "Estado Nomina:"
@@ -669,7 +669,7 @@ class ExportService:
         wb.save(output)
         output.seek(0)
 
-        filename = f"nomina_{planilla.nombre}_" f"{nomina.periodo_inicio.strftime('%Y%m%d')}_" f"{nomina.id[:8]}.xlsx"
+        filename = f"nomina_{planilla.nombre}_{nomina.periodo_inicio.strftime('%Y%m%d')}_{nomina.id[:8]}.xlsx"
         return output, filename
 
     @staticmethod
