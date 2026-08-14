@@ -159,7 +159,6 @@ class NominaService:
     def _rollback_loans_and_advances_for_nomina(nomina: Nomina) -> None:
         """Rollback loans and advances side effects produced by one payroll."""
         from coati_payroll.model import Adelanto, AdelantoAbono, InteresAdelanto
-        from coati_payroll.enums import AdelantoEstado
 
         # 1. Revert payments
         abonos = (
@@ -167,15 +166,7 @@ class NominaService:
         )
 
         for abono in abonos:
-            adelanto = db.session.get(Adelanto, abono.adelanto_id)
-            if adelanto:
-                # Add back the paid amount to the balance
-                adelanto.saldo_pendiente = Decimal(str(adelanto.saldo_pendiente or 0)) + Decimal(
-                    str(abono.monto_abonado or 0)
-                )
-                if adelanto.saldo_pendiente > 0 and adelanto.estado == AdelantoEstado.PAGADO:
-                    adelanto.estado = AdelantoEstado.APROBADO
-            db.session.delete(abono)
+            NominaService._rollback_payment(abono, Adelanto)
 
         # 2. Revert interest calculations
         intereses = (
@@ -183,20 +174,34 @@ class NominaService:
         )
 
         for interes in intereses:
-            adelanto = db.session.get(Adelanto, interes.adelanto_id)
-            if adelanto:
-                # Subtract the calculated interest from balance and accumulated interest
-                adelanto.saldo_pendiente = max(
-                    Decimal("0.00"),
-                    Decimal(str(adelanto.saldo_pendiente or 0)) - Decimal(str(interes.interes_calculado or 0)),
-                )
-                adelanto.interes_acumulado = max(
-                    Decimal("0.00"),
-                    Decimal(str(adelanto.interes_acumulado or 0)) - Decimal(str(interes.interes_calculado or 0)),
-                )
-                # Restore previous calculation date
-                adelanto.fecha_ultimo_calculo_interes = interes.fecha_desde
-            db.session.delete(interes)
+            NominaService._rollback_interest(interes, Adelanto)
+
+    @staticmethod
+    def _rollback_payment(abono, adelanto_model) -> None:
+        """Restore an advance balance after removing a payroll payment."""
+        from coati_payroll.enums import AdelantoEstado
+
+        adelanto = db.session.get(adelanto_model, abono.adelanto_id)
+        if adelanto:
+            adelanto.saldo_pendiente = Decimal(str(adelanto.saldo_pendiente or 0)) + Decimal(
+                str(abono.monto_abonado or 0)
+            )
+            if adelanto.saldo_pendiente > 0 and adelanto.estado == AdelantoEstado.PAGADO:
+                adelanto.estado = AdelantoEstado.APROBADO
+        db.session.delete(abono)
+
+    @staticmethod
+    def _rollback_interest(interes, adelanto_model) -> None:
+        """Restore an advance balance after removing calculated interest."""
+        adelanto = db.session.get(adelanto_model, interes.adelanto_id)
+        if adelanto:
+            amount = Decimal(str(interes.interes_calculado or 0))
+            adelanto.saldo_pendiente = max(Decimal("0.00"), Decimal(str(adelanto.saldo_pendiente or 0)) - amount)
+            adelanto.interes_acumulado = max(
+                Decimal("0.00"), Decimal(str(adelanto.interes_acumulado or 0)) - amount
+            )
+            adelanto.fecha_ultimo_calculo_interes = interes.fecha_desde
+        db.session.delete(interes)
 
     @staticmethod
     def _rollback_vacation_requests_for_nomina(nomina: Nomina) -> None:
