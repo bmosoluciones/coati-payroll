@@ -70,30 +70,50 @@ def process_custom_fields_from_request(custom_fields):
 
 def _convert_custom_field_value(tipo_dato: str, raw_value: str, checkbox_checked: bool):
     """Convert one custom field value to its JSON-safe representation."""
-    tipo_dato = {
+    normalized_type = {
         "texto": "text",
         "entero": "integer",
         "decimal": "decimal",
         "booleano": "boolean",
     }.get(tipo_dato, tipo_dato)
+    converter = _CUSTOM_FIELD_CONVERTERS.get(normalized_type, _convert_default_field)
+    return converter(raw_value, checkbox_checked)
 
-    if tipo_dato == "text":
-        stripped = raw_value.strip() if raw_value else ""
-        return stripped or None
-    if tipo_dato == "integer":
-        try:
-            return int(raw_value) if raw_value else None
-        except ValueError:
-            return None
-    if tipo_dato == "decimal":
-        try:
-            clean_value = raw_value.strip() if raw_value else ""
-            return format(Decimal(clean_value), "f") if clean_value else None
-        except (ValueError, InvalidOperation):
-            return None
-    if tipo_dato == "boolean":
-        return checkbox_checked
+
+def _convert_text_field(raw_value: str, _checkbox_checked: bool):
+    stripped = raw_value.strip() if raw_value else ""
+    return stripped or None
+
+
+def _convert_integer_field(raw_value: str, _checkbox_checked: bool):
+    try:
+        return int(raw_value) if raw_value else None
+    except ValueError:
+        return None
+
+
+def _convert_decimal_field(raw_value: str, _checkbox_checked: bool):
+    try:
+        clean_value = raw_value.strip() if raw_value else ""
+        return format(Decimal(clean_value), "f") if clean_value else None
+    except (ValueError, InvalidOperation):
+        return None
+
+
+def _convert_boolean_field(_raw_value: str, checkbox_checked: bool):
+    return checkbox_checked
+
+
+def _convert_default_field(raw_value: str, _checkbox_checked: bool):
     return raw_value or None
+
+
+_CUSTOM_FIELD_CONVERTERS = {
+    "text": _convert_text_field,
+    "integer": _convert_integer_field,
+    "decimal": _convert_decimal_field,
+    "boolean": _convert_boolean_field,
+}
 
 
 def process_last_three_salaries(form):
