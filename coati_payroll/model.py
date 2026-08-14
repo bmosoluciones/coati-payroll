@@ -390,7 +390,7 @@ class TipoPlanilla(database.Model, BaseTabla):
 
     # Fiscal period configuration
     # Fiscal year start month (1 through 12).
-    mes_inicio_fiscal = database.Column(database.Integer, nullable=False, default=1)  # 1 = January
+    mes_inicio_fiscal = database.Column(database.Integer, nullable=False, default=1)
     # First day of the fiscal year.
     dia_inicio_fiscal = database.Column(database.Integer, nullable=False, default=1)
 

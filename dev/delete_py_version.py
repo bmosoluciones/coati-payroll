@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -42,10 +41,13 @@ def process_line(line: str) -> str:
         return raw  # preserve special entries as-is
 
     # Separate inline comment (a '#' preceded by whitespace)
-    comment_match = re.search(r"[ \t]+#", raw)
-    if comment_match:
-        left = raw[: comment_match.start()].rstrip()
-        comment = "  #" + raw[comment_match.end() :]
+    comment_start = next(
+        (index for index, char in enumerate(raw) if char == "#" and index > 0 and raw[index - 1].isspace()),
+        None,
+    )
+    if comment_start is not None:
+        left = raw[:comment_start].rstrip()
+        comment = "  " + raw[comment_start:]
     else:
         left = raw
         comment = ""
