@@ -9,11 +9,12 @@
  * network loss) and display a friendly "check your internet connection" page.
  */
 
+const CACHE_NAME = 'coati-pwa-v1';
 const OFFLINE_URL = './offline.html';
 
 self.addEventListener('install', function (event) {
     event.waitUntil(
-        caches.open('coati-pwa-v1').then(function (cache) {
+        caches.open(CACHE_NAME).then(function (cache) {
             return cache.add(OFFLINE_URL);
         })
     );
@@ -21,7 +22,19 @@ self.addEventListener('install', function (event) {
 });
 
 self.addEventListener('activate', function (event) {
-    event.waitUntil(self.clients.claim());
+    event.waitUntil(
+        caches.keys().then(function (cacheNames) {
+            return Promise.all(
+                cacheNames.map(function (cacheName) {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(function () {
+            return self.clients.claim();
+        })
+    );
 });
 
 self.addEventListener('fetch', function (event) {

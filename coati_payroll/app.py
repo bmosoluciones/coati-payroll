@@ -83,14 +83,18 @@ def ready():
 def manifest():
     """Serve the PWA web app manifest with correct icon URLs."""
     data = {
+        "id": "/",
         "name": "Coati Payroll",
         "short_name": "Coati",
         "description": "Sistema de gestión de nóminas",
         "start_url": url_for("app.index"),
+        "scope": "/",
         "display": "standalone",
+        "orientation": "any",
         "background_color": "#FAF8F6",
         "theme_color": "#5D4037",
         "lang": "es",
+        "categories": ["business", "productivity"],
         "icons": [
             {
                 "src": url_for("static", filename="logo/icon-192.png"),
