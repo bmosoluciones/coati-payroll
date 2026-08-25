@@ -146,8 +146,30 @@ class SnapshotService:
             "percepciones": [],
             "deducciones": [],
             "prestaciones": [],
+            "empleados": [],
             "contexto_planilla": {},
         }
+
+        # Employee compensation is a calculation input, not merely display
+        # metadata. Freeze it with the payroll so a later salary/currency
+        # change cannot rewrite a historical recalculation.
+        employees = (
+            self.session.execute(
+                db.select(PlanillaEmpleado)
+                .filter(PlanillaEmpleado.planilla_id == planilla.id, PlanillaEmpleado.activo.is_(True))
+            )
+            .scalars()
+            .all()
+        )
+        snapshot["empleados"] = [
+            {
+                "id": association.empleado_id,
+                "salario_base": str(association.empleado.salario_base or 0),
+                "moneda_id": association.empleado.moneda_id,
+            }
+            for association in employees
+            if association.empleado_id and association.empleado
+        ]
 
         # Capture Percepciones linked to this planilla
         from coati_payroll.model import PlanillaIngreso

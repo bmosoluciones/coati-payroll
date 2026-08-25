@@ -164,6 +164,11 @@ class PayrollExecutionService:
         prestaciones_snapshot = {
             prestacion["id"]: prestacion for prestacion in snapshot.get("catalogos", {}).get("prestaciones", [])
         }
+        empleados_snapshot = {
+            empleado["id"]: empleado
+            for empleado in snapshot.get("catalogos", {}).get("empleados", [])
+            if empleado.get("id")
+        }
         self.concept_calculator.deducciones_snapshot = deducciones_snapshot
         self.concept_calculator.strict_formulas = True
         self.concept_calculator.reglas_snapshot = {
@@ -284,6 +289,7 @@ class PayrollExecutionService:
                     warnings,
                     nomina_id=novelty_context_id,
                     planilla_empleado=planilla_empleado,
+                    employee_snapshot=empleados_snapshot.get(empleado.id),
                 )
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
@@ -491,6 +497,7 @@ class PayrollExecutionService:
         warnings: WarningCollector,
         nomina_id: str | None = None,
         planilla_empleado=None,
+        employee_snapshot: dict[str, Any] | None = None,
     ) -> EmpleadoCalculo:
         """Process a single employee's payroll."""
         # Validate employee
@@ -504,9 +511,25 @@ class PayrollExecutionService:
 
         emp_calculo = EmpleadoCalculo(empleado, planilla)
 
+        # Historical recalculation must use the compensation and source
+        # currency captured with the original payroll, not the employee's
+        # mutable master record.
+        salary_snapshot, currency_snapshot = self._employee_snapshot_values(empleado, employee_snapshot)
+        emp_calculo.salario_base = salary_snapshot
+        emp_calculo.salario_mensual = salary_snapshot
+        emp_calculo.moneda_origen_id = currency_snapshot
+        exchange_employee = empleado
+        if currency_snapshot != empleado.moneda_id:
+            exchange_employee = SimpleNamespace(
+                moneda_id=currency_snapshot,
+                primer_nombre=empleado.primer_nombre,
+                primer_apellido=empleado.primer_apellido,
+                moneda=empleado.moneda,
+            )
+
         # Get exchange rate
         emp_calculo.tipo_cambio = self.exchange_rate_calculator.get_exchange_rate(
-            empleado, planilla, fecha_calculo, tipos_cambio_snapshot
+            exchange_employee, planilla, fecha_calculo, tipos_cambio_snapshot
         )
 
         salario_mensual_origen = emp_calculo.salario_base
@@ -624,6 +647,15 @@ class PayrollExecutionService:
         emp_calculo.total_prestaciones = sum(p.monto for p in prestaciones)
 
         return emp_calculo
+
+    @staticmethod
+    def _employee_snapshot_values(empleado: Empleado, snapshot: dict[str, Any] | None) -> tuple[Decimal, str | None]:
+        """Resolve immutable salary/currency inputs with a live fallback for legacy payrolls."""
+        if snapshot:
+            return Decimal(str(snapshot.get("salario_base", empleado.salario_base or 0))), snapshot.get(
+                "moneda_id", empleado.moneda_id
+            )
+        return Decimal(str(empleado.salario_base or 0)), empleado.moneda_id
 
     def _calculate_absence_discount(
         self,
