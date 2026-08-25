@@ -42,7 +42,11 @@ class AccumulationProcessor:
         mes_inicio = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal)
         dia_inicio = tipo_planilla.dia_inicio_fiscal
 
-        if periodo_fin.month < mes_inicio:
+        # A fiscal year can start in the middle of a month.  Comparing only
+        # the month assigns (for example) July 1-14 to a fiscal year that
+        # does not start until July 15, mixing that payroll with future
+        # accumulations.
+        if periodo_fin < date(anio, mes_inicio, dia_inicio):
             anio -= 1
 
         periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)

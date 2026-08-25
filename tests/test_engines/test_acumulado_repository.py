@@ -5,8 +5,11 @@
 from datetime import date
 from decimal import Decimal
 
-from coati_payroll.model import Empleado, Empresa, Moneda, TipoPlanilla, db
+from coati_payroll.model import AcumuladoAnual, Empleado, Empresa, Moneda, Planilla, TipoPlanilla, db
+from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
+from coati_payroll.nomina_engine.processors.accumulation_processor import AccumulationProcessor
 from coati_payroll.nomina_engine.repositories.acumulado_repository import AcumuladoRepository
+from coati_payroll.nomina_engine.services.employee_processing_service import EmployeeProcessingService
 
 
 class TestAcumuladoRepository:
@@ -149,3 +152,66 @@ class TestAcumuladoRepository:
             )
 
             assert acumulado.periodos_procesados == 6
+
+    def test_mid_month_fiscal_start_uses_previous_year_before_cutoff(self, app, db_session):
+        """A period before the fiscal day cutoff must not use a future accumulation year."""
+        with app.app_context():
+            moneda = Moneda(codigo="FSC", nombre="Fiscal", simbolo="F$", activo=True)
+            empresa = Empresa(codigo="FISCAL15", razon_social="Fiscal Corp", ruc="543210")
+            tipo_planilla = TipoPlanilla(
+                codigo="FISCAL15",
+                descripcion="Mensual con corte día 15",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=7,
+                dia_inicio_fiscal=15,
+            )
+            db_session.add_all([moneda, empresa, tipo_planilla])
+            db_session.flush()
+            planilla = Planilla(
+                nombre="Planilla fiscal",
+                tipo_planilla_id=tipo_planilla.id,
+                empresa_id=empresa.id,
+                moneda_id=moneda.id,
+                mes_inicio_fiscal=7,
+                activo=True,
+            )
+            empleado = Empleado(
+                codigo_empleado="FISCAL-EMP",
+                primer_nombre="Fiscal",
+                primer_apellido="Empleado",
+                identificacion_personal="001-010180-0100A",
+                fecha_alta=date(2020, 1, 1),
+                salario_base=Decimal("1000.00"),
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add_all([planilla, empleado])
+            db_session.flush()
+
+            acumulado_previo = AcumuladoAnual(
+                empleado_id=empleado.id,
+                tipo_planilla_id=tipo_planilla.id,
+                empresa_id=empresa.id,
+                periodo_fiscal_inicio=date(2024, 7, 15),
+                periodo_fiscal_fin=date(2025, 7, 15),
+                salario_bruto_acumulado=Decimal("500.00"),
+            )
+            db_session.add(acumulado_previo)
+            db_session.flush()
+
+            periodo_inicio, periodo_fin = date(2025, 7, 1), date(2025, 7, 14)
+            service = EmployeeProcessingService(None, AcumuladoRepository(db.session))
+            assert service._get_acumulado_anual(empleado, planilla, periodo_inicio) == acumulado_previo
+
+            emp_calculo = EmpleadoCalculo(empleado, planilla)
+            emp_calculo.salario_bruto = Decimal("100.00")
+            emp_calculo.salario_gravable = Decimal("100.00")
+            AccumulationProcessor(AcumuladoRepository(db.session)).update_accumulations(
+                emp_calculo, planilla, periodo_inicio, periodo_fin
+            )
+
+            assert acumulado_previo.salario_bruto_acumulado == Decimal("600.00")
+            assert db_session.query(AcumuladoAnual).count() == 1

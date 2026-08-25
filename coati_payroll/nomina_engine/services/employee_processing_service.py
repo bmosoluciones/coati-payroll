@@ -265,7 +265,10 @@ class EmployeeProcessingService:
         mes_inicio = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal)
         dia_inicio = tipo_planilla.dia_inicio_fiscal
 
-        if periodo_inicio.month < mes_inicio:
+        # Honor the configured start *day* as well as the start month.  A
+        # payroll before that day belongs to the fiscal year which began the
+        # previous calendar year.
+        if periodo_inicio < date(anio, mes_inicio, dia_inicio):
             anio -= 1
 
         periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
