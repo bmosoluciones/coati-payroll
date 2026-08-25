@@ -427,7 +427,25 @@ def test_planilla_clone_creates_copy_with_associations(
     with app.app_context():
         login_user(client, admin_user.usuario, "admin-password")
 
-        from coati_payroll.model import PlanillaIngreso, PlanillaDeduccion, PlanillaPrestacion, Planilla, db
+        from coati_payroll.model import (
+            PlanillaIngreso,
+            PlanillaDeduccion,
+            PlanillaPrestacion,
+            Planilla,
+            VacationPolicy,
+            db,
+        )
+
+        policy = VacationPolicy(
+            codigo="VAC-CLONE-SOURCE",
+            nombre="Vacaciones de la planilla origen",
+            planilla_id=planilla.id,
+            empresa_id=planilla.empresa_id,
+            activo=True,
+        )
+        db_session.add(policy)
+        db_session.flush()
+        planilla.vacation_policy_id = policy.id
 
         ingreso = PlanillaIngreso(
             planilla_id=planilla.id,
@@ -483,6 +501,9 @@ def test_planilla_clone_creates_copy_with_associations(
         assert clon.tipo_planilla_id == planilla.tipo_planilla_id
         assert clon.moneda_id == planilla.moneda_id
         assert clon.empresa_id == planilla.empresa_id
+        # A policy bound to the source planilla cannot legally be reused by
+        # the clone; it must be configured (or cloned) explicitly later.
+        assert clon.vacation_policy_id is None
 
         db_session.refresh(clon)
         assert len(clon.planilla_percepciones) == 1

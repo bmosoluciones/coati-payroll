@@ -53,7 +53,12 @@ class PlanillaService:
             moneda_id=planilla.moneda_id,
             empresa_id=planilla.empresa_id,
             mes_inicio_fiscal=planilla.mes_inicio_fiscal,
-            vacation_policy_id=planilla.vacation_policy_id,
+            # A planilla-bound vacation policy cannot be shared: the vacation
+            # service correctly rejects it when its ``planilla_id`` differs.
+            # Cloning its foreign key would therefore create a payroll that
+            # fails as soon as vacation processing is enabled. Policies are
+            # intentionally configured independently on the clone.
+            vacation_policy_id=None,
             periodo_fiscal_inicio=planilla.periodo_fiscal_inicio,
             periodo_fiscal_fin=planilla.periodo_fiscal_fin,
             prioridad_prestamos=planilla.prioridad_prestamos,
