@@ -20,6 +20,20 @@ from coati_payroll.model import (
 from tests.helpers.auth import login_user
 
 
+def test_application_query_locks_nomina_before_creating_side_effects(app, db_session):
+    """Concurrent application requests must serialize on the payroll row."""
+    from coati_payroll.vistas.planilla.nomina_routes import _get_nomina_for_application
+
+    with app.app_context():
+        with patch("coati_payroll.vistas.planilla.nomina_routes.db.session.execute") as execute:
+            execute.return_value.scalars.return_value.first.return_value = None
+
+            _get_nomina_for_application("nomina-1")
+
+            statement = execute.call_args.args[0]
+            assert statement._for_update_arg is not None
+
+
 # ============================================================================
 # FIXTURES
 # ============================================================================

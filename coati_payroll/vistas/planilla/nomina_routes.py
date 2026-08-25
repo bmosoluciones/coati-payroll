@@ -813,6 +813,15 @@ def _obtener_vacaciones_aprobadas_pendientes(planilla: Planilla, nomina: Nomina)
     return list(db.session.execute(stmt).scalars().all())
 
 
+def _get_nomina_for_application(nomina_id: str) -> Nomina | None:
+    """Lock a payroll while its deferred application effects are materialized."""
+    return (
+        db.session.execute(db.select(Nomina).where(Nomina.id == nomina_id).with_for_update())
+        .scalars()
+        .first()
+    )
+
+
 @planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/aprobar", methods=["POST"])
 @require_write_access()
 def aprobar_nomina(planilla_id: str, nomina_id: str):
@@ -857,7 +866,12 @@ def aprobar_nomina(planilla_id: str, nomina_id: str):
 @require_write_access()
 def aplicar_nomina(planilla_id: str, nomina_id: str):
     """Mark a nomina as applied (paid)."""
-    nomina = db.get_or_404(Nomina, nomina_id)
+    # The state check and the creation of loans, vacations and benefit ledger
+    # entries are one critical section. Without this lock two application
+    # requests can both observe APPROVED and duplicate side effects.
+    nomina = _get_nomina_for_application(nomina_id)
+    if nomina is None:
+        abort(404)
 
     if nomina.planilla_id != planilla_id:
         flash(_(ERROR_NOMINA_NO_PERTENECE), "error")
