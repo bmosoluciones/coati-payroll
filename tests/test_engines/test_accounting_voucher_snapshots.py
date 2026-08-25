@@ -70,3 +70,32 @@ def test_voucher_uses_frozen_concept_accounts_when_catalog_changes():
     )
 
     assert [line.codigo_cuenta for line in session.added] == ["HIST-DEBE", "HIST-HABER"]
+
+
+def test_voucher_uses_frozen_base_salary_accounts_when_planilla_changes():
+    """Base-salary lines must not be remapped by a later planilla edit."""
+    nomina = SimpleNamespace(
+        catalogos_snapshot={
+            "contexto_planilla": {
+                "cuentas_salario": {
+                    "codigo_cuenta_debe_salario": "SAL-HIST-DEBE",
+                    "descripcion_cuenta_debe_salario": "Gasto histórico",
+                    "codigo_cuenta_haber_salario": "SAL-HIST-HABER",
+                    "descripcion_cuenta_haber_salario": "Pasivo histórico",
+                }
+            }
+        }
+    )
+    planilla = SimpleNamespace(
+        codigo_cuenta_debe_salario="SAL-NUEVO-DEBE",
+        descripcion_cuenta_debe_salario="Gasto nuevo",
+        codigo_cuenta_haber_salario="SAL-NUEVO-HABER",
+        descripcion_cuenta_haber_salario="Pasivo nuevo",
+    )
+
+    assert AccountingVoucherService._salary_accounting_snapshot(nomina, planilla) == {
+        "codigo_cuenta_debe_salario": "SAL-HIST-DEBE",
+        "descripcion_cuenta_debe_salario": "Gasto histórico",
+        "codigo_cuenta_haber_salario": "SAL-HIST-HABER",
+        "descripcion_cuenta_haber_salario": "Pasivo histórico",
+    }

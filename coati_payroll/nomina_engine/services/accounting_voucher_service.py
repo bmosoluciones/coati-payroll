@@ -266,7 +266,7 @@ class AccountingVoucherService:
         centro_costos,
         detalle,
         cuenta_control_prestamo,
-        planilla,
+        salary_accounts,
         orden,
         null_account_count,
         total_debitos,
@@ -277,7 +277,8 @@ class AccountingVoucherService:
 
         # Debit: Salary Payable
         orden += 1
-        if planilla.codigo_cuenta_haber_salario is None:
+        salary_payable_account = salary_accounts["codigo_cuenta_haber_salario"]
+        if salary_payable_account is None:
             null_account_count += 1
         linea_debe = self._create_line(
             comprobante.id,
@@ -285,10 +286,10 @@ class AccountingVoucherService:
             empleado,
             empleado_nombre,
             centro_costos,
-            planilla.codigo_cuenta_haber_salario,
+            salary_payable_account,
             (
-                (planilla.descripcion_cuenta_haber_salario or "Salario por Pagar")
-                if planilla.codigo_cuenta_haber_salario
+                (salary_accounts["descripcion_cuenta_haber_salario"] or "Salario por Pagar")
+                if salary_payable_account
                 else None
             ),
             "debito",
@@ -324,6 +325,25 @@ class AccountingVoucherService:
         total_creditos += detalle_monto
 
         return orden, null_account_count, total_debitos, total_creditos
+
+    @staticmethod
+    def _salary_accounting_snapshot(nomina: Nomina, planilla: Planilla) -> dict[str, str | None]:
+        """Resolve frozen base-salary accounts, with a legacy live fallback."""
+        context = (nomina.catalogos_snapshot or {}).get("contexto_planilla", {})
+        stored = context.get("cuentas_salario") if isinstance(context, dict) else None
+        if isinstance(stored, dict):
+            return {
+                "codigo_cuenta_debe_salario": stored.get("codigo_cuenta_debe_salario"),
+                "descripcion_cuenta_debe_salario": stored.get("descripcion_cuenta_debe_salario"),
+                "codigo_cuenta_haber_salario": stored.get("codigo_cuenta_haber_salario"),
+                "descripcion_cuenta_haber_salario": stored.get("descripcion_cuenta_haber_salario"),
+            }
+        return {
+            "codigo_cuenta_debe_salario": planilla.codigo_cuenta_debe_salario,
+            "descripcion_cuenta_debe_salario": planilla.descripcion_cuenta_debe_salario,
+            "codigo_cuenta_haber_salario": planilla.codigo_cuenta_haber_salario,
+            "descripcion_cuenta_haber_salario": planilla.descripcion_cuenta_haber_salario,
+        }
 
     def _build_concept_lines(
         self,
@@ -694,6 +714,7 @@ class AccountingVoucherService:
         total_creditos = Decimal("0.00")
         orden = 0
         null_account_count = 0
+        salary_accounts = self._salary_accounting_snapshot(nomina, planilla)
 
         # Process each employee
         for ne in nomina_empleados:
@@ -706,7 +727,7 @@ class AccountingVoucherService:
 
             # Debit: Salary Expense
             orden += 1
-            if planilla.codigo_cuenta_debe_salario is None:
+            if salary_accounts["codigo_cuenta_debe_salario"] is None:
                 null_account_count += 1
             linea_debe = self._create_line(
                 comprobante.id,
@@ -714,10 +735,10 @@ class AccountingVoucherService:
                 empleado,
                 empleado_nombre_completo,
                 centro_costos,
-                planilla.codigo_cuenta_debe_salario,
+                salary_accounts["codigo_cuenta_debe_salario"],
                 (
-                    planilla.descripcion_cuenta_debe_salario
-                    or ("Gasto por Salario" if planilla.codigo_cuenta_debe_salario else None)
+                    salary_accounts["descripcion_cuenta_debe_salario"]
+                    or ("Gasto por Salario" if salary_accounts["codigo_cuenta_debe_salario"] else None)
                 ),
                 "debito",
                 salario_base,
@@ -731,7 +752,7 @@ class AccountingVoucherService:
 
             # Credit: Salary Payable
             orden += 1
-            if planilla.codigo_cuenta_haber_salario is None:
+            if salary_accounts["codigo_cuenta_haber_salario"] is None:
                 null_account_count += 1
             linea_haber = self._create_line(
                 comprobante.id,
@@ -739,10 +760,10 @@ class AccountingVoucherService:
                 empleado,
                 empleado_nombre_completo,
                 centro_costos,
-                planilla.codigo_cuenta_haber_salario,
+                salary_accounts["codigo_cuenta_haber_salario"],
                 (
-                    planilla.descripcion_cuenta_haber_salario
-                    or ("Salario por Pagar" if planilla.codigo_cuenta_haber_salario else None)
+                    salary_accounts["descripcion_cuenta_haber_salario"]
+                    or ("Salario por Pagar" if salary_accounts["codigo_cuenta_haber_salario"] else None)
                 ),
                 "credito",
                 salario_base,
@@ -775,7 +796,7 @@ class AccountingVoucherService:
                         centro_costos,
                         detalle,
                         cuenta_control_prestamo,
-                        planilla,
+                        salary_accounts,
                         orden,
                         null_account_count,
                         total_debitos,

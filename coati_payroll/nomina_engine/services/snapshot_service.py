@@ -289,6 +289,12 @@ class SnapshotService:
                 )
                 for association in prestacion_associations
             ],
+            "cuentas_salario": {
+                "codigo_cuenta_debe_salario": planilla.codigo_cuenta_debe_salario,
+                "descripcion_cuenta_debe_salario": planilla.descripcion_cuenta_debe_salario,
+                "codigo_cuenta_haber_salario": planilla.codigo_cuenta_haber_salario,
+                "descripcion_cuenta_haber_salario": planilla.descripcion_cuenta_haber_salario,
+            },
         }
 
         # Capture linked ReglaCalculo for every concept type. A historical
