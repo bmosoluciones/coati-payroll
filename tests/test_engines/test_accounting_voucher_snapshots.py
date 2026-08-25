@@ -99,6 +99,13 @@ def test_voucher_uses_frozen_base_salary_accounts_when_planilla_changes():
         "codigo_cuenta_haber_salario": "SAL-HIST-HABER",
         "descripcion_cuenta_haber_salario": "Pasivo histórico",
     }
+def test_voucher_uses_frozen_currency_when_planilla_currency_changes():
+    """Voucher headers must identify the currency used by the original payroll."""
+    nomina = SimpleNamespace(
+        catalogos_snapshot={"contexto_planilla": {"moneda_id": "HISTORICA"}}
+    )
+
+    assert AccountingVoucherService._voucher_currency_id(nomina, SimpleNamespace(moneda_id="NUEVA")) == "HISTORICA"
 
 
 def test_voucher_uses_frozen_paid_vacation_policy_when_policy_changes():

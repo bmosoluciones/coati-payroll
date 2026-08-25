@@ -345,6 +345,14 @@ class AccountingVoucherService:
             "descripcion_cuenta_haber_salario": planilla.descripcion_cuenta_haber_salario,
         }
 
+    @staticmethod
+    def _voucher_currency_id(nomina: Nomina, planilla: Planilla) -> str | None:
+        """Resolve the currency in which this payroll's amounts were calculated."""
+        context = (nomina.catalogos_snapshot or {}).get("contexto_planilla", {})
+        if isinstance(context, dict) and context.get("moneda_id"):
+            return context["moneda_id"]
+        return planilla.moneda_id
+
     def _build_concept_lines(
         self,
         comprobante,
@@ -721,7 +729,7 @@ class AccountingVoucherService:
             # Update header information
             comprobante.fecha_calculo = fecha_calculo
             comprobante.concepto = concepto
-            comprobante.moneda_id = planilla.moneda_id
+            comprobante.moneda_id = self._voucher_currency_id(nomina, planilla)
             comprobante.advertencias = warnings
             # Update modification tracking
             comprobante.modificado_por = usuario or nomina.generado_por
@@ -742,7 +750,7 @@ class AccountingVoucherService:
                 nomina_id=nomina.id,
                 fecha_calculo=fecha_calculo,
                 concepto=concepto,
-                moneda_id=planilla.moneda_id,
+                moneda_id=self._voucher_currency_id(nomina, planilla),
                 total_debitos=Decimal("0.00"),
                 total_creditos=Decimal("0.00"),
                 balance=Decimal("0.00"),

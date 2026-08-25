@@ -259,6 +259,7 @@ class SnapshotService:
             association.prestacion_id: association for association in prestacion_associations
         }
         snapshot["contexto_planilla"] = {
+            "moneda_id": planilla.moneda_id,
             "percepciones": [
                 self._serialize_association(
                     association,
