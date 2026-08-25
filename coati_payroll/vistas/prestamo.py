@@ -411,7 +411,11 @@ def _adjust_payment_terms(prestamo, abono, tipo_aplicacion, monto_abonado):
     total_abonado_previo = sum(a.monto_abonado for a in prestamo.abonos if a.tipo_abono in ["nomina", "manual"])
     cuotas_pagadas = 0
     if prestamo.monto_por_cuota and prestamo.monto_por_cuota > 0:
-        cuotas_pagadas = int(total_abonado_previo / prestamo.monto_por_cuota)
+        # ``abono`` has not been added to the relationship yet, so include
+        # the payment currently being applied. Otherwise a full extraordinary
+        # installment reduces the balance but not the number of installments
+        # left, silently lowering every future payment.
+        cuotas_pagadas = int((total_abonado_previo + monto_abonado) / prestamo.monto_por_cuota)
     cuotas_pendientes = prestamo.cuotas_pactadas - cuotas_pagadas
 
     if tipo_aplicacion == "reducir_cuotas" and prestamo.monto_por_cuota and prestamo.monto_por_cuota > 0:

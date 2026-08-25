@@ -2,7 +2,27 @@
 # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 """Comprehensive tests for prestamo (loan) management (coati_payroll/vistas/prestamo.py)."""
 
+from decimal import Decimal
+from types import SimpleNamespace
+
 from tests.helpers.auth import login_user
+from coati_payroll.vistas.prestamo import _adjust_payment_terms
+
+
+def test_extraordinary_full_installment_keeps_remaining_installment_amount():
+    """A full manual installment reduces the count of future installments too."""
+    prestamo = SimpleNamespace(
+        abonos=[],
+        monto_por_cuota=Decimal("10.00"),
+        cuotas_pactadas=10,
+        # Balance after applying a manual payment of 10 to a loan of 100.
+        saldo_pendiente=Decimal("90.00"),
+    )
+    abono = SimpleNamespace(observaciones="Pago extraordinario")
+
+    _adjust_payment_terms(prestamo, abono, "reducir_monto", Decimal("10.00"))
+
+    assert prestamo.monto_por_cuota == Decimal("10.00")
 
 
 def test_prestamo_index_requires_authentication(app, client, db_session):
