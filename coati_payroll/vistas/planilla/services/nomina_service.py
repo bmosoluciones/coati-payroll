@@ -45,11 +45,14 @@ class NominaService:
         if not empresa_id:
             return
 
-        fecha_base = nomina.fecha_calculo_original or nomina.fecha_generacion.date()
+        # Accumulations are posted using the payroll period end, not the date
+        # an operator happened to run it.  The same date must be used when
+        # reversing them, especially around a mid-month fiscal boundary.
+        fecha_base = nomina.periodo_fin
         anio = fecha_base.year
         mes_inicio = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal)
         dia_inicio = tipo_planilla.dia_inicio_fiscal
-        if fecha_base.month < mes_inicio:
+        if fecha_base < date(anio, mes_inicio, dia_inicio):
             anio -= 1
         periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
 
@@ -380,7 +383,9 @@ class NominaService:
 
         mes_inicio_fiscal = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal or 1)
         dia_inicio_fiscal = int(tipo_planilla.dia_inicio_fiscal or 1)
-        anio_fiscal = periodo_inicio.year if periodo_inicio.month >= mes_inicio_fiscal else periodo_inicio.year - 1
+        anio_fiscal = periodo_inicio.year
+        if periodo_inicio < date(anio_fiscal, mes_inicio_fiscal, dia_inicio_fiscal):
+            anio_fiscal -= 1
 
         try:
             inicio_fiscal = date(anio_fiscal, mes_inicio_fiscal, dia_inicio_fiscal)

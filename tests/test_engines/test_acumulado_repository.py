@@ -5,11 +5,12 @@
 from datetime import date
 from decimal import Decimal
 
-from coati_payroll.model import AcumuladoAnual, Empleado, Empresa, Moneda, Planilla, TipoPlanilla, db
+from coati_payroll.model import AcumuladoAnual, Empleado, Empresa, Moneda, Nomina, NominaEmpleado, Planilla, TipoPlanilla, db
 from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
 from coati_payroll.nomina_engine.processors.accumulation_processor import AccumulationProcessor
 from coati_payroll.nomina_engine.repositories.acumulado_repository import AcumuladoRepository
 from coati_payroll.nomina_engine.services.employee_processing_service import EmployeeProcessingService
+from coati_payroll.vistas.planilla.services.nomina_service import NominaService
 
 
 class TestAcumuladoRepository:
@@ -215,3 +216,31 @@ class TestAcumuladoRepository:
 
             assert acumulado_previo.salario_bruto_acumulado == Decimal("600.00")
             assert db_session.query(AcumuladoAnual).count() == 1
+
+            # Recalculation/anulación must locate that very same fiscal
+            # accumulation even if the operator calculated the payroll after
+            # the July 15 boundary.
+            acumulado_previo.salario_gravable_acumulado = Decimal("100.00")
+            nomina = Nomina(
+                planilla_id=planilla.id,
+                periodo_inicio=periodo_inicio,
+                periodo_fin=periodo_fin,
+                fecha_calculo_original=date(2025, 7, 20),
+            )
+            db_session.add(nomina)
+            db_session.flush()
+            db_session.add(
+                NominaEmpleado(
+                    nomina_id=nomina.id,
+                    empleado_id=empleado.id,
+                    salario_bruto=Decimal("100.00"),
+                    sueldo_base_historico=Decimal("100.00"),
+                    inasistencia_descuento=Decimal("0.00"),
+                )
+            )
+            db_session.flush()
+
+            NominaService._rollback_accumulations_for_nomina(nomina, planilla)
+
+            assert acumulado_previo.salario_bruto_acumulado == Decimal("500.00")
+            assert acumulado_previo.salario_gravable_acumulado == Decimal("0.00")
