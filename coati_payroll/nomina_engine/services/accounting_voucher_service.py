@@ -328,6 +328,7 @@ class AccountingVoucherService:
     def _build_concept_lines(
         self,
         comprobante,
+        nomina,
         ne,
         empleado,
         empleado_nombre,
@@ -343,10 +344,16 @@ class AccountingVoucherService:
         tipo_concepto = None
         invertir = False
 
+        snapshot_entry = self._accounting_snapshot_for_detail(nomina, detalle)
+
         if detalle.tipo == "income" and detalle.percepcion_id:
             entity = self.session.get(Percepcion, detalle.percepcion_id)
             tipo_concepto = "percepcion"
-            invertir = getattr(entity, "invertir_asiento_contable", False) if entity else False
+            invertir = (
+                snapshot_entry.get("invertir_asiento_contable", getattr(entity, "invertir_asiento_contable", False))
+                if snapshot_entry
+                else getattr(entity, "invertir_asiento_contable", False)
+            )
         elif detalle.tipo == "deduction" and detalle.deduccion_id:
             entity = self.session.get(Deduccion, detalle.deduccion_id)
             tipo_concepto = "deduction"
@@ -355,16 +362,38 @@ class AccountingVoucherService:
             entity = self.session.get(Prestacion, detalle.prestacion_id)
             tipo_concepto = "benefit"
 
-        if not entity or not entity.contabilizable:
+        if not entity and not snapshot_entry:
             return orden, null_account_count, total_debitos, total_creditos
 
+        contabilizable = (
+            snapshot_entry.get("contabilizable", getattr(entity, "contabilizable", False))
+            if snapshot_entry
+            else entity.contabilizable
+        )
+        if not contabilizable:
+            return orden, null_account_count, total_debitos, total_creditos
+
+        nombre = snapshot_entry.get("nombre", getattr(entity, "nombre", "")) if snapshot_entry else entity.nombre
+        codigo = snapshot_entry.get("codigo", getattr(entity, "codigo", detalle.codigo)) if snapshot_entry else entity.codigo
         if tipo_concepto == "benefit":
-            debe_codigo = entity.codigo_cuenta_debe
-            haber_codigo = entity.codigo_cuenta_haber
-            debe_desc = entity.descripcion_cuenta_debe or entity.nombre if entity.codigo_cuenta_debe else None
-            haber_desc = entity.descripcion_cuenta_haber or entity.nombre if entity.codigo_cuenta_haber else None
+            debe_codigo = snapshot_entry.get("codigo_cuenta_debe", getattr(entity, "codigo_cuenta_debe", None)) if snapshot_entry else entity.codigo_cuenta_debe
+            haber_codigo = snapshot_entry.get("codigo_cuenta_haber", getattr(entity, "codigo_cuenta_haber", None)) if snapshot_entry else entity.codigo_cuenta_haber
+            debe_desc = (snapshot_entry.get("descripcion_cuenta_debe") or nombre) if debe_codigo and snapshot_entry else (entity.descripcion_cuenta_debe or entity.nombre if entity.codigo_cuenta_debe else None)
+            haber_desc = (snapshot_entry.get("descripcion_cuenta_haber") or nombre) if haber_codigo and snapshot_entry else (entity.descripcion_cuenta_haber or entity.nombre if entity.codigo_cuenta_haber else None)
         else:
-            debe_codigo, haber_codigo, debe_desc, haber_desc = self._resolve_contabilizable_accounts(entity, invertir)
+            if snapshot_entry:
+                if invertir:
+                    debe_codigo = snapshot_entry.get("codigo_cuenta_haber")
+                    haber_codigo = snapshot_entry.get("codigo_cuenta_debe")
+                    debe_desc = snapshot_entry.get("descripcion_cuenta_haber") or nombre
+                    haber_desc = snapshot_entry.get("descripcion_cuenta_debe") or nombre
+                else:
+                    debe_codigo = snapshot_entry.get("codigo_cuenta_debe")
+                    haber_codigo = snapshot_entry.get("codigo_cuenta_haber")
+                    debe_desc = snapshot_entry.get("descripcion_cuenta_debe") or nombre
+                    haber_desc = snapshot_entry.get("descripcion_cuenta_haber") or nombre
+            else:
+                debe_codigo, haber_codigo, debe_desc, haber_desc = self._resolve_contabilizable_accounts(entity, invertir)
 
         detalle_monto = round_money(detalle.monto)
 
@@ -382,9 +411,9 @@ class AccountingVoucherService:
             debe_desc if debe_codigo else None,
             "debito",
             detalle_monto,
-            detalle.descripcion or entity.nombre,
+            detalle.descripcion or nombre,
             tipo_concepto,
-            entity.codigo,
+            codigo,
             orden,
         )
         self.session.add(linea_debe)
@@ -404,15 +433,32 @@ class AccountingVoucherService:
             haber_desc if haber_codigo else None,
             "credito",
             detalle_monto,
-            detalle.descripcion or entity.nombre,
+            detalle.descripcion or nombre,
             tipo_concepto,
-            entity.codigo,
+            codigo,
             orden,
         )
         self.session.add(linea_haber)
         total_creditos += detalle_monto
 
         return orden, null_account_count, total_debitos, total_creditos
+
+    @staticmethod
+    def _accounting_snapshot_for_detail(nomina: Nomina, detalle: NominaDetalle) -> dict[str, Any] | None:
+        """Return frozen accounting metadata for one historical concept detail."""
+        catalogos = nomina.catalogos_snapshot or {}
+        detail_types = {
+            "income": ("percepciones", detalle.percepcion_id),
+            "deduction": ("deducciones", detalle.deduccion_id),
+            "benefit": ("prestaciones", detalle.prestacion_id),
+        }
+        category, concept_id = detail_types.get(detalle.tipo, (None, None))
+        if not category or not concept_id:
+            return None
+        for entry in catalogos.get(category, []):
+            if entry.get("id") == concept_id:
+                return entry
+        return None
 
     def _build_paid_vacation_liability_lines(
         self,
@@ -738,6 +784,7 @@ class AccountingVoucherService:
                 else:
                     orden, null_account_count, total_debitos, total_creditos = self._build_concept_lines(
                         comprobante,
+                        nomina,
                         ne,
                         empleado,
                         empleado_nombre_completo,
