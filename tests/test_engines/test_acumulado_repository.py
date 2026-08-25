@@ -5,7 +5,19 @@
 from datetime import date
 from decimal import Decimal
 
-from coati_payroll.model import AcumuladoAnual, Empleado, Empresa, Moneda, Nomina, NominaEmpleado, Planilla, TipoPlanilla, db
+from coati_payroll.model import (
+    AcumuladoAnual,
+    Empleado,
+    Empresa,
+    Moneda,
+    Nomina,
+    NominaDetalle,
+    NominaEmpleado,
+    Percepcion,
+    Planilla,
+    TipoPlanilla,
+    db,
+)
 from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
 from coati_payroll.nomina_engine.processors.accumulation_processor import AccumulationProcessor
 from coati_payroll.nomina_engine.repositories.acumulado_repository import AcumuladoRepository
@@ -220,24 +232,48 @@ class TestAcumuladoRepository:
             # Recalculation/anulación must locate that very same fiscal
             # accumulation even if the operator calculated the payroll after
             # the July 15 boundary.
-            acumulado_previo.salario_gravable_acumulado = Decimal("100.00")
+            percepcion = Percepcion(
+                codigo="GRAVABLE_HISTORICA",
+                nombre="Percepción gravable histórica",
+                formula_tipo="fixed",
+                monto_default=Decimal("100.00"),
+                gravable=True,
+                activo=True,
+            )
+            db_session.add(percepcion)
+            db_session.flush()
+            acumulado_previo.salario_bruto_acumulado = Decimal("700.00")
+            acumulado_previo.salario_gravable_acumulado = Decimal("200.00")
             nomina = Nomina(
                 planilla_id=planilla.id,
                 periodo_inicio=periodo_inicio,
                 periodo_fin=periodo_fin,
                 fecha_calculo_original=date(2025, 7, 20),
+                catalogos_snapshot={"percepciones": [{"id": percepcion.id, "gravable": True}]},
             )
             db_session.add(nomina)
             db_session.flush()
+            nomina_empleado = NominaEmpleado(
+                nomina_id=nomina.id,
+                empleado_id=empleado.id,
+                salario_bruto=Decimal("200.00"),
+                sueldo_base_historico=Decimal("100.00"),
+                inasistencia_descuento=Decimal("0.00"),
+            )
+            db_session.add(nomina_empleado)
+            db_session.flush()
             db_session.add(
-                NominaEmpleado(
-                    nomina_id=nomina.id,
-                    empleado_id=empleado.id,
-                    salario_bruto=Decimal("100.00"),
-                    sueldo_base_historico=Decimal("100.00"),
-                    inasistencia_descuento=Decimal("0.00"),
+                NominaDetalle(
+                    nomina_empleado_id=nomina_empleado.id,
+                    tipo="income",
+                    codigo=percepcion.codigo,
+                    monto=Decimal("100.00"),
+                    percepcion_id=percepcion.id,
                 )
             )
+            # The catalog changed after payroll generation. Rollback must use
+            # the frozen ``gravable=True`` metadata, not this live value.
+            percepcion.gravable = False
             db_session.flush()
 
             NominaService._rollback_accumulations_for_nomina(nomina, planilla)

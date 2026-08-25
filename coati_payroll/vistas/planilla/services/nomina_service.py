@@ -79,10 +79,27 @@ class NominaService:
         )
         acumulado_by_empleado = {a.empleado_id: a for a in acumulados}
 
+        # Rollbacks must use the same tax metadata that produced the original
+        # accumulation.  Catalog concepts are editable; consulting only their
+        # live flags after a change would leave (or remove) taxable income and
+        # pre-tax deductions that never belonged to the voided payroll.
+        catalogos_snapshot = nomina.catalogos_snapshot or {}
+        deducciones_snapshot = {
+            entry.get("id"): entry
+            for entry in catalogos_snapshot.get("deducciones", [])
+            if isinstance(entry, dict) and entry.get("id")
+        }
+        percepciones_snapshot = {
+            entry.get("id"): entry
+            for entry in catalogos_snapshot.get("percepciones", [])
+            if isinstance(entry, dict) and entry.get("id")
+        }
+
         # Aggregate deduction amounts by payroll employee and deduction type.
         deduction_rows = db.session.execute(
             db.select(
                 NominaDetalle.nomina_empleado_id,
+                NominaDetalle.deduccion_id,
                 Deduccion.es_impuesto,
                 Deduccion.antes_impuesto,
                 func.sum(NominaDetalle.monto),
@@ -93,13 +110,22 @@ class NominaService:
                 NominaDetalle.tipo == "deduction",
                 NominaDetalle.deduccion_id.is_not(None),
             )
-            .group_by(NominaDetalle.nomina_empleado_id, Deduccion.es_impuesto, Deduccion.antes_impuesto)
+            .group_by(
+                NominaDetalle.nomina_empleado_id,
+                NominaDetalle.deduccion_id,
+                Deduccion.es_impuesto,
+                Deduccion.antes_impuesto,
+            )
         ).all()
 
         deducciones_by_ne: dict[str, dict[str, Decimal]] = {}
-        for ne_id, es_impuesto, antes_impuesto, total in deduction_rows:
+        for ne_id, deduccion_id, es_impuesto, antes_impuesto, total in deduction_rows:
             bucket = deducciones_by_ne.setdefault(ne_id, {"impuesto": Decimal("0.00"), "antes": Decimal("0.00")})
             amount = Decimal(str(total or 0))
+            snapshot = deducciones_snapshot.get(deduccion_id)
+            if snapshot:
+                es_impuesto = snapshot.get("es_impuesto", False)
+                antes_impuesto = snapshot.get("antes_impuesto", False)
             if es_impuesto:
                 bucket["impuesto"] += amount
             elif antes_impuesto:
@@ -107,17 +133,27 @@ class NominaService:
 
         # Aggregate only gravable perceptions for salario_gravable rollback.
         gravable_rows = db.session.execute(
-            db.select(NominaDetalle.nomina_empleado_id, func.sum(NominaDetalle.monto))
+            db.select(
+                NominaDetalle.nomina_empleado_id,
+                NominaDetalle.percepcion_id,
+                Percepcion.gravable,
+                func.sum(NominaDetalle.monto),
+            )
             .join(Percepcion, Percepcion.id == NominaDetalle.percepcion_id)
             .where(
                 NominaDetalle.nomina_empleado_id.in_(nomina_empleado_ids),
                 NominaDetalle.tipo == "income",
                 NominaDetalle.percepcion_id.is_not(None),
-                Percepcion.gravable.is_(True),
             )
-            .group_by(NominaDetalle.nomina_empleado_id)
+            .group_by(NominaDetalle.nomina_empleado_id, NominaDetalle.percepcion_id, Percepcion.gravable)
         ).all()
-        gravable_by_ne = {ne_id: Decimal(str(total or 0)) for ne_id, total in gravable_rows}
+        gravable_by_ne: dict[str, Decimal] = {}
+        for ne_id, percepcion_id, gravable, total in gravable_rows:
+            snapshot = percepciones_snapshot.get(percepcion_id)
+            if snapshot:
+                gravable = snapshot.get("gravable", False)
+            if gravable:
+                gravable_by_ne[ne_id] = gravable_by_ne.get(ne_id, Decimal("0.00")) + Decimal(str(total or 0))
 
         for ne in nomina_empleados:
             acumulado = acumulado_by_empleado.get(ne.empleado_id)
