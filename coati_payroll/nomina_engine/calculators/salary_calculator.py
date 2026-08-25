@@ -79,9 +79,20 @@ class SalaryCalculator:
                 salario_periodo = salario_diario * Decimal(str(dias_periodo))
 
         elif periodicidad in ("quincenal", "biweekly"):
-            # For biweekly payrolls, a full period pays half monthly salary.
-            # If the employee worked only part of the period, we prorate below.
-            salario_periodo = salario_mensual / Decimal("2")
+            # A complete configured biweekly period pays half the monthly
+            # salary. Short/catch-up periods must instead be prorated by days;
+            # otherwise a 10-day period incorrectly pays a full fortnight.
+            dias_quincena = int(getattr(tipo_planilla, "dias", 15) or 15)
+            if dias_periodo == dias_quincena:
+                salario_periodo = salario_mensual / Decimal("2")
+            else:
+                config = self._get_config(planilla.empresa_id, configuracion_snapshot)
+                dias_base = Decimal(str(config.dias_mes_nomina))
+                if dias_base <= 0:
+                    raise ValidationError(
+                        "Configuración inválida: dias_mes_nomina debe ser mayor a 0."
+                    )
+                salario_periodo = (salario_mensual / dias_base) * Decimal(str(dias_periodo))
 
         else:
             config = self._get_config(planilla.empresa_id, configuracion_snapshot)

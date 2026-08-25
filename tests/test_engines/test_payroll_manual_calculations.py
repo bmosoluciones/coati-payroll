@@ -154,6 +154,21 @@ def test_biweekly_salary_is_half_monthly_salary():
     assert result == Decimal("7500.00")
 
 
+def test_short_biweekly_period_is_prorated_instead_of_paying_full_fortnight():
+    """A catch-up period shorter than the configured fortnight pays only worked days."""
+    calculator = SalaryCalculator(_ConfigRepository())
+
+    result = calculator.calculate_period_salary(
+        Decimal("15000.00"),
+        _planilla("biweekly"),
+        date(2026, 2, 1),
+        date(2026, 2, 10),
+        date(2026, 2, 10),
+    )
+
+    assert result == Decimal("5000.00")
+
+
 def test_concepts_use_expected_bases_and_round_to_cents():
     calculator = ConceptCalculator(_ConfigRepository(), [])
     employee = SimpleNamespace(
