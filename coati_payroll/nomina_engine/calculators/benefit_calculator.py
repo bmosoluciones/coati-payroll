@@ -68,6 +68,7 @@ class BenefitCalculator:
             porcentaje = snap_val.get("porcentaje", prestacion.porcentaje)
             formula = snap_val.get("formula", prestacion.formula)
             base_calculo = snap_val.get("base_calculo", getattr(prestacion, "base_calculo", None))
+            unidad_calculo = snap_val.get("unidad_calculo", getattr(prestacion, "unidad_calculo", None))
 
             # Check validity dates against the live object only when there is no snapshot
             if not snapshot_entry:
@@ -87,7 +88,7 @@ class BenefitCalculator:
                 planilla_prestacion.porcentaje,
                 codigo_concepto=prestacion.codigo,
                 base_calculo=base_calculo,
-                unidad_calculo=getattr(prestacion, "unidad_calculo", None),
+                unidad_calculo=unidad_calculo,
             )
 
             # Apply ceiling if defined (snapshot value takes precedence)

@@ -72,6 +72,7 @@ class PerceptionCalculator:
         porcentaje = snap_val.get("porcentaje", percepcion.porcentaje)
         formula = snap_val.get("formula", percepcion.formula)
         base_calculo = snap_val.get("base_calculo", getattr(percepcion, "base_calculo", None))
+        unidad_calculo = snap_val.get("unidad_calculo", getattr(percepcion, "unidad_calculo", None))
 
         if not snapshot_entry and not self._live_perception_is_valid(percepcion, fecha_calculo):
             return None
@@ -86,7 +87,7 @@ class PerceptionCalculator:
             association.porcentaje,
             codigo_concepto=percepcion.codigo,
             base_calculo=base_calculo,
-            unidad_calculo=getattr(percepcion, "unidad_calculo", None),
+            unidad_calculo=unidad_calculo,
         )
         if monto <= 0:
             return None

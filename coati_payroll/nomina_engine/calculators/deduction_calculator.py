@@ -78,6 +78,7 @@ class DeductionCalculator:
             porcentaje = snap_val.get("porcentaje", deduccion.porcentaje)
             formula = snap_val.get("formula", deduccion.formula)
             base_calculo = snap_val.get("base_calculo", getattr(deduccion, "base_calculo", None))
+            unidad_calculo = snap_val.get("unidad_calculo", getattr(deduccion, "unidad_calculo", None))
 
             # Check validity dates against the live object only when there is no snapshot
             if not snapshot_entry:
@@ -97,7 +98,7 @@ class DeductionCalculator:
                 planilla_deduccion.porcentaje,
                 codigo_concepto=deduccion.codigo,
                 base_calculo=base_calculo,
-                unidad_calculo=getattr(deduccion, "unidad_calculo", None),
+                unidad_calculo=unidad_calculo,
             )
 
             if monto > 0:
