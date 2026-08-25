@@ -545,7 +545,13 @@ class AccountingVoucherService:
                 ne = nomina_empleado_by_empleado_id.get(entry.empleado_id)
 
             policy = entry.account.policy if entry.account and entry.account.policy else None
-            if not ne or not ne.empleado or not policy or not policy.son_vacaciones_pagadas:
+            policy_snapshot = self._vacation_policy_snapshot(nomina, policy.id if policy else None)
+            is_paid_vacation = (
+                policy_snapshot.get("son_vacaciones_pagadas", getattr(policy, "son_vacaciones_pagadas", False))
+                if policy_snapshot
+                else getattr(policy, "son_vacaciones_pagadas", False)
+            )
+            if not ne or not ne.empleado or not policy or not is_paid_vacation:
                 continue
 
             empleado = ne.empleado
@@ -558,15 +564,46 @@ class AccountingVoucherService:
             salario_mensual = Decimal(str(empleado.salario_base or Decimal("0.00")))
             tipo_cambio = Decimal(str(ne.tipo_cambio_aplicado or Decimal("1.00")))
             salario_base = salario_mensual * tipo_cambio
-            porcentaje_pago = Decimal(str(policy.porcentaje_pago_vacaciones or Decimal("100.00"))) / Decimal("100")
+            porcentaje_pago = Decimal(
+                str(
+                    policy_snapshot.get(
+                        "porcentaje_pago_vacaciones",
+                        policy.porcentaje_pago_vacaciones or Decimal("100.00"),
+                    )
+                    if policy_snapshot
+                    else policy.porcentaje_pago_vacaciones or Decimal("100.00")
+                )
+            ) / Decimal("100")
             monto = round_money((salario_base / dias_base) * units * porcentaje_pago)
             if monto <= 0:
                 continue
 
-            cuenta_debito = policy.cuenta_debito_vacaciones_pagadas
-            cuenta_credito = policy.cuenta_credito_vacaciones_pagadas
-            desc_debito = policy.descripcion_cuenta_debito_vacaciones_pagadas or "Gasto por vacaciones pagadas"
-            desc_credito = policy.descripcion_cuenta_credito_vacaciones_pagadas or "Pasivo laboral vacaciones"
+            cuenta_debito = (
+                policy_snapshot.get("cuenta_debito_vacaciones_pagadas", policy.cuenta_debito_vacaciones_pagadas)
+                if policy_snapshot
+                else policy.cuenta_debito_vacaciones_pagadas
+            )
+            cuenta_credito = (
+                policy_snapshot.get("cuenta_credito_vacaciones_pagadas", policy.cuenta_credito_vacaciones_pagadas)
+                if policy_snapshot
+                else policy.cuenta_credito_vacaciones_pagadas
+            )
+            desc_debito = (
+                policy_snapshot.get(
+                    "descripcion_cuenta_debito_vacaciones_pagadas",
+                    policy.descripcion_cuenta_debito_vacaciones_pagadas,
+                )
+                if policy_snapshot
+                else policy.descripcion_cuenta_debito_vacaciones_pagadas
+            ) or "Gasto por vacaciones pagadas"
+            desc_credito = (
+                policy_snapshot.get(
+                    "descripcion_cuenta_credito_vacaciones_pagadas",
+                    policy.descripcion_cuenta_credito_vacaciones_pagadas,
+                )
+                if policy_snapshot
+                else policy.descripcion_cuenta_credito_vacaciones_pagadas
+            ) or "Pasivo laboral vacaciones"
 
             if entry.entry_type == "usage":
                 cuenta_debito, cuenta_credito = cuenta_credito, cuenta_debito
@@ -621,6 +658,19 @@ class AccountingVoucherService:
             total_creditos += monto
 
         return total_debitos, total_creditos, orden, null_account_count
+
+    @staticmethod
+    def _vacation_policy_snapshot(nomina: Nomina, policy_id: str | None) -> dict[str, Any] | None:
+        """Return the frozen paid-vacation policy configuration for a voucher."""
+        if not policy_id:
+            return None
+        vacation_data = (nomina.catalogos_snapshot or {}).get("vacaciones", {})
+        if not isinstance(vacation_data, dict):
+            return None
+        for policy in vacation_data.get("vacation_policies", []):
+            if policy.get("id") == policy_id:
+                return policy
+        return None
 
     def generate_accounting_voucher(
         self, nomina: Nomina, planilla: Planilla, fecha_calculo: date | None = None, usuario: str | None = None

@@ -636,6 +636,12 @@ class SnapshotService:
                 "partial_units_allowed": policy.partial_units_allowed,
                 "rounding_rule": policy.rounding_rule,
                 "accrue_during_leave": policy.accrue_during_leave,
+                "son_vacaciones_pagadas": policy.son_vacaciones_pagadas,
+                "porcentaje_pago_vacaciones": str(policy.porcentaje_pago_vacaciones),
+                "cuenta_debito_vacaciones_pagadas": policy.cuenta_debito_vacaciones_pagadas,
+                "descripcion_cuenta_debito_vacaciones_pagadas": policy.descripcion_cuenta_debito_vacaciones_pagadas,
+                "cuenta_credito_vacaciones_pagadas": policy.cuenta_credito_vacaciones_pagadas,
+                "descripcion_cuenta_credito_vacaciones_pagadas": policy.descripcion_cuenta_credito_vacaciones_pagadas,
             }
             for policy in policies
         ]

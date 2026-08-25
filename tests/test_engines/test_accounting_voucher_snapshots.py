@@ -99,3 +99,28 @@ def test_voucher_uses_frozen_base_salary_accounts_when_planilla_changes():
         "codigo_cuenta_haber_salario": "SAL-HIST-HABER",
         "descripcion_cuenta_haber_salario": "Pasivo histórico",
     }
+
+
+def test_voucher_uses_frozen_paid_vacation_policy_when_policy_changes():
+    """Vacation liability entries must retain the original policy configuration."""
+    nomina = SimpleNamespace(
+        catalogos_snapshot={
+            "vacaciones": {
+                "vacation_policies": [
+                    {
+                        "id": "policy-1",
+                        "son_vacaciones_pagadas": True,
+                        "porcentaje_pago_vacaciones": "100.00",
+                        "cuenta_debito_vacaciones_pagadas": "VAC-HIST-DEBE",
+                        "cuenta_credito_vacaciones_pagadas": "VAC-HIST-HABER",
+                    }
+                ]
+            }
+        }
+    )
+
+    policy = AccountingVoucherService._vacation_policy_snapshot(nomina, "policy-1")
+
+    assert policy is not None
+    assert policy["cuenta_debito_vacaciones_pagadas"] == "VAC-HIST-DEBE"
+    assert policy["cuenta_credito_vacaciones_pagadas"] == "VAC-HIST-HABER"
