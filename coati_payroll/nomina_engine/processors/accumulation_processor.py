@@ -11,6 +11,7 @@ from coati_payroll.model import db, Deduccion
 from coati_payroll.i18n import _
 from ..domain.employee_calculation import EmpleadoCalculo
 from ..repositories.acumulado_repository import AcumuladoRepository
+from ..utils.fiscal import fiscal_start_date
 from ..validators import ValidationError
 
 
@@ -46,10 +47,10 @@ class AccumulationProcessor:
         # the month assigns (for example) July 1-14 to a fiscal year that
         # does not start until July 15, mixing that payroll with future
         # accumulations.
-        if periodo_fin < date(anio, mes_inicio, dia_inicio):
+        if periodo_fin < fiscal_start_date(anio, mes_inicio, dia_inicio):
             anio -= 1
 
-        periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
+        periodo_fiscal_inicio = fiscal_start_date(anio, mes_inicio, dia_inicio)
 
         # Determine empresa_id
         empresa_id = planilla.empresa_id or empleado.empresa_id

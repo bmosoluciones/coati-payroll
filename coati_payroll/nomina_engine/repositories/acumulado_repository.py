@@ -9,6 +9,7 @@ from typing import Optional
 
 from coati_payroll.model import AcumuladoAnual, Empleado
 from .base_repository import BaseRepository
+from ..utils.fiscal import fiscal_start_date
 
 
 class AcumuladoRepository(BaseRepository[AcumuladoAnual]):
@@ -49,8 +50,10 @@ class AcumuladoRepository(BaseRepository[AcumuladoAnual]):
         if not acumulado:
             from decimal import Decimal
 
-            periodo_fiscal_fin = date(
-                periodo_fiscal_inicio.year + 1, periodo_fiscal_inicio.month, periodo_fiscal_inicio.day
+            periodo_fiscal_fin = fiscal_start_date(
+                periodo_fiscal_inicio.year + 1,
+                periodo_fiscal_inicio.month,
+                periodo_fiscal_inicio.day,
             )
 
             salario_inicial_acumulado = Decimal("0.00")

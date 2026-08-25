@@ -12,6 +12,7 @@ from coati_payroll.model import db, Planilla, Nomina, AcumuladoAnual, Deduccion,
 from coati_payroll.enums import NominaEstado
 from coati_payroll.nomina_engine import NominaEngine
 from coati_payroll.nomina_engine.services.snapshot_service import SnapshotService
+from coati_payroll.nomina_engine.utils.fiscal import fiscal_start_date
 from coati_payroll.queue import get_queue_driver
 from coati_payroll.queue.drivers.dramatiq_driver import DramatiqDriver
 
@@ -52,9 +53,9 @@ class NominaService:
         anio = fecha_base.year
         mes_inicio = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal)
         dia_inicio = tipo_planilla.dia_inicio_fiscal
-        if fecha_base < date(anio, mes_inicio, dia_inicio):
+        if fecha_base < fiscal_start_date(anio, mes_inicio, dia_inicio):
             anio -= 1
-        periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
+        periodo_fiscal_inicio = fiscal_start_date(anio, mes_inicio, dia_inicio)
 
         nomina_empleados = (
             db.session.execute(db.select(NominaEmpleado).where(NominaEmpleado.nomina_id == nomina.id)).scalars().all()
@@ -420,11 +421,11 @@ class NominaService:
         mes_inicio_fiscal = int(planilla.mes_inicio_fiscal or tipo_planilla.mes_inicio_fiscal or 1)
         dia_inicio_fiscal = int(tipo_planilla.dia_inicio_fiscal or 1)
         anio_fiscal = periodo_inicio.year
-        if periodo_inicio < date(anio_fiscal, mes_inicio_fiscal, dia_inicio_fiscal):
+        if periodo_inicio < fiscal_start_date(anio_fiscal, mes_inicio_fiscal, dia_inicio_fiscal):
             anio_fiscal -= 1
 
         try:
-            inicio_fiscal = date(anio_fiscal, mes_inicio_fiscal, dia_inicio_fiscal)
+            inicio_fiscal = fiscal_start_date(anio_fiscal, mes_inicio_fiscal, dia_inicio_fiscal)
         except ValueError:
             return None
 

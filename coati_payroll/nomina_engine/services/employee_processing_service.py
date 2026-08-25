@@ -15,6 +15,7 @@ from ..domain.employee_calculation import EmpleadoCalculo
 from ..repositories.acumulado_repository import AcumuladoRepository
 from ..repositories.config_repository import ConfigRepository
 from ..results.warning_collector import WarningCollectorProtocol
+from ..utils.fiscal import fiscal_start_date
 
 
 class EmployeeProcessingService:
@@ -234,7 +235,7 @@ class EmployeeProcessingService:
         if fecha_referencia.month < mes_inicio_fiscal:
             fiscal_year -= 1
 
-        fiscal_start = date(fiscal_year, mes_inicio_fiscal, dia_inicio_fiscal)
+        fiscal_start = fiscal_start_date(fiscal_year, mes_inicio_fiscal, dia_inicio_fiscal)
         employee_start_month = date(fecha_alta.year, fecha_alta.month, 1)
         effective_start = max(fiscal_start, employee_start_month)
         reference_month = date(fecha_referencia.year, fecha_referencia.month, 1)
@@ -268,10 +269,10 @@ class EmployeeProcessingService:
         # Honor the configured start *day* as well as the start month.  A
         # payroll before that day belongs to the fiscal year which began the
         # previous calendar year.
-        if periodo_inicio < date(anio, mes_inicio, dia_inicio):
+        if periodo_inicio < fiscal_start_date(anio, mes_inicio, dia_inicio):
             anio -= 1
 
-        periodo_fiscal_inicio = date(anio, mes_inicio, dia_inicio)
+        periodo_fiscal_inicio = fiscal_start_date(anio, mes_inicio, dia_inicio)
 
         # Look up existing accumulated record
         from sqlalchemy import select
