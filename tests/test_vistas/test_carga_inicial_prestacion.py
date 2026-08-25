@@ -414,6 +414,7 @@ def test_carga_inicial_prestacion_aplicar_creates_transaction(app, client, admin
         assert transaction.tipo_transaccion == "saldo_inicial"
         assert transaction.monto_transaccion == Decimal("1000.00")
         assert transaction.saldo_nuevo == Decimal("1000.00")
+        assert transaction.empresa_id == empresa.id
 
 
 def test_carga_inicial_prestacion_eliminar_deletes_draft(app, client, admin_user, db_session):

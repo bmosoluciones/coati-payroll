@@ -199,6 +199,9 @@ def aplicar(carga_id):
             saldo_anterior=Decimal("0.00"),
             saldo_nuevo=carga.saldo_convertido,
             carga_inicial_id=carga.id,
+            # Payroll provisions read their prior balance within the employee's
+            # company.  Keep the initial balance in that same ledger scope.
+            empresa_id=carga.empleado.empresa_id,
             observaciones=f"Carga inicial - {carga.observaciones or ''}",
             procesado_por=current_user.usuario if current_user.is_authenticated else None,
             creado_por=current_user.usuario if current_user.is_authenticated else None,
