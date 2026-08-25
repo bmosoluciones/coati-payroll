@@ -251,7 +251,9 @@ class ConceptCalculator:
             (
                 ded.monto
                 for ded in emp_calculo.deducciones
-                if ded.deduccion_id and (self._get_deduccion_metadata(ded.deduccion_id) or {}).get("antes_impuesto")
+                if ded.deduccion_id
+                and (metadata := self._get_deduccion_metadata(ded.deduccion_id) or {}).get("antes_impuesto")
+                and not metadata.get("es_impuesto")
             ),
             Decimal("0.00"),
         )
