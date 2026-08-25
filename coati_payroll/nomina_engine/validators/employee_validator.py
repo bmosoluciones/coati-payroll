@@ -30,11 +30,14 @@ class EmployeeValidator(BaseValidator):
         periodo_inicio: date,
         periodo_fin: date,
         planilla_empleado=None,
+        allow_historical_inactive: bool = False,
+        salario_base_override: Decimal | None = None,
+        moneda_id_override: str | None = None,
     ) -> ValidationResult:
         """Validate employee for payroll processing."""
         result = ValidationResult()
 
-        if not empleado.activo:
+        if not empleado.activo and not allow_historical_inactive:
             result.add_error(f"Empleado {empleado.codigo_empleado} no está activo")
 
         if planilla_empleado is not None:
@@ -75,7 +78,7 @@ class EmployeeValidator(BaseValidator):
         if not empleado.identificacion_personal:
             result.add_error(f"Empleado {empleado.codigo_empleado} no tiene identificación personal")
 
-        salario = empleado.salario_base
+        salario = salario_base_override if salario_base_override is not None else empleado.salario_base
         if salario is None or salario <= Decimal("0.00"):
             result.add_error(
                 f"Empleado {empleado.codigo_empleado} tiene salario base inválido ({salario})"
@@ -91,7 +94,7 @@ class EmployeeValidator(BaseValidator):
                     f"Empleado empresa_id={empleado.empresa_id}, Planilla empresa_id={planilla_empresa_id}"
                 )
 
-        if not empleado.moneda_id:
+        if not (moneda_id_override or empleado.moneda_id):
             result.add_error(f"Empleado {empleado.codigo_empleado} no tiene moneda definida")
 
         return result

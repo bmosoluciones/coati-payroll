@@ -244,7 +244,8 @@ class PayrollExecutionService:
         planilla_empleados = cast(list[Any], planilla.planilla_empleados)
 
         for planilla_empleado in planilla_empleados:
-            if not planilla_empleado.activo:
+            employee_snapshot = empleados_snapshot.get(planilla_empleado.empleado_id)
+            if not planilla_empleado.activo and not employee_snapshot:
                 continue
 
             # Respect the employee's assignment window. An association that has
@@ -269,7 +270,7 @@ class PayrollExecutionService:
                 continue
 
             empleado = planilla_empleado.empleado
-            if not empleado.activo:
+            if not empleado.activo and not employee_snapshot:
                 warnings.append(
                     f"Empleado {empleado.primer_nombre} {empleado.primer_apellido} no está activo y será omitido."
                 )
@@ -289,7 +290,7 @@ class PayrollExecutionService:
                     warnings,
                     nomina_id=novelty_context_id,
                     planilla_empleado=planilla_empleado,
-                    employee_snapshot=empleados_snapshot.get(empleado.id),
+                    employee_snapshot=employee_snapshot,
                 )
                 empleados_calculo.append(emp_calculo)
             except (NominaEngineError, FormulaEngineError) as e:
@@ -322,7 +323,13 @@ class PayrollExecutionService:
         # Keep the same processing counters used by the background path so
         # synchronous and queued payrolls expose a consistent audit contract.
         nomina.total_empleados = len(
-            [pe for pe in planilla_empleados if pe.activo and pe.empleado and pe.empleado.activo]
+            [
+                pe
+                for pe in planilla_empleados
+                if pe.empleado
+                and (pe.activo or pe.empleado_id in empleados_snapshot)
+                and (pe.empleado.activo or pe.empleado_id in empleados_snapshot)
+            ]
         )
         nomina.empleados_procesados = len(empleados_calculo)
         nomina.empleados_con_error = len(errors)
@@ -502,7 +509,16 @@ class PayrollExecutionService:
         """Process a single employee's payroll."""
         # Validate employee
         employee_validation = self.employee_validator.validate_employee(
-            empleado, planilla.empresa_id, periodo_inicio, periodo_fin, planilla_empleado=planilla_empleado
+            empleado,
+            planilla.empresa_id,
+            periodo_inicio,
+            periodo_fin,
+            planilla_empleado=planilla_empleado,
+            allow_historical_inactive=employee_snapshot is not None,
+            salario_base_override=(
+                Decimal(str(employee_snapshot["salario_base"])) if employee_snapshot else None
+            ),
+            moneda_id_override=employee_snapshot.get("moneda_id") if employee_snapshot else None,
         )
         if not employee_validation.is_valid:
             # Include specific validation errors (errors is already a list of strings)

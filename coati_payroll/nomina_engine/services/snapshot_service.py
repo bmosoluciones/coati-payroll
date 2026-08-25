@@ -168,7 +168,7 @@ class SnapshotService:
                 "moneda_id": association.empleado.moneda_id,
             }
             for association in employees
-            if association.empleado_id and association.empleado
+            if association.empleado_id and association.empleado and association.empleado.activo
         ]
 
         # Capture Percepciones linked to this planilla
