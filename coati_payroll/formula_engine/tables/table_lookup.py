@@ -136,6 +136,16 @@ class TableLookup:
         # Handle multiple matches (overlaps) - use the first valid match
         if matched_brackets:
             if len(matched_brackets) > 1:
+                # The validator accepts adjacent brackets that share their
+                # boundary (for example [0, 100000] then [100000, 200000]).
+                # At that exact value, choose the newer bracket so a valid
+                # table does not fail strict payroll calculation. Real
+                # overlaps remain errors below.
+                boundary_matches = [match for match in matched_brackets if input_value == match[2]]
+                if len(boundary_matches) == 1:
+                    matched_brackets = boundary_matches
+
+            if len(matched_brackets) > 1:
                 # Multiple brackets match - this indicates an overlap
                 if self.strict_mode:
                     raise CalculationError(f"Multiple tax brackets match value {input_value} in table '{table_name}'")

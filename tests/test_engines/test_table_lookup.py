@@ -44,6 +44,23 @@ class TestTableLookupStrictMode:
         with pytest.raises(CalculationError, match="Multiple tax brackets match"):
             lookup.lookup("tax_table", Decimal("150000"))
 
+    def test_contiguous_brackets_share_boundary_without_failing_strict_mode(self):
+        """A boundary accepted by the validator must be executable in strict mode."""
+        lookup = TableLookup(
+            {
+                "tax_table": [
+                    {"min": 0, "max": 100000, "rate": 0, "fixed": 0, "over": 0},
+                    {"min": 100000, "max": 200000, "rate": 0.15, "fixed": 0, "over": 100000},
+                ]
+            },
+            strict_mode=True,
+        )
+
+        result = lookup.lookup("tax_table", Decimal("100000"))
+
+        assert result["rate"] == Decimal("0.15")
+        assert result["tax"] == Decimal("0.00")
+
     def test_no_bracket_strict_raises(self):
         lookup = TableLookup(
             {
