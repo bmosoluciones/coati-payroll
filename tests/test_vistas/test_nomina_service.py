@@ -25,6 +25,7 @@ from coati_payroll.model import (
     Planilla,
     PlanillaEmpleado,
     TipoPlanilla,
+    VacationPolicy,
 )
 from coati_payroll.vistas.planilla.services.nomina_service import NominaService
 from coati_payroll.nomina_engine.services.snapshot_service import SnapshotService
@@ -547,6 +548,35 @@ class TestRecalcularNomina:
             errors = SnapshotService(db_session).validate_planilla_snapshot(planilla, snapshot)
 
             assert any("monto_predeterminado" in error for error in errors)
+
+    def test_snapshot_context_rejects_changed_vacation_policy(self, app, db_session, planilla):
+        """A historical recalculation must not accrue vacation under a changed rate."""
+        with app.app_context():
+            policy = VacationPolicy(
+                codigo="VAC_SNAPSHOT",
+                nombre="Snapshot vacation policy",
+                planilla_id=planilla.id,
+                empresa_id=planilla.empresa_id,
+                accrual_method="periodic",
+                accrual_rate=Decimal("1.00"),
+                accrual_frequency="monthly",
+                unit_type="days",
+                activo=True,
+            )
+            db_session.add(policy)
+            db_session.flush()
+
+            snapshot = {
+                "vacaciones": SnapshotService(db_session).capture_vacation_snapshot(
+                    planilla, date(2024, 1, 1), date(2024, 1, 31)
+                )
+            }
+            policy.accrual_rate = Decimal("2.00")
+            db_session.flush()
+
+            errors = SnapshotService(db_session).validate_planilla_snapshot(planilla, snapshot)
+
+            assert any("accrual_rate" in error for error in errors)
 
     @patch("coati_payroll.audit_helpers.crear_log_auditoria_nomina")
     @patch("coati_payroll.vistas.planilla.services.nomina_service.NominaEngine")

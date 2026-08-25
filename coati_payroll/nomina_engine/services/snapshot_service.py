@@ -514,7 +514,55 @@ class SnapshotService:
                         f"El concepto {concept_id} de {key} ya no está activo o no existe; "
                         "el recálculo histórico fue bloqueado."
                     )
+        self._validate_vacation_snapshot(catalogos.get("vacaciones"), errors)
         return errors
+
+    def _validate_vacation_snapshot(self, vacation_snapshot: Any, errors: list[str]) -> None:
+        """Reject a recalculation that would apply a changed vacation policy."""
+        if not isinstance(vacation_snapshot, dict):
+            return
+        policies = vacation_snapshot.get("vacation_policies")
+        if not isinstance(policies, list):
+            return
+
+        fields = (
+            "planilla_id",
+            "empresa_id",
+            "unit_type",
+            "accrual_method",
+            "accrual_rate",
+            "prorate_by_period_days",
+            "accrual_frequency",
+            "accrual_basis",
+            "min_service_days",
+            "seniority_tiers",
+            "max_balance",
+            "allow_negative",
+            "partial_units_allowed",
+            "rounding_rule",
+            "accrue_during_leave",
+        )
+        for expected_policy in policies:
+            if not isinstance(expected_policy, dict) or not expected_policy.get("id"):
+                continue
+            policy = self.session.get(VacationPolicy, expected_policy["id"])
+            if not policy or not policy.activo:
+                errors.append(
+                    f"La política de vacaciones {expected_policy.get('id')} ya no está activa o no existe; "
+                    "el recálculo histórico fue bloqueado."
+                )
+                continue
+            for field in fields:
+                expected = expected_policy.get(field)
+                actual = getattr(policy, field, None)
+                if field in {"accrual_rate", "max_balance"} and actual is not None:
+                    actual = str(actual)
+                if expected != actual:
+                    errors.append(
+                        f"Cambió el campo {field} de la política de vacaciones {policy.id}; "
+                        "el recálculo histórico fue bloqueado."
+                    )
+                    break
 
     def capture_vacation_snapshot(
         self,
@@ -554,7 +602,9 @@ class SnapshotService:
                 "accrual_rate": str(policy.accrual_rate),
                 "prorate_by_period_days": policy.prorate_by_period_days,
                 "accrual_frequency": policy.accrual_frequency,
+                "accrual_basis": policy.accrual_basis,
                 "min_service_days": policy.min_service_days,
+                "seniority_tiers": policy.seniority_tiers,
                 "max_balance": str(policy.max_balance) if policy.max_balance is not None else None,
                 "allow_negative": policy.allow_negative,
                 "partial_units_allowed": policy.partial_units_allowed,
