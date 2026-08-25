@@ -38,7 +38,7 @@ class ExchangeRateCalculator:
             planilla.moneda_id,
         )
         if snapshot_rate is not None:
-            return snapshot_rate
+            return self._validate_positive_rate(snapshot_rate, empleado, planilla)
 
         rate = self.exchange_rate_repo.get_rate(empleado.moneda_id, planilla.moneda_id, fecha_calculo)
         if rate is None:
@@ -52,7 +52,20 @@ class ExchangeRateCalculator:
                 f"para la fecha {fecha_calculo.strftime('%d/%m/%Y')}."
             )
 
-        return Decimal(str(rate))
+        return self._validate_positive_rate(Decimal(str(rate)), empleado, planilla)
+
+    @staticmethod
+    def _validate_positive_rate(rate: Decimal, empleado: Empleado, planilla: Planilla) -> Decimal:
+        """Reject zero or negative rates before they can corrupt payroll amounts."""
+        if rate <= 0:
+            from ..validators import CalculationError
+
+            raise CalculationError(
+                f"Tipo de cambio inválido para empleado {empleado.primer_nombre} {empleado.primer_apellido}: "
+                f"{rate}. La tasa de {empleado.moneda.codigo if empleado.moneda else 'desconocido'} "
+                f"a {planilla.moneda.codigo if planilla.moneda else 'desconocido'} debe ser mayor que cero."
+            )
+        return rate
 
     @staticmethod
     def _get_snapshot_rate(

@@ -169,7 +169,11 @@ class ExchangeRateForm(FlaskForm):
     fecha = DateField(_("Fecha"), validators=[DataRequired()])
     moneda_origen_id = SelectField(_("Moneda origen"), validators=[DataRequired()], coerce=str)
     moneda_destino_id = SelectField(_("Moneda destino"), validators=[DataRequired()], coerce=str)
-    tasa = DecimalField(_("Tasa de cambio"), validators=[DataRequired()], places=10)
+    tasa = DecimalField(
+        _("Tasa de cambio"),
+        validators=[DataRequired(), NumberRange(min=Decimal("0.0000000001"))],
+        places=10,
+    )
     submit = SubmitField(_("Guardar"))
 
 
