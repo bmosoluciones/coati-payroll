@@ -18,6 +18,11 @@ ROUTE_LISTAR_NOVEDADES = "planilla.listar_novedades"
 ROUTE_LISTAR_NOMINAS = "planilla.listar_nominas"
 ERROR_NOMINA_NO_PERTENECE = "La nómina no pertenece a esta planilla."
 TEMPLATE_NOVEDAD_FORM = "modules/planilla/novedades/form.html"
+NOVEDAD_LOCKED_NOMINA_STATES = {
+    "applied",
+    "paid",
+    "cancelled",
+}
 
 
 @planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/novedades", methods=["GET"])
@@ -52,8 +57,8 @@ def nueva_novedad(planilla_id: str, nomina_id: str):
         flash(_(ERROR_NOMINA_NO_PERTENECE), "error")
         return redirect(url_for(ROUTE_LISTAR_NOMINAS, planilla_id=planilla_id))
 
-    if nomina.estado == "applied":
-        flash(_("No se pueden agregar novedades a una nómina aplicada."), "error")
+    if nomina.estado in NOVEDAD_LOCKED_NOMINA_STATES:
+        flash(_("No se pueden agregar novedades a una nómina aplicada, pagada o anulada."), "error")
         return redirect(
             url_for(
                 ROUTE_LISTAR_NOVEDADES,
@@ -131,8 +136,8 @@ def editar_novedad(planilla_id: str, nomina_id: str, novedad_id: str):
             )
         )
 
-    if nomina.estado == "applied":
-        flash(_("No se pueden editar novedades de una nómina aplicada."), "error")
+    if nomina.estado in NOVEDAD_LOCKED_NOMINA_STATES:
+        flash(_("No se pueden editar novedades de una nómina aplicada, pagada o anulada."), "error")
         return redirect(
             url_for(
                 ROUTE_LISTAR_NOVEDADES,
@@ -210,8 +215,8 @@ def eliminar_novedad(planilla_id: str, nomina_id: str, novedad_id: str):
             )
         )
 
-    if nomina.estado == "applied":
-        flash(_("No se pueden eliminar novedades de una nómina aplicada."), "error")
+    if nomina.estado in NOVEDAD_LOCKED_NOMINA_STATES:
+        flash(_("No se pueden eliminar novedades de una nómina aplicada, pagada o anulada."), "error")
         return redirect(
             url_for(
                 ROUTE_LISTAR_NOVEDADES,

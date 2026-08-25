@@ -995,6 +995,18 @@ def test_nueva_novedad_get_displays_form(app, client, admin_user, db_session, pl
         assert response.status_code == 200
 
 
+def test_nueva_novedad_is_blocked_for_paid_nomina(app, client, admin_user, db_session, planilla, nomina):
+    """Paid payrolls are immutable even though their state is not ``applied``."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+        nomina.estado = "paid"
+        db_session.commit()
+
+        response = client.get(f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/new", follow_redirects=False)
+
+        assert response.status_code == 302
+
+
 def test_nueva_novedad_get_filters_concepts_by_planilla_state_and_type(
     app,
     client,
