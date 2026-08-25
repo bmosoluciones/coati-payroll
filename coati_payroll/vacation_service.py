@@ -694,34 +694,51 @@ class VacationService:
             return self._quantize_amount(policy.accrual_rate)
         return self._quantize_amount(policy.accrual_rate * Decimal(dias_periodo) / Decimal(dias_esperados))
 
-    def _calcular_acumulacion_proporcional(self, policy: VacationPolicy | Empleado, *legacy_context) -> Decimal:
+    def _calcular_acumulacion_proporcional(self, empleado_o_policy, policy=None, nomina_empleado=None) -> Decimal:
         """Calculate proportional accrual (based on worked days/hours).
 
         Args:
-            policy: The vacation policy. Legacy callers may still pass employee and
-                payroll context before the policy.
+            empleado_o_policy: Employee for payroll processing, or a policy for
+                the legacy direct-call form.
+            policy: Vacation policy when an employee is provided.
+            nomina_empleado: Payroll employee data, including absences.
 
         Returns:
             Accrual amount
         """
-        # For proportional accrual, calculate based on actual worked days/hours
-        # This requires tracking in the payroll record
+        # Keep the historical direct-call form (service(policy)) usable, but
+        # payroll processing must use the employee and absence data it already
+        # passes to avoid crediting vacation for days not employed or absent.
+        if hasattr(empleado_o_policy, "accrual_basis"):
+            empleado = None
+            policy = empleado_o_policy
+        else:
+            empleado = empleado_o_policy
 
-        if not hasattr(policy, "accrual_basis"):
-            policy = legacy_context[0]
+        inicio_trabajado = (
+            max(self.periodo_inicio, empleado.fecha_alta) if empleado and empleado.fecha_alta else self.periodo_inicio
+        )
+        fin_trabajado = (
+            min(self.periodo_fin, empleado.fecha_baja) if empleado and empleado.fecha_baja else self.periodo_fin
+        )
+        if inicio_trabajado > fin_trabajado:
+            return Decimal("0.00")
 
-        dias_periodo = (self.periodo_fin - self.periodo_inicio).days + 1
+        dias_trabajados = Decimal((fin_trabajado - inicio_trabajado).days + 1)
+        inasistencia_dias = Decimal(str(getattr(nomina_empleado, "inasistencia_dias", 0) or 0))
+        inasistencia_horas = Decimal(str(getattr(nomina_empleado, "inasistencia_horas", 0) or 0))
+        dias_trabajados = max(dias_trabajados - inasistencia_dias, Decimal("0.00"))
 
         if policy.accrual_basis == "days_worked":
-            # Assume full days worked for now (could be enhanced to track absences)
-            dias_trabajados = Decimal(dias_periodo)
             return self._quantize_amount(policy.accrual_rate * dias_trabajados)
         if policy.accrual_basis == "hours_worked":
-            # Calculate based on hours (would need hours tracking in payroll)
-            # For now, estimate based on standard hours from configuration
             config = self._obtener_config_calculos()
-            horas_estandar = Decimal(str(config.horas_jornada_diaria)) * Decimal(dias_periodo)
-            return self._quantize_amount(policy.accrual_rate * horas_estandar)
+            horas_jornada = Decimal(str(config.horas_jornada_diaria))
+            horas_trabajadas = max(
+                dias_trabajados * horas_jornada - inasistencia_horas,
+                Decimal("0.00"),
+            )
+            return self._quantize_amount(policy.accrual_rate * horas_trabajadas)
         raise ValidationError(f"Policy {policy.codigo}: accrual_basis inválido ({policy.accrual_basis}).")
 
     def _calcular_acumulacion_antiguedad(self, empleado: Empleado, policy: VacationPolicy) -> Decimal:

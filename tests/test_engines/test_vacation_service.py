@@ -820,6 +820,47 @@ def test_calcular_acumulacion_proportional_hours(app, db_session, planilla, empl
         assert accrual == expected.quantize(Decimal("0.0001"))
 
 
+def test_proportional_accrual_uses_actual_employment_and_absence_time(
+    app, db_session, planilla, empleado, moneda, proportional_policy
+):
+    """Proportional vacation must exclude pre-hire and absence time from its basis."""
+    with app.app_context():
+        periodo_inicio = date(2026, 1, 1)
+        periodo_fin = date(2026, 1, 15)
+        empleado.fecha_alta = date(2026, 1, 11)
+
+        nomina = Nomina(
+            planilla_id=planilla.id,
+            periodo_inicio=periodo_inicio,
+            periodo_fin=periodo_fin,
+            generado_por="test_user",
+        )
+        db_session.add(nomina)
+        db_session.flush()
+        nomina_empleado = NominaEmpleado(
+            nomina_id=nomina.id,
+            empleado_id=empleado.id,
+            sueldo_base_historico=Decimal("1000.00"),
+            moneda_origen_id=moneda.id,
+            inasistencia_dias=Decimal("2.00"),
+            inasistencia_horas=Decimal("4.00"),
+        )
+        db_session.add(nomina_empleado)
+        db_session.flush()
+
+        service = VacationService(planilla, periodo_inicio, periodo_fin)
+        # Five employed calendar days less two absence days = three days.
+        assert service._calcular_acumulacion_proporcional(empleado, proportional_policy, nomina_empleado) == Decimal(
+            "0.15"
+        )
+
+        proportional_policy.accrual_basis = "hours_worked"
+        # Three worked days * eight hours, less four absent hours = 20 hours.
+        assert service._calcular_acumulacion_proporcional(empleado, proportional_policy, nomina_empleado) == Decimal(
+            "1.00"
+        )
+
+
 def test_calcular_acumulacion_seniority_no_tiers(app, db_session, planilla, empleado):
     """Test seniority accrual when no tiers are defined."""
     with app.app_context():
