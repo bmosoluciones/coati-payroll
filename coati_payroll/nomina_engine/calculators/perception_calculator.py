@@ -96,7 +96,10 @@ class PerceptionCalculator:
             nombre=percepcion.nombre,
             monto=monto,
             prioridad=association.orden or 0,
-            gravable=percepcion.gravable,
+            # Taxability is part of the payroll catalog snapshot.  Reading it
+            # from the mutable catalog breaks historical recalculations when a
+            # perception is later reclassified.
+            gravable=snap_val.get("gravable", percepcion.gravable),
             percepcion_id=percepcion.id,
         )
 
