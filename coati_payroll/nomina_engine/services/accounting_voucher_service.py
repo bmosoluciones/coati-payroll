@@ -170,6 +170,14 @@ class AccountingVoucherService:
             return Decimal("30")
         return Decimal(str(config.dias_mes_vacaciones))
 
+    def _voucher_vacation_days_base(self, nomina: Nomina, empresa_id: str | None) -> Decimal:
+        """Resolve the vacation day basis frozen for this payroll when present."""
+        snapshot = nomina.configuracion_snapshot or {}
+        snapshot_days = snapshot.get("dias_mes_vacaciones") if isinstance(snapshot, dict) else None
+        if snapshot_days:
+            return Decimal(str(snapshot_days))
+        return self._get_vacation_days_base(empresa_id)
+
     def _create_line(
         self,
         comprobante_id: str,
@@ -541,7 +549,7 @@ class AccountingVoucherService:
 
         nomina_empleado_by_id = {ne.id: ne for ne in nomina_empleados}
         nomina_empleado_by_empleado_id = {ne.empleado_id: ne for ne in nomina_empleados if ne.empleado_id}
-        dias_base = self._get_vacation_days_base(planilla.empresa_id)
+        dias_base = self._voucher_vacation_days_base(nomina, planilla.empresa_id)
         if dias_base <= 0:
             dias_base = Decimal("30")
 
@@ -567,9 +575,12 @@ class AccountingVoucherService:
             empleado_nombre_completo = f"{empleado.primer_nombre} {empleado.primer_apellido}"
 
             units = Decimal(str(abs(entry.quantity)))
-            # Use employee's monthly salary and apply currency conversion from payroll
-            # ne.sueldo_base_historico stores period salary, but vacation liability must use monthly salary
-            salario_mensual = Decimal(str(empleado.salario_base or Decimal("0.00")))
+            # ne.sueldo_base_historico stores period salary, but vacation liability
+            # must use the monthly salary frozen when this payroll was calculated.
+            employee_snapshot = self._employee_compensation_snapshot(nomina, empleado.id)
+            salario_mensual = Decimal(
+                str(employee_snapshot.get("salario_base", empleado.salario_base or Decimal("0.00")))
+            )
             tipo_cambio = Decimal(str(ne.tipo_cambio_aplicado or Decimal("1.00")))
             salario_base = salario_mensual * tipo_cambio
             porcentaje_pago = Decimal(
@@ -679,6 +690,16 @@ class AccountingVoucherService:
             if policy.get("id") == policy_id:
                 return policy
         return None
+
+    @staticmethod
+    def _employee_compensation_snapshot(nomina: Nomina, empleado_id: str | None) -> dict[str, Any]:
+        """Return immutable compensation inputs for an employee, if available."""
+        if not empleado_id:
+            return {}
+        employees = (nomina.catalogos_snapshot or {}).get("empleados", [])
+        if not isinstance(employees, list):
+            return {}
+        return next((employee for employee in employees if employee.get("id") == empleado_id), {})
 
     def generate_accounting_voucher(
         self, nomina: Nomina, planilla: Planilla, fecha_calculo: date | None = None, usuario: str | None = None

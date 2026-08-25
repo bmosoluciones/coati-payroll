@@ -131,3 +131,18 @@ def test_voucher_uses_frozen_paid_vacation_policy_when_policy_changes():
     assert policy is not None
     assert policy["cuenta_debito_vacaciones_pagadas"] == "VAC-HIST-DEBE"
     assert policy["cuenta_credito_vacaciones_pagadas"] == "VAC-HIST-HABER"
+
+
+def test_voucher_uses_frozen_vacation_liability_inputs_when_catalogs_change():
+    """A regenerated vacation entry retains historical salary and day basis."""
+    nomina = SimpleNamespace(
+        configuracion_snapshot={"dias_mes_vacaciones": 30},
+        catalogos_snapshot={"empleados": [{"id": "empleado-1", "salario_base": "1500.00"}]},
+    )
+    service = AccountingVoucherService(SimpleNamespace())
+
+    assert service._voucher_vacation_days_base(nomina, "empresa-1") == Decimal("30")
+    assert AccountingVoucherService._employee_compensation_snapshot(nomina, "empleado-1") == {
+        "id": "empleado-1",
+        "salario_base": "1500.00",
+    }
