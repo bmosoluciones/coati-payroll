@@ -1180,7 +1180,7 @@ class NominaNovedadForm(FlaskForm):
     )
     valor_cantidad = DecimalField(
         _("Valor / Cantidad"),
-        validators=[DataRequired()],
+        validators=[DataRequired(), NumberRange(min=0)],
         places=2,
         description=_("Valor numérico de la novedad (ej: 5 horas, 1500 de bono)"),
     )

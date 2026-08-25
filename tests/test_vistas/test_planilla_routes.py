@@ -1206,6 +1206,33 @@ def test_nueva_novedad_post_creates_novedad(
         assert novedad.empleado_id == nomina_empleado.empleado_id
 
 
+def test_nueva_novedad_rejects_negative_value(
+    app, client, admin_user, db_session, planilla, nomina, nomina_empleado, percepcion, planilla_novedad_conceptos
+):
+    """Negative values cannot be persisted and silently ignored by payroll."""
+    with app.app_context():
+        login_user(client, admin_user.usuario, "admin-password")
+        response = client.post(
+            f"/planilla/{planilla.id}/nomina/{nomina.id}/novedades/new",
+            data={
+                "empleado_id": nomina_empleado.empleado_id,
+                "codigo_concepto": "BONO",
+                "tipo_concepto": "income",
+                "percepcion_id": percepcion.id,
+                "tipo_valor": "monto",
+                "valor_cantidad": -500,
+                "fecha_novedad": date.today().isoformat(),
+            },
+        )
+
+        assert response.status_code == 200
+        from coati_payroll.model import NominaNovedad, db
+
+        assert db_session.execute(
+            db.select(NominaNovedad).filter_by(nomina_id=nomina.id, codigo_concepto="BONO")
+        ).scalar_one_or_none() is None
+
+
 def test_nueva_novedad_post_uses_concept_absence_defaults_when_flags_omitted(
     app,
     client,
