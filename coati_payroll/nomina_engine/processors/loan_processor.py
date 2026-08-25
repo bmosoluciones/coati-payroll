@@ -213,6 +213,7 @@ class LoanProcessor:
             fecha_desde=fecha_desde,
             fecha_hasta=fecha_hasta,
             tipo_interes=tipo_interes,
+            empresa_id=getattr(getattr(prestamo, "empleado", None), "empresa_id", None),
         )
 
         if interes_calculado <= 0:

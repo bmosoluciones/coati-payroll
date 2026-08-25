@@ -15,7 +15,7 @@ from coati_payroll.enums import NominaEstado, AdelantoEstado
 from coati_payroll.model import (
     Empresa, Moneda, TipoPlanilla, Planilla, Empleado, PlanillaEmpleado,
     Adelanto, AdelantoAbono, InteresAdelanto, AcumuladoAnual,
-    VacationPolicy, VacationAccount, VacationLedger, db
+    VacationPolicy, VacationAccount, VacationLedger, ConfiguracionCalculos, db
 )
 from coati_payroll.vistas.planilla.services.nomina_service import NominaService
 
@@ -33,6 +33,13 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
         )
         db_session.add(empresa)
         db_session.flush()
+        db_session.add(
+            ConfiguracionCalculos(
+                empresa_id=empresa.id,
+                dias_anio_financiero=360,
+                activo=True,
+            )
+        )
 
         tipo_planilla = TipoPlanilla(
             codigo="MENSUAL",
@@ -114,7 +121,7 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
             monto_aprobado=Decimal("5000.00"),
             saldo_pendiente=Decimal("5000.00"),
             monto_por_cuota=Decimal("1000.00"),
-            tasa_interes=Decimal("0.1200"),  # 12%
+            tasa_interes=Decimal("12.0000"),  # 12%
             tipo_interes="simple",
             estado=AdelantoEstado.APROBADO,
             fecha_desembolso=date(2025, 1, 1),
@@ -166,7 +173,9 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
             db.select(InteresAdelanto).filter_by(adelanto_id=loan.id, nomina_id=nomina.id)
         ).scalar_one_or_none()
         assert interest is not None
-        assert interest.interes_calculado > 0
+        # 5,000 * 12% * 30/360. Without the company basis this would use
+        # the global 365-day default and produce 49.32 instead of 50.00.
+        assert interest.interes_calculado == Decimal("50.00")
 
         abono = db_session.execute(
             db.select(AdelantoAbono).filter_by(adelanto_id=loan.id, nomina_id=nomina.id)
