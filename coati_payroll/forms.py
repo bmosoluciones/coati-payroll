@@ -1762,41 +1762,10 @@ class VacationPolicyForm(FlaskForm):
         validators=[Optional(), NumberRange(min=0)],
         description=_("Balance máximo permitido (opcional)"),
     )
-    carryover_limit = DecimalField(
-        _("Límite de Traspaso"),
-        validators=[Optional(), NumberRange(min=0)],
-        description=_("Máximo que puede traspasar al siguiente período (opcional)"),
-    )
     allow_negative = BooleanField(
         _("Permitir Balance Negativo"),
         default=False,
         description=_("Permitir adelanto de vacaciones"),
-    )
-
-    # Expiration rules
-    expiration_rule = SelectField(
-        _("Regla de Vencimiento"),
-        choices=[
-            ("never", _("Nunca")),
-            ("fiscal_year_end", _("Fin de Año Fiscal")),
-            ("anniversary", _("Aniversario")),
-            ("custom_date", _("Fecha Personalizada")),
-        ],
-        validators=[DataRequired()],
-        description=_(
-            "Cuándo vencen las vacaciones no usadas. "
-            "Se guarda como política; no aplica vencimientos automáticos si no hay proceso configurado."
-        ),
-    )
-    expiration_months = IntegerField(
-        _("Meses para Vencimiento"),
-        validators=[Optional(), NumberRange(min=0)],
-        description=_("Meses después del acumulación antes de vencer (opcional)"),
-    )
-    expiration_date = DateField(
-        _("Fecha de Vencimiento"),
-        validators=[Optional()],
-        description=_("Fecha personalizada de vencimiento (opcional)"),
     )
 
     # Termination rules

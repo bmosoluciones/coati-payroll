@@ -28,6 +28,19 @@ from tests.helpers.auth import login_user
 from tests.factories.user_factory import create_user
 
 
+def test_vacation_policy_form_hides_unsupported_carryover_and_expiration_controls(app):
+    """Unsupported policy fields are not configurable through the web form."""
+    from coati_payroll.forms import VacationPolicyForm
+
+    with app.app_context():
+        form = VacationPolicyForm()
+
+    assert "carryover_limit" not in form._fields
+    assert "expiration_rule" not in form._fields
+    assert "expiration_months" not in form._fields
+    assert "expiration_date" not in form._fields
+
+
 def _create_base_company_struct(db_session):
     empresa = Empresa(codigo="TEST001", razon_social="Test Company", ruc="J-123", activo=True)
     db_session.add(empresa)

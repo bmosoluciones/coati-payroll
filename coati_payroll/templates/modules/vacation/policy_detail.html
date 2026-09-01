@@ -89,15 +89,12 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">{{ _('Límites y Vencimiento') }}</h5>
+                    <h5 class="mb-0">{{ _('Límites') }}</h5>
                 </div>
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">{{ _('Balance Máximo') }}</dt>
                         <dd class="col-sm-8">{{ policy.max_balance if policy.max_balance else _('Sin límite') }}</dd>
-                        
-                        <dt class="col-sm-4">{{ _('Límite de Traspaso') }}</dt>
-                        <dd class="col-sm-8">{{ policy.carryover_limit if policy.carryover_limit else _('Sin límite') }}</dd>
                         
                         <dt class="col-sm-4">{{ _('Permitir Balance Negativo') }}</dt>
                         <dd class="col-sm-8">
@@ -108,8 +105,6 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             {% endif %}
                         </dd>
                         
-                        <dt class="col-sm-4">{{ _('Regla de Vencimiento') }}</dt>
-                        <dd class="col-sm-8">{{ policy.expiration_rule }}</dd>
                     </dl>
                 </div>
             </div>

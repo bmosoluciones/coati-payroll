@@ -73,17 +73,11 @@ Define cómo se acumulan, usan y vencen las vacaciones. Es completamente configu
 
 #### Límites de Balance
 - `max_balance`: Balance máximo permitido
-- `carryover_limit`: Máximo que puede traspasar al siguiente período
 - `allow_negative`: Permitir balance negativo (vacaciones adelantadas)
 
-#### Reglas de Vencimiento
-- `expiration_rule`: Cuándo vencen las vacaciones
-  - `never`: Nunca vencen
-  - `fiscal_year_end`: Al fin del año fiscal
-  - `anniversary`: En el aniversario del empleado
-  - `custom_date`: Fecha personalizada
-- `expiration_months`: Meses después de acumulación antes de vencer
-- `expiration_date`: Fecha personalizada de vencimiento
+> El traspaso y vencimiento automáticos aún no están disponibles. Sus
+> columnas se conservan para compatibilidad de datos, pero no se exponen en
+> la configuración ni se aplican durante la acumulación.
 
 #### Configuración de Uso
 - `unit_type`: Tipo de unidad
@@ -127,9 +121,7 @@ policy_nicaragua = VacationPolicy(
     unit_type="days",
     count_weekends=True,
     count_holidays=True,
-    payout_on_termination=True,
-    expiration_rule="anniversary",
-    expiration_months=12
+    payout_on_termination=True
 )
 ```
 
@@ -297,16 +289,7 @@ Representa una solicitud de vacaciones que afecta el balance cuando es aprobada.
 4. Registra observaciones y usuario
 ```
 
-### Flujo 4: Vencimiento de Vacaciones
-
-```
-1. Job programado evalúa políticas de vencimiento
-2. Identifica vacaciones vencidas según expiration_rule
-3. Genera VacationLedger (type=EXPIRATION, quantity=-N)
-4. Actualiza current_balance
-```
-
-### Flujo 5: Pago al Terminar Relación Laboral
+### Flujo 4: Pago al Terminar Relación Laboral
 
 ```
 1. Empleado es dado de baja
@@ -564,15 +547,6 @@ ORDER BY fecha DESC
 ```sql
 SELECT SUM(quantity) FROM vacation_ledger WHERE account_id = ?
 -- Debe ser igual a vacation_account.current_balance
-```
-
-### Vacaciones por Vencer
-```sql
-SELECT va.*, vp.expiration_months
-FROM vacation_account va
-JOIN vacation_policy vp ON va.policy_id = vp.id
-WHERE vp.expiration_rule != 'never'
-  AND va.last_accrual_date < DATEADD(MONTH, -vp.expiration_months, GETDATE())
 ```
 
 ## Seguridad y Permisos
