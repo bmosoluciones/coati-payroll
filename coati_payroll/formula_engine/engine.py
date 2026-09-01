@@ -139,6 +139,21 @@ class FormulaEngine:
             self.variables[step.name] = variable_value
             self.results[step.name] = result
 
+            # A tax lookup returns the calculated tax plus the selected
+            # bracket components.  Preserve each component in the execution
+            # context under the step name so later formulas can reuse the
+            # selected rate, fixed amount, or threshold without reimplementing
+            # the lookup in an expression.
+            if step.config.get("type") == "tax_lookup" and isinstance(result, dict):
+                for component in ("rate", "fixed", "over"):
+                    value = result.get(component)
+                    if value is None:
+                        continue
+                    variable_name = f"{step.name}_{component}"
+                    context = context.with_variable(variable_name, value)
+                    variable_store.set(variable_name, value)
+                    self.variables[variable_name] = value
+
             if context.trace_callback:
                 context.trace_callback(
                     _("Resultado paso '%(name)s' => %(result)s") % {"name": step.name, "result": result}

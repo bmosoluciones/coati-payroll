@@ -916,6 +916,34 @@ class TestCompleteExecution:
         # Monthly: 15000 / 12 = 1250
         assert result["output"] == "1250.00"
 
+    def test_tax_lookup_exposes_selected_bracket_components(self):
+        """Later steps can reuse the selected tax bracket's raw components."""
+        schema = {
+            "inputs": [{"name": "annual_income", "default": 150000}],
+            "steps": [
+                {"name": "tax", "type": "tax_lookup", "table": "progressive_rates", "input": "annual_income"},
+                {
+                    "name": "bracket_signature",
+                    "type": "calculation",
+                    "formula": "tax_rate * 100 + tax_fixed + tax_over",
+                },
+            ],
+            "tax_tables": {
+                "progressive_rates": [
+                    {"min": 0, "max": 100000, "rate": 0, "fixed": 0, "over": 0},
+                    {"min": 100000.01, "max": None, "rate": 0.20, "fixed": 5000, "over": 100000},
+                ]
+            },
+            "output": "bracket_signature",
+        }
+
+        result = FormulaEngine(schema).execute({"annual_income": 150000})
+
+        assert result["variables"]["tax_rate"] == "0.20"
+        assert result["variables"]["tax_fixed"] == "5000.00"
+        assert result["variables"]["tax_over"] == "100000.00"
+        assert result["output"] == "105020.00"
+
     def test_execute_returns_all_variables(self):
         """Test that execute returns all intermediate variables."""
         schema = {
