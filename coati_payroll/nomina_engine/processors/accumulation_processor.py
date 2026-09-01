@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from coati_payroll.model import db, Deduccion
@@ -82,6 +83,18 @@ class AccumulationProcessor:
         acumulado.ultimo_periodo_procesado = periodo_fin
 
         acumulado.salario_gravable_acumulado += emp_calculo.salario_gravable
+
+        accumulated_totals = dict(acumulado.datos_adicionales or {})
+        accumulated_totals["total_percepciones_acumulado"] = Decimal(
+            str(accumulated_totals.get("total_percepciones_acumulado", 0))
+        ) + sum((item.monto for item in emp_calculo.percepciones), Decimal("0.00"))
+        accumulated_totals["total_deducciones_acumulado"] = Decimal(
+            str(accumulated_totals.get("total_deducciones_acumulado", 0))
+        ) + sum((item.monto for item in emp_calculo.deducciones), Decimal("0.00"))
+        accumulated_totals["total_neto_acumulado"] = (
+            Decimal(str(accumulated_totals.get("total_neto_acumulado", 0))) + emp_calculo.salario_neto
+        )
+        acumulado.datos_adicionales = accumulated_totals
 
         # Sum up before-tax deductions and taxes
         for deduccion in emp_calculo.deducciones:

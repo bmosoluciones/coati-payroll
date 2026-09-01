@@ -188,6 +188,17 @@ class NominaService:
                 Decimal(str(acumulado.impuesto_retenido_acumulado or 0)) - deducciones["impuesto"],
                 Decimal("0.00"),
             )
+            accumulated_totals = dict(acumulado.datos_adicionales or {})
+            for field, amount in (
+                ("total_percepciones_acumulado", Decimal(str(ne.total_ingresos or 0))),
+                ("total_deducciones_acumulado", Decimal(str(ne.total_deducciones or 0))),
+                ("total_neto_acumulado", Decimal(str(ne.salario_neto or 0))),
+            ):
+                accumulated_totals[field] = max(
+                    Decimal(str(accumulated_totals.get(field, 0))) - amount,
+                    Decimal("0.00"),
+                )
+            acumulado.datos_adicionales = accumulated_totals
 
             acumulado.periodos_procesados = max(int(acumulado.periodos_procesados or 0) - 1, 0)
             if acumulado.periodos_procesados == 0:

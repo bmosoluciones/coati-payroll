@@ -10,7 +10,8 @@ from types import SimpleNamespace
 from typing import Any
 
 from coati_payroll.i18n import _
-from coati_payroll.model import AcumuladoAnual, Empleado, Planilla
+from coati_payroll.formula_engine.data_sources import AVAILABLE_DATA_SOURCES, get_formula_variable_name
+from coati_payroll.model import AcumuladoAnual, Adelanto, Empleado, Planilla, VacationAccount, db
 from ..domain.employee_calculation import EmpleadoCalculo
 from ..repositories.acumulado_repository import AcumuladoRepository
 from ..repositories.config_repository import ConfigRepository
@@ -134,6 +135,85 @@ class EmployeeProcessingService:
             "inasistencia_descuento": emp_calculo.inasistencia_descuento,
         }
 
+        # The formula editor publishes flat identifiers, so expose the
+        # documented employee, payroll type and planilla fields directly in
+        # the calculation context rather than advertising unusable dotted
+        # paths.  ``getattr`` keeps old installations compatible with records
+        # that predate optional fields.
+        for field in (
+            "primer_nombre",
+            "segundo_nombre",
+            "primer_apellido",
+            "segundo_apellido",
+            "identificacion_personal",
+            "id_seguridad_social",
+            "id_fiscal",
+            "genero",
+            "nacionalidad",
+            "estado_civil",
+            "fecha_nacimiento",
+            "fecha_alta",
+            "fecha_baja",
+            "fecha_ultimo_aumento",
+            "cargo",
+            "area",
+            "centro_costos",
+            "tipo_contrato",
+            "activo",
+            "banco",
+            "numero_cuenta_bancaria",
+            "ultimos_tres_salarios",
+            "datos_adicionales",
+        ):
+            variables[field] = getattr(empleado, field, None)
+        for field in (
+            "codigo",
+            "periodicidad",
+            "dias",
+            "periodos_por_anio",
+            "mes_inicio_fiscal",
+            "dia_inicio_fiscal",
+            "acumula_anual",
+        ):
+            variables[field] = getattr(tipo_planilla, field, None) if tipo_planilla else None
+        for field in (
+            "nombre",
+            "periodo_fiscal_inicio",
+            "periodo_fiscal_fin",
+            "prioridad_prestamos",
+            "prioridad_adelantos",
+        ):
+            variables[field] = getattr(planilla, field, None)
+
+        dias_base = Decimal(str(config.dias_mes_nomina))
+        horas_diarias = Decimal(str(config.horas_jornada_diaria))
+        inicio_laborado = max(periodo_inicio, fecha_alta)
+        fecha_baja = getattr(empleado, "fecha_baja", None)
+        fin_laborado = min(periodo_fin, fecha_baja) if fecha_baja else periodo_fin
+        dias_trabajados = max((fin_laborado - inicio_laborado).days + 1, 0)
+        edad_anios = 0
+        if fecha_nacimiento:
+            edad_anios = (
+                fecha_calculo.year
+                - fecha_nacimiento.year
+                - ((fecha_calculo.month, fecha_calculo.day) < (fecha_nacimiento.month, fecha_nacimiento.day))
+            )
+        variables.update(
+            {
+                "salario_diario": emp_calculo.salario_mensual / dias_base,
+                "salario_hora": emp_calculo.salario_mensual / dias_base / horas_diarias,
+                "edad_anios": Decimal(str(max(edad_anios, 0))),
+                "es_nuevo_ingreso": Decimal("1") if periodo_inicio <= fecha_alta <= periodo_fin else Decimal("0"),
+                "dias_proporcional": Decimal(str(dias_trabajados)),
+                "dias_trabajados_periodo": Decimal(str(dias_trabajados)),
+                "mes_nomina": Decimal(str(periodo_fin.month)),
+                "anio_nomina": Decimal(str(periodo_fin.year)),
+                "meses_restantes_fiscal": Decimal(str(meses_restantes)),
+                "periodos_restantes_fiscal": Decimal("0"),
+                "es_primer_periodo_sistema": Decimal("0"),
+            }
+        )
+
         salario_base_acumulado = Decimal(str(empleado.salario_acumulado or 0))
         impuesto_base_acumulado = Decimal(str(empleado.impuesto_acumulado or 0))
 
@@ -154,6 +234,62 @@ class EmployeeProcessingService:
         # Add novelties
         for codigo, valor in emp_calculo.novedades.items():
             variables[f"novedad_{codigo}"] = valor
+        for field_name, field_info in AVAILABLE_DATA_SOURCES["novedad"]["fields"].items():
+            variables.setdefault(get_formula_variable_name("novedad", field_name, field_info), Decimal("0.00"))
+
+        # Only values denominated in the planilla currency are safe to combine
+        # directly in a formula.  Cross-currency loan deductions are converted
+        # when they are applied by LoanProcessor.
+        employee_id = getattr(empleado, "id", None)
+        if employee_id:
+            loans_and_advances = (
+                db.session.execute(
+                    db.select(Adelanto).where(
+                        Adelanto.empleado_id == employee_id,
+                        Adelanto.estado == "approved",
+                        Adelanto.saldo_pendiente > 0,
+                        db.or_(Adelanto.moneda_id.is_(None), Adelanto.moneda_id == planilla.moneda_id),
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            loans = [item for item in loans_and_advances if item.deduccion_id]
+            advances = [item for item in loans_and_advances if not item.deduccion_id]
+            variables.update(
+                {
+                    "total_cuotas_prestamos": sum(
+                        (Decimal(str(item.monto_por_cuota or 0)) for item in loans), Decimal("0.00")
+                    ),
+                    "total_adelantos_pendientes": sum(
+                        (Decimal(str(item.saldo_pendiente or 0)) for item in advances), Decimal("0.00")
+                    ),
+                    "cantidad_prestamos_activos": Decimal(str(len(loans))),
+                    "saldo_total_prestamos": sum(
+                        (Decimal(str(item.saldo_pendiente or 0)) for item in loans), Decimal("0.00")
+                    ),
+                }
+            )
+            accounts_query = db.select(VacationAccount).where(
+                VacationAccount.empleado_id == employee_id,
+                VacationAccount.activo.is_(True),
+            )
+            if planilla.vacation_policy_id:
+                accounts_query = accounts_query.where(VacationAccount.policy_id == planilla.vacation_policy_id)
+            vacation_accounts = db.session.execute(accounts_query).scalars().all()
+            variables.update(
+                {
+                    "dias_vacaciones_acumulados": sum(
+                        (Decimal(str(account.accrued_days or 0)) for account in vacation_accounts), Decimal("0.00")
+                    ),
+                    "dias_vacaciones_tomados": sum(
+                        (Decimal(str(account.used_days or 0)) for account in vacation_accounts), Decimal("0.00")
+                    ),
+                    "dias_vacaciones_disponibles": sum(
+                        (Decimal(str(account.current_balance or 0)) for account in vacation_accounts), Decimal("0.00")
+                    ),
+                }
+            )
 
         # Load accumulated annual values
         acumulado = self._get_acumulado_anual(empleado, planilla, periodo_inicio)
@@ -162,6 +298,14 @@ class EmployeeProcessingService:
             variables["impuesto_acumulado"] = Decimal(str(acumulado.impuesto_retenido_acumulado or 0))
             variables["ir_retenido_acumulado"] = Decimal(str(acumulado.impuesto_retenido_acumulado or 0))
             variables["salario_acumulado_mes"] = Decimal(str(acumulado.salario_acumulado_mes or 0))
+            accumulated_totals = acumulado.datos_adicionales or {}
+            variables["total_percepciones_acumulado"] = Decimal(
+                str(accumulated_totals.get("total_percepciones_acumulado", 0))
+            )
+            variables["total_deducciones_acumulado"] = Decimal(
+                str(accumulated_totals.get("total_deducciones_acumulado", 0))
+            )
+            variables["total_neto_acumulado"] = Decimal(str(accumulated_totals.get("total_neto_acumulado", 0)))
 
             # Additional accumulated values for progressive tax calculations
             variables["salario_bruto_acumulado"] = Decimal(str(acumulado.salario_bruto_acumulado or 0))
@@ -170,6 +314,7 @@ class EmployeeProcessingService:
                 str(acumulado.deducciones_antes_impuesto_acumulado or 0)
             )
             variables["periodos_procesados"] = Decimal(str(acumulado.periodos_procesados or 0))
+            variables["numero_periodo"] = Decimal(str(int(acumulado.periodos_procesados or 0) + 1))
             # For monthly payroll, months worked should follow the fiscal calendar
             # (e.g. Feb payroll corresponds to period 2), not only processed runs.
             if tipo_planilla and (tipo_planilla.periodicidad or "").lower() in ("mensual", "monthly"):
@@ -199,6 +344,7 @@ class EmployeeProcessingService:
                 impuesto_base_acumulado if es_periodo_inicial else Decimal("0.00")
             )
             variables["periodos_procesados"] = Decimal("0.00")
+            variables["numero_periodo"] = Decimal("1")
             if tipo_planilla and (tipo_planilla.periodicidad or "").lower() in ("mensual", "monthly"):
                 meses_previos = self._calculate_elapsed_fiscal_months_before_period(
                     fecha_referencia=periodo_fin,
@@ -210,6 +356,21 @@ class EmployeeProcessingService:
             else:
                 variables["meses_trabajados"] = Decimal("0.00")
             variables["salario_neto_acumulado"] = salario_bruto_default - deducciones_antes_impuesto_default
+
+        for field_name in AVAILABLE_DATA_SOURCES["acumulado_anual"]["fields"]:
+            variables.setdefault(field_name, Decimal("0.00"))
+        for field_name in AVAILABLE_DATA_SOURCES["prestamos_adelantos"]["fields"]:
+            variables.setdefault(field_name, Decimal("0.00"))
+        for field_name in AVAILABLE_DATA_SOURCES["vacaciones"]["fields"]:
+            variables.setdefault(field_name, Decimal("0.00"))
+
+        numero_periodo = Decimal(str(variables["numero_periodo"]))
+        periodos_por_anio = Decimal(str(tipo_planilla.periodos_por_anio if tipo_planilla else meses_anio_financiero))
+        variables["periodos_restantes"] = max(periodos_por_anio - numero_periodo, Decimal("0"))
+        variables["periodos_restantes_fiscal"] = variables["periodos_restantes"]
+        variables["es_ultimo_periodo_anual"] = Decimal("1") if numero_periodo >= periodos_por_anio else Decimal("0")
+        variables["es_periodo_inicial"] = Decimal("1") if es_periodo_inicial else Decimal("0")
+        variables["es_primer_periodo_sistema"] = variables["es_periodo_inicial"]
 
         # Include initial accumulated values from employee
         variables["salario_inicial_acumulado"] = salario_base_acumulado

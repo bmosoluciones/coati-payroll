@@ -365,11 +365,6 @@ AVAILABLE_DATA_SOURCES = {
                 "label": "Días de Vacaciones Disponibles",
                 "description": "Días de vacaciones disponibles para disfrutar",
             },
-            "provision_vacaciones": {
-                "type": "decimal",
-                "label": "Provisión de Vacaciones",
-                "description": "Monto provisionado para vacaciones",
-            },
         },
     },
     "novedad": {
@@ -735,3 +730,22 @@ AVAILABLE_DATA_SOURCES = {
         },
     },
 }
+
+
+def get_formula_variable_name(category: str, field_name: str, field_info: dict | None = None) -> str:
+    """Return the executable variable name represented by a UI data source.
+
+    Formula expressions intentionally do not support Python attribute access;
+    the editor must therefore expose the same flat identifiers that the
+    payroll context provides.  Novelty values retain their persisted concept
+    code because that is the stable key used by the novelty processor.
+    """
+    if category == "novedad":
+        concept_code = (field_info or {}).get("codigo_concepto", field_name)
+        return f"novedad_{concept_code}"
+    aliases = {
+        "meses_restantes_fiscal": "meses_restantes",
+        "periodos_restantes_fiscal": "periodos_restantes",
+        "es_primer_periodo_sistema": "es_periodo_inicial",
+    }
+    return aliases.get(field_name, field_name)

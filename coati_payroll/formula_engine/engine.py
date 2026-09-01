@@ -20,7 +20,7 @@ from typing import Any
 from coati_payroll.i18n import _
 from coati_payroll.log import TRACE_LEVEL_NUM, is_trace_enabled, log
 
-from ..formula_engine.data_sources import AVAILABLE_DATA_SOURCES
+from ..formula_engine.data_sources import AVAILABLE_DATA_SOURCES, get_formula_variable_name
 from .ast.type_converter import to_decimal
 from .exceptions import ValidationError
 from .execution.execution_context import ExecutionContext
@@ -256,7 +256,7 @@ def get_available_sources_for_ui() -> list[dict]:
                 continue
             sources.append(
                 {
-                    "value": f"{category}.{field_name}",
+                    "value": get_formula_variable_name(category, field_name, field_info),
                     "label": f"{data_dict.get('label', category)} - {field_info.get('label', field_name)}",
                     "type": field_info.get("type"),
                     "description": field_info.get("description"),
