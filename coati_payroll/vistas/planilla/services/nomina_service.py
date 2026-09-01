@@ -220,15 +220,57 @@ class NominaService:
     def _rollback_payment(abono, adelanto_model) -> None:
         """Restore an advance balance after removing a payroll payment."""
         from coati_payroll.enums import AdelantoEstado
+        from coati_payroll.model import Nomina, TipoCambio
 
         adelanto = db.session.get(adelanto_model, abono.adelanto_id)
         if adelanto:
             adelanto.saldo_pendiente = Decimal(str(adelanto.saldo_pendiente or 0)) + Decimal(
                 str(abono.monto_abonado or 0)
             )
+            adelanto.monto_deducido_moneda_planilla = max(
+                Decimal("0.00"),
+                Decimal(str(adelanto.monto_deducido_moneda_planilla or 0))
+                - NominaService._payment_amount_in_planilla_currency(abono, adelanto, Nomina, TipoCambio),
+            )
+            adelanto.monto_aplicado_moneda_prestamo = max(
+                Decimal("0.00"),
+                Decimal(str(adelanto.monto_aplicado_moneda_prestamo or 0)) - Decimal(str(abono.monto_abonado or 0)),
+            )
             if adelanto.saldo_pendiente > 0 and adelanto.estado == AdelantoEstado.PAGADO:
                 adelanto.estado = AdelantoEstado.APROBADO
         db.session.delete(abono)
+
+    @staticmethod
+    def _payment_amount_in_planilla_currency(abono, adelanto, nomina_model, tipo_cambio_model) -> Decimal:
+        """Rebuild a payroll payment's planilla amount for a rollback.
+
+        The loan's dual-currency columns are cumulative values.  The original
+        payment amount is stored in loan currency in ``AdelantoAbono`` and its
+        effective-date exchange rate provides the exact reversible counterpart.
+        """
+        loan_amount = Decimal(str(abono.monto_abonado or 0))
+        if not abono.nomina_id or not adelanto.moneda_id:
+            return loan_amount
+        nomina = db.session.get(nomina_model, abono.nomina_id)
+        if not nomina or not nomina.planilla or adelanto.moneda_id == nomina.planilla.moneda_id:
+            return loan_amount
+        rate = db.session.execute(
+            db.select(tipo_cambio_model.tasa)
+            .where(
+                tipo_cambio_model.moneda_origen_id == adelanto.moneda_id,
+                tipo_cambio_model.moneda_destino_id == nomina.planilla.moneda_id,
+                tipo_cambio_model.fecha <= abono.fecha_abono,
+            )
+            .order_by(tipo_cambio_model.fecha.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        if rate is None:
+            # Existing legacy payments predate dual-currency tracking.  Their
+            # recorded loan amount is the only recoverable value.
+            return loan_amount
+        from coati_payroll.nomina_engine.utils.rounding import round_money
+
+        return round_money(loan_amount * Decimal(str(rate)))
 
     @staticmethod
     def _rollback_interest(interes, adelanto_model) -> None:
@@ -237,9 +279,7 @@ class NominaService:
         if adelanto:
             amount = Decimal(str(interes.interes_calculado or 0))
             adelanto.saldo_pendiente = max(Decimal("0.00"), Decimal(str(adelanto.saldo_pendiente or 0)) - amount)
-            adelanto.interes_acumulado = max(
-                Decimal("0.00"), Decimal(str(adelanto.interes_acumulado or 0)) - amount
-            )
+            adelanto.interes_acumulado = max(Decimal("0.00"), Decimal(str(adelanto.interes_acumulado or 0)) - amount)
             adelanto.fecha_ultimo_calculo_interes = interes.fecha_desde
         db.session.delete(interes)
 
