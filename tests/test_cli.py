@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import types
 import tempfile
+import os
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -845,14 +847,57 @@ def test_users_cache_maintenance_debug_and_serve_commands(app, monkeypatch):
         ["cache", "clear"],
         ["cache", "warm"],
         ["cache", "status"],
-        ["maintenance", "cleanup-sessions"],
         ["maintenance", "cleanup-temp"],
-        ["maintenance", "run-jobs"],
         ["debug", "config"],
         ["debug", "routes"],
     ]:
         result = runner.invoke(args=cmd, input=command_inputs.get(tuple(cmd), None))
         assert result.exit_code == 0
+
+
+def test_maintenance_commands_cleanup_real_resources_and_reject_stub(app, db_session, monkeypatch, tmp_path):
+    """Maintenance commands delete their declared targets or fail explicitly."""
+    import coati_payroll.cli as cli
+
+    runner = app.test_cli_runner()
+    with app.app_context():
+        app.config["SESSION_TYPE"] = "sqlalchemy"
+        app.config["SESSION_SQLALCHEMY_TABLE"] = "sessions"
+        db_session.execute(
+            db.text(
+                "INSERT INTO sessions (session_id, data, expiry) "
+                "VALUES ('expired', :data, :expiry), ('current', :data, :expiry_future)"
+            ),
+            {
+                "data": b"test",
+                "expiry": datetime.now(UTC) - timedelta(hours=1),
+                "expiry_future": datetime.now(UTC) + timedelta(hours=1),
+            },
+        )
+        db_session.commit()
+
+        result = runner.invoke(args=["maintenance", "cleanup-sessions"])
+        assert result.exit_code == 0
+        assert db_session.execute(db.text("SELECT COUNT(*) FROM sessions")).scalar() == 1
+
+        exports_dir = tmp_path / "exports" / "reports"
+        exports_dir.mkdir(parents=True)
+        expired_export = exports_dir / "expired.csv"
+        expired_export.write_text("old", encoding="utf-8")
+        recent_export = exports_dir / "recent.csv"
+        recent_export.write_text("new", encoding="utf-8")
+        old_timestamp = (datetime.now(UTC) - timedelta(days=8)).timestamp()
+        os.utime(expired_export, (old_timestamp, old_timestamp))
+        monkeypatch.setattr(cli, "DIRECTORIO_APP", tmp_path)
+
+        result = runner.invoke(args=["maintenance", "cleanup-temp"])
+        assert result.exit_code == 0
+        assert not expired_export.exists()
+        assert recent_export.exists()
+
+        result = runner.invoke(args=["maintenance", "run-jobs"])
+        assert result.exit_code != 0
+        assert "not supported" in result.output
 
 
 def test_plugins_group_and_main_paths(app, monkeypatch):

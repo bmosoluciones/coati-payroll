@@ -538,11 +538,10 @@ payrollctl cache status
 # Clean up expired sessions
 payrollctl maintenance cleanup-sessions
 
-# Clean up temporary files
+# Clean up report exports older than seven days (set COATI_TEMP_RETENTION_DAYS to change it)
 payrollctl maintenance cleanup-temp
 
-# Run pending background jobs
-payrollctl maintenance run-jobs
+# Background jobs are processed by a Dramatiq worker; `maintenance run-jobs` intentionally exits with an error.
 ```
 
 **Diagnostics and Debugging:**

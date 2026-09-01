@@ -16,7 +16,7 @@ import getpass
 import subprocess
 import shutil
 import sqlite3
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -31,6 +31,7 @@ from flask.cli import with_appcontext
 # <-------------------------------------------------------------------------> #
 # Local modules
 # <-------------------------------------------------------------------------> #
+from coati_payroll.config import DIRECTORIO_APP
 from coati_payroll.model import db, Usuario, PluginRegistry
 from coati_payroll.auth import proteger_passwd
 from coati_payroll.log import log
@@ -1381,13 +1382,30 @@ def maintenance():
 def maintenance_cleanup_sessions(ctx):
     """Clean up expired sessions."""
     try:
-        # This would clean up Flask-Session data
-        click.echo("Cleaning up expired sessions...")
-        output_result(ctx, "Session cleanup completed")
+        session_type = (current_app.config.get("SESSION_TYPE") or "").lower()
+        if session_type == "sqlalchemy":
+            table_name = current_app.config.get("SESSION_SQLALCHEMY_TABLE", "sessions")
+            if not isinstance(table_name, str) or not table_name.isidentifier():
+                raise click.ClickException("Invalid SESSION_SQLALCHEMY_TABLE configuration.")
+            result = db.session.execute(
+                db.text(f'DELETE FROM "{table_name}" WHERE expiry IS NOT NULL AND expiry <= :now'),
+                {"now": datetime.now(UTC)},
+            )
+            db.session.commit()
+            output_result(ctx, "Expired database sessions removed", {"deleted": result.rowcount})
+        elif session_type == "redis":
+            # Redis session keys have a TTL; expiration is enforced by Redis
+            # itself rather than by a process-local scanner.
+            output_result(ctx, "Redis expires session keys automatically", {"deleted": 0})
+        else:
+            raise click.ClickException(
+                f"Session cleanup is unsupported for SESSION_TYPE={session_type!r}; "
+                "use sqlalchemy or Redis-backed sessions."
+            )
 
     except Exception as e:
         output_result(ctx, f"Failed to cleanup sessions: {e}", None, False)
-        sys.exit(1)
+        raise click.ClickException(str(e)) from e
 
 
 @maintenance.command("cleanup-temp")
@@ -1396,26 +1414,41 @@ def maintenance_cleanup_sessions(ctx):
 def maintenance_cleanup_temp(ctx):
     """Clean up temporary files."""
     try:
-        click.echo("Cleaning up temporary files...")
-        output_result(ctx, "Temporary file cleanup completed")
+        retention_days = int(os.environ.get("COATI_TEMP_RETENTION_DAYS", "7"))
+        if retention_days < 0:
+            raise click.ClickException("COATI_TEMP_RETENTION_DAYS must be zero or greater.")
+
+        cutoff = datetime.now(UTC) - timedelta(days=retention_days)
+        exports_dir = Path(DIRECTORIO_APP) / "exports" / "reports"
+        deleted = 0
+        if exports_dir.exists():
+            for export_file in exports_dir.iterdir():
+                if not export_file.is_file() or export_file.is_symlink():
+                    continue
+                modified = datetime.fromtimestamp(export_file.stat().st_mtime, UTC)
+                if modified <= cutoff:
+                    export_file.unlink()
+                    deleted += 1
+        output_result(
+            ctx,
+            "Expired report exports removed",
+            {"deleted": deleted, "retention_days": retention_days, "directory": str(exports_dir)},
+        )
 
     except Exception as e:
         output_result(ctx, f"Failed to cleanup temp files: {e}", None, False)
-        sys.exit(1)
+        raise click.ClickException(str(e)) from e
 
 
 @maintenance.command("run-jobs")
 @with_appcontext
 @pass_context
 def maintenance_run_jobs(ctx):
-    """Run pending background jobs."""
-    try:
-        click.echo("Running pending background jobs...")
-        output_result(ctx, "Background jobs completed")
-
-    except Exception as e:
-        output_result(ctx, f"Failed to run jobs: {e}", None, False)
-        sys.exit(1)
+    """Fail explicitly: background jobs must run in a Dramatiq worker."""
+    del ctx
+    raise click.ClickException(
+        "maintenance run-jobs is not supported; start a Dramatiq worker to process queued jobs."
+    )
 
 
 # ============================================================================
