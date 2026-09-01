@@ -459,6 +459,55 @@ def test_deductions_are_applied_in_priority_and_capped_by_remaining_salary():
     assert sum(item.monto for item in result) == Decimal("1000.00")
 
 
+def test_deduction_stop_on_insufficient_balance_prevents_partial_and_later_deductions():
+    """A configured stop flag is honored at the deduction's priority boundary."""
+    calculator = ConceptCalculator(_ConfigRepository(), [])
+    warnings = []
+    deduction_calculator = DeductionCalculator(calculator, warnings)
+    employee = SimpleNamespace(
+        empleado=SimpleNamespace(primer_nombre="Ana", primer_apellido="Test"),
+        salario_bruto=Decimal("1000.00"),
+        deducciones=[],
+        inasistencia_codigos_descuento=set(),
+    )
+
+    def association(code, amount, priority, stop=False):
+        return SimpleNamespace(
+            activo=True,
+            prioridad=priority,
+            monto_predeterminado=None,
+            porcentaje=None,
+            es_obligatoria=False,
+            detener_si_insuficiente=stop,
+            deduccion=SimpleNamespace(
+                id=code,
+                codigo=code,
+                nombre=code,
+                activo=True,
+                formula_tipo="fixed",
+                monto_default=Decimal(amount),
+                porcentaje=None,
+                formula=None,
+                base_calculo=None,
+                vigente_desde=None,
+                valido_hasta=None,
+            ),
+        )
+
+    planilla = SimpleNamespace(
+        planilla_deducciones=[
+            association("D1", "800.00", 1),
+            association("STOP", "500.00", 2, stop=True),
+            association("D3", "50.00", 3),
+        ]
+    )
+
+    result = deduction_calculator.calculate(employee, planilla, date(2026, 2, 28))
+
+    assert [(item.codigo, item.monto) for item in result] == [("D1", Decimal("800.00"))]
+    assert any("STOP" in warning and "detuvo" in warning for warning in warnings)
+
+
 def test_employer_benefits_do_not_reduce_employee_net():
     calculator = ConceptCalculator(_ConfigRepository(), [])
     benefit_calculator = BenefitCalculator(calculator)

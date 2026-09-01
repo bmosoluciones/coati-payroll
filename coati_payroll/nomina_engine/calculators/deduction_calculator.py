@@ -79,6 +79,10 @@ class DeductionCalculator:
             formula = snap_val.get("formula", deduccion.formula)
             base_calculo = snap_val.get("base_calculo", getattr(deduccion, "base_calculo", None))
             unidad_calculo = snap_val.get("unidad_calculo", getattr(deduccion, "unidad_calculo", None))
+            association_snapshot = snap_val.get("asociacion") or {}
+            detener_si_insuficiente = association_snapshot.get(
+                "detener_si_insuficiente", getattr(planilla_deduccion, "detener_si_insuficiente", False)
+            )
 
             # Check validity dates against the live object only when there is no snapshot
             if not snapshot_entry:
@@ -102,6 +106,14 @@ class DeductionCalculator:
             )
 
             if monto > 0:
+                if detener_si_insuficiente and monto > saldo_disponible:
+                    self.warnings.append(
+                        f"Empleado {emp_calculo.empleado.primer_nombre} "
+                        f"{emp_calculo.empleado.primer_apellido}: "
+                        f"Deducción {deduccion.codigo} detuvo el procesamiento por saldo insuficiente "
+                        f"({saldo_disponible})."
+                    )
+                    break
                 monto_aplicar = max(Decimal("0.00"), min(monto, saldo_disponible))
 
                 if monto_aplicar <= 0:
