@@ -88,6 +88,17 @@ def test_failed_login_nonexistent_user(client, app, db_session):
     assert response.status_code in (200, 302, 303)
 
 
+def test_inactive_user_cannot_log_in(client, admin_user, db_session):
+    """An inactive account receives the same generic failed-login response."""
+    admin_user.activo = False
+    db_session.commit()
+
+    response = login_user(client, "admin-test", "admin-password")
+
+    assert response.status_code == 200
+    assert b"incorrect" in response.data.lower() or b"incorrectos" in response.data.lower()
+
+
 def test_protected_page_requires_login(client):
     """
     Test that protected pages require authentication.

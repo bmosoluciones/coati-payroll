@@ -160,6 +160,16 @@ class Usuario(database.Model, BaseTabla, UserMixin):
     activo = database.Column(database.Boolean(), default=True)
     ultimo_acceso = database.Column(database.DateTime, nullable=True)
 
+    @property
+    def is_active(self) -> bool:
+        """Return whether this account may authenticate or retain a session.
+
+        Flask-Login's default ``UserMixin`` implementation always returns
+        ``True``.  The persisted account status is the authoritative source so
+        disabling a user immediately invalidates both new and existing access.
+        """
+        return bool(self.activo)
+
     @validates("tipo")
     def validate_tipo(self, key, value):
         """Normalize and validate user role values."""

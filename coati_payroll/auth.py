@@ -97,7 +97,7 @@ def validar_acceso(usuario_id: str, acceso: str, /) -> bool:
             database.select(Usuario).filter_by(correo_electronico=usuario_id)
         ).scalar_one_or_none()
 
-    if registro is not None:
+    if registro is not None and registro.activo:
         try:
             hash_pwd = (
                 registro.acceso.decode("utf-8") if isinstance(registro.acceso, (bytes, bytearray)) else registro.acceso

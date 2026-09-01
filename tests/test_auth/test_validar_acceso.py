@@ -49,6 +49,20 @@ def test_validar_acceso_invalid_password(app, db_session):
         assert result is False
 
 
+def test_validar_acceso_rejects_inactive_user(app, db_session):
+    """Disabled accounts must not authenticate even with valid credentials."""
+    from coati_payroll.auth import validar_acceso
+
+    with app.app_context():
+        user = create_user(db_session, "inactive_user", "testpass")
+        user.activo = False
+        db_session.commit()
+
+        assert validar_acceso("inactive_user", "testpass") is False
+        db_session.refresh(user)
+        assert user.ultimo_acceso is None
+
+
 def test_validar_acceso_nonexistent_user(app, db_session):
     """
     Test validar_acceso with non-existent user.
