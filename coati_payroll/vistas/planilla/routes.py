@@ -6,10 +6,12 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import false, true
 
+from coati_payroll.audit_helpers import aprobar_planilla, marcar_planilla_como_borrador_si_editada, rechazar_planilla
+from coati_payroll.enums import TipoUsuario
 from coati_payroll.model import db, Planilla, VacationPolicy
 from coati_payroll.forms import PlanillaForm
 from coati_payroll.i18n import _
-from coati_payroll.rbac import require_read_access, require_write_access
+from coati_payroll.rbac import require_read_access, require_role, require_write_access
 from coati_payroll.vistas.planilla.helpers import (
     populate_form_choices,
     get_planilla_component_counts,
@@ -162,6 +164,15 @@ def edit(planilla_id: str):
             counts = get_planilla_component_counts(planilla_id)
             return render_template(TEMPLATE_PLANILLA_FORM, form=form, planilla=planilla, is_edit=True, **counts)
 
+        campos_editables = (
+            "nombre", "descripcion", "tipo_planilla_id", "moneda_id", "empresa_id", "mes_inicio_fiscal",
+            "vacation_policy_id", "periodo_fiscal_inicio", "periodo_fiscal_fin", "prioridad_prestamos",
+            "prioridad_adelantos", "aplicar_prestamos_automatico", "aplicar_adelantos_automatico",
+            "codigo_cuenta_debe_salario", "descripcion_cuenta_debe_salario", "codigo_cuenta_haber_salario",
+            "descripcion_cuenta_haber_salario", "activo",
+        )
+        valores_anteriores = {campo: getattr(planilla, campo) for campo in campos_editables}
+
         planilla.nombre = form.nombre.data
         planilla.descripcion = form.descripcion.data
         planilla.tipo_planilla_id = form.tipo_planilla_id.data
@@ -181,6 +192,13 @@ def edit(planilla_id: str):
         planilla.descripcion_cuenta_haber_salario = form.descripcion_cuenta_haber_salario.data
         planilla.activo = form.activo.data
         planilla.modificado_por = current_user.usuario
+        cambios = {
+            campo: {"anterior": str(anterior), "nuevo": str(getattr(planilla, campo))}
+            for campo, anterior in valores_anteriores.items()
+            if anterior != getattr(planilla, campo)
+        }
+        if cambios:
+            marcar_planilla_como_borrador_si_editada(planilla, current_user.usuario, cambios)
         db.session.commit()
         flash(_("Planilla actualizada exitosamente."), "success")
         return redirect(url_for("planilla.config", planilla_id=planilla.id))
@@ -195,6 +213,30 @@ def edit(planilla_id: str):
         is_edit=True,
         **counts,
     )
+
+
+@planilla_bp.route("/<planilla_id>/approve", methods=["POST"])
+@require_role(TipoUsuario.ADMIN, TipoUsuario.HHRR)
+def approve(planilla_id: str):
+    """Approve a payroll template and preserve its audit trail."""
+    planilla = db.get_or_404(Planilla, planilla_id)
+    if aprobar_planilla(planilla, current_user.usuario):
+        db.session.commit()
+        flash(_("Planilla aprobada exitosamente."), "success")
+    else:
+        flash(_("La planilla ya está aprobada."), "info")
+    return redirect(url_for("planilla.config", planilla_id=planilla.id))
+
+
+@planilla_bp.route("/<planilla_id>/reject", methods=["POST"])
+@require_role(TipoUsuario.ADMIN, TipoUsuario.HHRR)
+def reject(planilla_id: str):
+    """Return a payroll template to draft status with an audit entry."""
+    planilla = db.get_or_404(Planilla, planilla_id)
+    rechazar_planilla(planilla, current_user.usuario, request.form.get("razon") or None)
+    db.session.commit()
+    flash(_("Planilla marcada como borrador."), "warning")
+    return redirect(url_for("planilla.config", planilla_id=planilla.id))
 
 
 @planilla_bp.route("/<planilla_id>/config", methods=["GET"])

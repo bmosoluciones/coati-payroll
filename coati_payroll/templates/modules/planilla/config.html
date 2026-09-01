@@ -78,6 +78,14 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             <span class="badge bg-secondary">{{ _('Inactivo') }}</span>
                         {% endif %}
                     </p>
+                    <p><strong>{{ _('Aprobación') }}:</strong>
+                        {% if planilla.estado_aprobacion == 'approved' %}
+                            <span class="badge bg-success">{{ _('Aprobada') }}</span>
+                            {% if planilla.aprobado_por %}<small class="text-muted">{{ _('por') }} {{ planilla.aprobado_por }}</small>{% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary">{{ _('Borrador') }}</span>
+                        {% endif %}
+                    </p>
                     <p><strong>{{ _('Regla de Vacaciones') }}:</strong>
                         {% if planilla.vacation_policy %}
                             {{ planilla.vacation_policy.codigo }} - {{ planilla.vacation_policy.nombre }}
@@ -88,6 +96,19 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 </div>
             </div>
             <div class="text-end mt-3">
+                {% if current_user.tipo in ['admin', 'hr'] %}
+                    {% if planilla.estado_aprobacion == 'approved' %}
+                    <form method="POST" action="{{ url_for('planilla.reject', planilla_id=planilla.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-warning"><i class="bi bi-arrow-counterclockwise me-1"></i>{{ _('Devolver a borrador') }}</button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('planilla.approve', planilla_id=planilla.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>{{ _('Aprobar planilla') }}</button>
+                    </form>
+                    {% endif %}
+                {% endif %}
                 <a href="{{ url_for('planilla.edit', planilla_id=planilla.id) }}" class="btn btn-outline-primary">
                     <i class="bi bi-pencil me-1"></i>{{ _('Editar Configuración General') }}
                 </a>

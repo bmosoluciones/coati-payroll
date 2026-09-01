@@ -1835,3 +1835,24 @@ def test_concurrent_overlapping_nomina_novelties_isolation(
 
         db_session.refresh(novedad_a)
         assert novedad_a.estado == NovedadEstado.PENDIENTE  # Stays pending!
+
+
+def test_planilla_approval_routes_change_state_and_create_audit_log(client, db_session, admin_user, planilla):
+    """Planilla approval is exposed through the UI and remains auditable."""
+    from coati_payroll.model import PlanillaAuditLog, db
+
+    login_user(client, "admin-test", "admin-password")
+
+    response = client.post(f"/planilla/{planilla.id}/approve", follow_redirects=False)
+    assert response.status_code == 302
+    db_session.refresh(planilla)
+    assert planilla.estado_aprobacion == "approved"
+    assert planilla.aprobado_por == admin_user.usuario
+    assert db_session.execute(db.select(PlanillaAuditLog).filter_by(planilla_id=planilla.id, accion="approved")).scalar_one_or_none() is not None
+
+    response = client.post(f"/planilla/{planilla.id}/reject", data={"razon": "Ajuste pendiente"}, follow_redirects=False)
+    assert response.status_code == 302
+    db_session.refresh(planilla)
+    assert planilla.estado_aprobacion == "draft"
+    assert planilla.aprobado_por is None
+    assert db_session.execute(db.select(PlanillaAuditLog).filter_by(planilla_id=planilla.id, accion="rejected")).scalar_one_or_none() is not None
