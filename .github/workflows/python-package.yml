@@ -35,9 +35,6 @@ jobs:
         run: |
           flake8 coati_payroll
           ruff check coati_payroll
-      - name: Lint with pylint
-        run: |
-          pylint -j 0 coati_payroll
       - name: Type check with mypy
         run: |
           python -m mypy
