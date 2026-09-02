@@ -46,11 +46,17 @@ from coati_payroll.forms import (
 from coati_payroll.i18n import _
 from coati_payroll.enums import AdelantoEstado, AdelantoTipo
 from coati_payroll.rbac import require_read_access, require_write_access
+from coati_payroll.tenant import require_company_access, scope_company_query, scoped_employee_owned_or_none
 
 prestamo_bp = Blueprint("prestamo", __name__, url_prefix="/prestamo")
 LOAN_INDEX_ENDPOINT = "prestamo.index"
 LOAN_DETAIL_ENDPOINT = "prestamo.detail"
 LOAN_NOT_FOUND_MESSAGE = "Préstamo no encontrado."
+
+
+def _get_scoped_loan(prestamo_id: str):
+    """Load a loan only when its employee belongs to the active tenant."""
+    return scoped_employee_owned_or_none(Adelanto, prestamo_id, Adelanto.empleado_id)
 
 
 @prestamo_bp.route("/", methods=["GET"])
@@ -63,7 +69,7 @@ def index():
     tipo = request.args.get("tipo", "")
 
     # Build query
-    query = db.select(Adelanto).join(Empleado)
+    query = scope_company_query(db.select(Adelanto).join(Empleado), Empleado.empresa_id)
 
     if empleado_id:
         query = query.filter(Adelanto.empleado_id == empleado_id)
@@ -79,7 +85,7 @@ def index():
 
     # Get all employees for filter dropdown
     empleados = (
-        db.session.execute(db.select(Empleado).filter_by(activo=True).order_by(Empleado.primer_apellido))
+        db.session.execute(scope_company_query(db.select(Empleado), Empleado.empresa_id).filter_by(activo=True).order_by(Empleado.primer_apellido))
         .scalars()
         .all()
     )
@@ -104,7 +110,7 @@ def new():
 
     # Populate select fields
     empleados = (
-        db.session.execute(db.select(Empleado).filter_by(activo=True).order_by(Empleado.primer_apellido))
+        db.session.execute(scope_company_query(db.select(Empleado), Empleado.empresa_id).filter_by(activo=True).order_by(Empleado.primer_apellido))
         .scalars()
         .all()
     )
@@ -121,6 +127,8 @@ def new():
     form.deduccion_id.choices = [("", _("-- Sin deducción asociada --"))] + [(d.id, d.nombre) for d in deducciones]
 
     if form.validate_on_submit():
+        employee = db.session.get(Empleado, form.empleado_id.data)
+        require_company_access(employee.empresa_id if employee else None)
         prestamo = Adelanto()
         prestamo.empleado_id = form.empleado_id.data
         prestamo.tipo = form.tipo.data
@@ -165,7 +173,7 @@ def new():
 @require_read_access()
 def detail(prestamo_id):
     """View loan details including payment schedule."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -210,7 +218,7 @@ def detail(prestamo_id):
 @require_write_access()
 def edit(prestamo_id):
     """Edit a loan (only allowed in draft or pending state)."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -273,7 +281,7 @@ def edit(prestamo_id):
 @require_write_access()
 def submit(prestamo_id):
     """Submit a loan for approval (change from draft to pending)."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -294,7 +302,7 @@ def submit(prestamo_id):
 @require_write_access()
 def approve(prestamo_id):
     """Approve a loan and set it as active."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -362,7 +370,7 @@ def _calculate_installment_amount(prestamo) -> Decimal:
 @require_write_access()
 def cancel(prestamo_id):
     """Cancel a loan."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -440,7 +448,7 @@ def _adjust_payment_terms(prestamo, abono, tipo_aplicacion, monto_abonado):
 @require_write_access()
 def pago_extraordinario(prestamo_id):
     """Register an extraordinary/manual payment on a loan."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -504,7 +512,7 @@ def pago_extraordinario(prestamo_id):
 @require_write_access()
 def condonacion(prestamo_id):
     """Record a loan forgiveness/write-off (condonación de deuda)."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -604,7 +612,7 @@ def condonacion(prestamo_id):
 @require_read_access()
 def export_excel(prestamo_id):
     """Export payment schedule to Excel."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))
@@ -685,7 +693,7 @@ def export_excel(prestamo_id):
 @require_read_access()
 def export_pdf(prestamo_id):
     """Export payment schedule to PDF."""
-    prestamo = db.session.get(Adelanto, prestamo_id)
+    prestamo = _get_scoped_loan(prestamo_id)
     if not prestamo:
         flash(_(LOAN_NOT_FOUND_MESSAGE), "danger")
         return redirect(url_for(LOAN_INDEX_ENDPOINT))

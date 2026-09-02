@@ -20,9 +20,16 @@ from coati_payroll.model import (
     Moneda,
     Prestacion,
     PrestacionAcumulada,
+    empresa_prestacion,
     db,
 )
 from coati_payroll.rbac import require_read_access, require_write_access
+from coati_payroll.tenant import (
+    concept_scope_query,
+    require_company_access,
+    scope_company_query,
+    scoped_employee_owned_or_404,
+)
 from coati_payroll.vistas.constants import PER_PAGE
 
 carga_inicial_prestacion_bp = Blueprint("carga_inicial_prestacion", __name__, url_prefix="/carga-inicial-prestaciones")
@@ -37,7 +44,10 @@ def index():
     page = request.args.get("page", 1, type=int)
     estado_filter = request.args.get("estado", "")
 
-    query = CargaInicialPrestacion.query
+    query = scope_company_query(
+        db.select(CargaInicialPrestacion).join(CargaInicialPrestacion.empleado),
+        Empleado.empresa_id,
+    )
 
     # Apply filters
     if estado_filter:
@@ -47,7 +57,7 @@ def index():
     query = query.order_by(CargaInicialPrestacion.creado.desc())
 
     # Paginate
-    pagination = query.paginate(page=page, per_page=PER_PAGE, error_out=False)
+    pagination = db.paginate(query, page=page, per_page=PER_PAGE, error_out=False)
     cargas = pagination.items
 
     return render_template(
@@ -67,12 +77,20 @@ def nueva():
     # Populate select field choices
     form.empleado_id.choices = [("", _("-- Seleccionar --"))] + [
         (emp.id, f"{emp.codigo_empleado} - {emp.primer_nombre} {emp.primer_apellido}")
-        for emp in Empleado.query.filter_by(activo=True).order_by(Empleado.codigo_empleado).all()
+        for emp in db.session.execute(
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
+            .filter(Empleado.activo.is_(True))
+            .order_by(Empleado.codigo_empleado)
+        ).scalars().all()
     ]
 
     form.prestacion_id.choices = [("", _("-- Seleccionar --"))] + [
         (prest.id, f"{prest.codigo} - {prest.nombre}")
-        for prest in Prestacion.query.filter_by(activo=True).order_by(Prestacion.codigo).all()
+        for prest in db.session.execute(
+            concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id)
+            .filter(Prestacion.activo.is_(True))
+            .order_by(Prestacion.codigo)
+        ).scalars().all()
     ]
 
     form.moneda_id.choices = [("", _("-- Seleccionar --"))] + [
@@ -81,15 +99,24 @@ def nueva():
     ]
 
     if form.validate_on_submit():
+        empleado = db.session.get(Empleado, form.empleado_id.data)
+        if empleado is None:
+            abort(404)
+        require_company_access(empleado.empresa_id)
+
         # Check for duplicate
-        existing = CargaInicialPrestacion.query.filter(
+        existing_query = scope_company_query(
+            db.select(CargaInicialPrestacion).join(CargaInicialPrestacion.empleado),
+            Empleado.empresa_id,
+        ).filter(
             and_(
                 CargaInicialPrestacion.empleado_id == form.empleado_id.data,
                 CargaInicialPrestacion.prestacion_id == form.prestacion_id.data,
                 CargaInicialPrestacion.anio_corte == form.anio_corte.data,
                 CargaInicialPrestacion.mes_corte == form.mes_corte.data,
             )
-        ).first()
+        )
+        existing = db.session.execute(existing_query).scalar_one_or_none()
 
         if existing:
             flash(
@@ -125,9 +152,7 @@ def nueva():
 @require_write_access()
 def editar(carga_id):
     """Edit an initial benefit balance load (only if in draft status)."""
-    carga = db.session.get(CargaInicialPrestacion, carga_id)
-    if carga is None:
-        abort(404)
+    carga = scoped_employee_owned_or_404(CargaInicialPrestacion, carga_id, CargaInicialPrestacion.empleado_id)
 
     if carga.estado == "applied":
         flash(_("No se puede editar una carga inicial ya aplicada."), "warning")
@@ -138,12 +163,20 @@ def editar(carga_id):
     # Populate select field choices
     form.empleado_id.choices = [("", _("-- Seleccionar --"))] + [
         (emp.id, f"{emp.codigo_empleado} - {emp.primer_nombre} {emp.primer_apellido}")
-        for emp in Empleado.query.filter_by(activo=True).order_by(Empleado.codigo_empleado).all()
+        for emp in db.session.execute(
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
+            .filter(Empleado.activo.is_(True))
+            .order_by(Empleado.codigo_empleado)
+        ).scalars().all()
     ]
 
     form.prestacion_id.choices = [("", _("-- Seleccionar --"))] + [
         (prest.id, f"{prest.codigo} - {prest.nombre}")
-        for prest in Prestacion.query.filter_by(activo=True).order_by(Prestacion.codigo).all()
+        for prest in db.session.execute(
+            concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id)
+            .filter(Prestacion.activo.is_(True))
+            .order_by(Prestacion.codigo)
+        ).scalars().all()
     ]
 
     form.moneda_id.choices = [("", _("-- Seleccionar --"))] + [
@@ -152,6 +185,10 @@ def editar(carga_id):
     ]
 
     if form.validate_on_submit():
+        empleado = db.session.get(Empleado, form.empleado_id.data)
+        if empleado is None:
+            abort(404)
+        require_company_access(empleado.empresa_id)
         carga.empleado_id = form.empleado_id.data
         carga.prestacion_id = form.prestacion_id.data
         carga.anio_corte = form.anio_corte.data
@@ -177,9 +214,7 @@ def editar(carga_id):
 @require_write_access()
 def aplicar(carga_id):
     """Apply an initial balance load - creates transaction in prestacion_acumulada."""
-    carga = db.session.get(CargaInicialPrestacion, carga_id)
-    if carga is None:
-        abort(404)
+    carga = scoped_employee_owned_or_404(CargaInicialPrestacion, carga_id, CargaInicialPrestacion.empleado_id)
 
     if carga.estado == CargaInicialEstado.APLICADO:
         flash(_("Esta carga inicial ya ha sido aplicada."), "warning")
@@ -230,9 +265,7 @@ def aplicar(carga_id):
 @require_write_access()
 def eliminar(carga_id):
     """Delete an initial balance load (only if in draft status)."""
-    carga = db.session.get(CargaInicialPrestacion, carga_id)
-    if carga is None:
-        abort(404)
+    carga = scoped_employee_owned_or_404(CargaInicialPrestacion, carga_id, CargaInicialPrestacion.empleado_id)
 
     if carga.estado == CargaInicialEstado.APLICADO:
         flash(_("No se puede eliminar una carga inicial ya aplicada."), "warning")
@@ -260,7 +293,10 @@ def reporte():
     fecha_hasta = request.args.get("fecha_hasta")
 
     # Build query
-    query = PrestacionAcumulada.query
+    query = scope_company_query(
+        db.select(PrestacionAcumulada).join(PrestacionAcumulada.empleado),
+        Empleado.empresa_id,
+    )
 
     if empleado_id:
         query = query.filter(PrestacionAcumulada.empleado_id == empleado_id)
@@ -275,13 +311,21 @@ def reporte():
         query = query.filter(PrestacionAcumulada.fecha_transaccion <= fecha_hasta)
 
     # Order by date
-    transacciones = query.order_by(
+    transacciones = db.session.execute(query.order_by(
         PrestacionAcumulada.empleado_id, PrestacionAcumulada.prestacion_id, PrestacionAcumulada.fecha_transaccion
-    ).all()
+    )).scalars().all()
 
     # Get choices for filters
-    empleados = Empleado.query.filter_by(activo=True).order_by(Empleado.codigo_empleado).all()
-    prestaciones = Prestacion.query.filter_by(activo=True).order_by(Prestacion.codigo).all()
+    empleados = db.session.execute(
+        scope_company_query(db.select(Empleado), Empleado.empresa_id)
+        .filter(Empleado.activo.is_(True))
+        .order_by(Empleado.codigo_empleado)
+    ).scalars().all()
+    prestaciones = db.session.execute(
+        concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id)
+        .filter(Prestacion.activo.is_(True))
+        .order_by(Prestacion.codigo)
+    ).scalars().all()
 
     return render_template(
         "modules/carga_inicial_prestacion/reporte.html",
@@ -297,7 +341,10 @@ def reporte():
 
 def _get_report_transactions():
     """Load report transactions using the optional request filters."""
-    query = PrestacionAcumulada.query
+    query = scope_company_query(
+        db.select(PrestacionAcumulada).join(PrestacionAcumulada.empleado),
+        Empleado.empresa_id,
+    )
     filters = (
         ("empleado_id", PrestacionAcumulada.empleado_id),
         ("prestacion_id", PrestacionAcumulada.prestacion_id),
@@ -314,11 +361,12 @@ def _get_report_transactions():
         value = request.args.get(parameter)
         if value:
             query = query.filter(operator(field, value))
-    return query.order_by(
+    query = query.order_by(
         PrestacionAcumulada.empleado_id,
         PrestacionAcumulada.prestacion_id,
         PrestacionAcumulada.fecha_transaccion,
-    ).all()
+    )
+    return db.session.execute(query).scalars().all()
 
 
 def _report_row_values(trans):

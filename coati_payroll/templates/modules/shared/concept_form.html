@@ -49,6 +49,14 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             </div>
                         </div>
 
+                        {% if form.empresa_ids is defined %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                {{ render_field(form.empresa_ids) }}
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <div class="row">
                             <div class="col-12">
                                 {{ render_field(form.descripcion) }}

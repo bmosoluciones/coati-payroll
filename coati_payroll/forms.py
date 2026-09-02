@@ -24,6 +24,7 @@ from wtforms import (
     IntegerField,
     PasswordField,
     SelectField,
+    SelectMultipleField,
     StringField,
     SubmitField,
 )
@@ -87,6 +88,12 @@ class UserForm(FlaskForm):
         validators=[DataRequired()],
     )
     activo = BooleanField(_("Activo"), default=True)
+    empresa_ids = SelectMultipleField(
+        _("Empresas asignadas"),
+        validators=[Optional()],
+        coerce=str,
+        description=_("Seleccione las empresas que este usuario puede consultar y administrar."),
+    )
     submit = SubmitField(_("Guardar"))
 
 
@@ -571,6 +578,10 @@ class PercepcionForm(FlaskForm):
         ),
     )
     activo = BooleanField(_("Activo"), default=True)
+    empresa_ids = SelectMultipleField(
+        _("Empresas autorizadas"), validators=[Optional()], coerce=str,
+        description=_("Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."),
+    )
     submit = SubmitField(_("Guardar"))
 
 
@@ -740,6 +751,10 @@ class DeduccionForm(FlaskForm):
         ),
     )
     activo = BooleanField(_("Activo"), default=True)
+    empresa_ids = SelectMultipleField(
+        _("Empresas autorizadas"), validators=[Optional()], coerce=str,
+        description=_("Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."),
+    )
     submit = SubmitField(_("Guardar"))
 
 
@@ -1109,6 +1124,10 @@ class PrestacionForm(FlaskForm):
         ),
     )
     activo = BooleanField(_("Activo"), default=True)
+    empresa_ids = SelectMultipleField(
+        _("Empresas autorizadas"), validators=[Optional()], coerce=str,
+        description=_("Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."),
+    )
     submit = SubmitField(_("Guardar"))
 
 

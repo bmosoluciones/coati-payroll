@@ -18,7 +18,7 @@ from datetime import datetime
 # <-------------------------------------------------------------------------> #
 # Third party packages
 # <-------------------------------------------------------------------------> #
-from flask import Flask, flash, redirect, url_for
+from flask import Flask, flash, redirect, url_for, session
 from flask_alembic import Alembic
 from flask_babel import Babel
 from flask_login import LoginManager
@@ -35,6 +35,7 @@ from coati_payroll.auth import auth
 from coati_payroll.config import DIRECTORIO_ARCHIVOS_BASE, DIRECTORIO_PLANTILLAS_BASE
 from coati_payroll.i18n import _
 from coati_payroll.model import Usuario, db
+from coati_payroll.tenant import active_empresa_id, accessible_empresas
 from coati_payroll.log import log
 from coati_payroll.plugin_manager import get_active_plugins_menu_entries, register_active_plugins, sync_plugin_registry
 
@@ -282,6 +283,17 @@ def create_app(config) -> Flask:
         except Exception:
             plugin_actives = []
         return {"plugin_actives": plugin_actives}
+
+    @app.context_processor
+    def inject_tenant_context():
+        """Expose the validated company scope to every rendered page."""
+        try:
+            return {
+                "tenant_empresas": accessible_empresas(),
+                "active_empresa_id": active_empresa_id(),
+            }
+        except Exception:
+            return {"tenant_empresas": [], "active_empresa_id": None}
 
     # Register CLI commands
     from coati_payroll.cli import register_cli_commands

@@ -15,7 +15,11 @@ from coati_payroll.model import (
     PlanillaDeduccion,
     PlanillaPrestacion,
     PlanillaReglaCalculo,
+    Percepcion,
+    Deduccion,
+    Prestacion,
 )
+from coati_payroll.tenant import scoped_or_404
 
 
 def get_planilla_component_counts(planilla_id: str) -> dict:
@@ -106,6 +110,12 @@ _COMPONENT_REGISTRY: dict[str, dict[str, Any]] = {
     },
 }
 
+_CONCEPT_MODELS = {
+    "income": Percepcion,
+    "deduction": Deduccion,
+    "benefit": Prestacion,
+}
+
 
 def agregar_asociacion(
     planilla_id: str,
@@ -129,9 +139,7 @@ def agregar_asociacion(
     datos_extra = datos_extra or {}
     usuario = usuario or "system"
 
-    planilla = db.session.get(Planilla, planilla_id)
-    if not planilla:
-        return False, "Planilla no encontrada", None
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     if not componente_id:
         return False, f"Debe seleccionar una {tipo_componente}.", None
@@ -143,6 +151,14 @@ def agregar_asociacion(
     reg = _COMPONENT_REGISTRY.get(tipo_componente)
     if not reg:
         return False, f"Tipo de componente desconocido: {tipo_componente}", None
+
+    concept_model = _CONCEPT_MODELS.get(tipo_componente)
+    if concept_model is not None:
+        concept = db.session.get(concept_model, componente_id)
+        if concept is None:
+            return False, f"{tipo_componente} no encontrada", None
+        if concept.empresas and not any(empresa.id == planilla.empresa_id for empresa in concept.empresas):
+            return False, f"La {tipo_componente} no está autorizada para esta empresa", None
 
     filter_params = {"planilla_id": planilla_id, reg["fk_field"]: componente_id}
     existing = db.session.execute(db.select(reg["model"]).filter_by(**filter_params)).scalar_one_or_none()

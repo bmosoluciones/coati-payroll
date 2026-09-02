@@ -19,6 +19,7 @@ from coati_payroll.liquidacion_engine import ejecutar_liquidacion, recalcular_li
 from coati_payroll.vistas.planilla.helpers import check_openpyxl_available
 from coati_payroll.vistas.planilla.services import ExportService
 from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
+from coati_payroll.tenant import require_company_access, scope_company_query, scoped_employee_owned_or_404
 
 liquidacion_bp = Blueprint("liquidacion", __name__, url_prefix="/liquidaciones")
 
@@ -42,7 +43,7 @@ def index():
     fecha_hasta = request.args.get("fecha_hasta", type=str)
 
     # Build query with filters
-    query = db.select(Liquidacion).join(Liquidacion.empleado)
+    query = scope_company_query(db.select(Liquidacion).join(Liquidacion.empleado), Empleado.empresa_id)
 
     if buscar:
         search_term = f"%{buscar}%"
@@ -91,7 +92,7 @@ def index():
 def nueva():
     """Create and calculate a new liquidacion."""
     empleados = (
-        db.session.execute(db.select(Empleado).filter_by(activo=True).order_by(Empleado.primer_apellido))
+        db.session.execute(scope_company_query(db.select(Empleado), Empleado.empresa_id).filter_by(activo=True).order_by(Empleado.primer_apellido))
         .scalars()
         .all()
     )
@@ -112,6 +113,8 @@ def nueva():
             flash(_("Formato de fecha inválido."), "error")
             return redirect(url_for("liquidacion.nueva"))
 
+        empleado = db.session.get(Empleado, empleado_id)
+        require_company_access(empleado.empresa_id if empleado else None)
         liquidacion, errors, warnings = ejecutar_liquidacion(
             empleado_id=empleado_id,
             concepto_id=concepto_id,
@@ -140,7 +143,8 @@ def nueva():
 @require_read_access()
 def ver(liquidacion_id: str):
     """View liquidacion detail."""
-    liquidacion = db.get_or_404(Liquidacion, liquidacion_id)
+    liquidacion = scoped_employee_owned_or_404(Liquidacion, liquidacion_id, Liquidacion.empleado_id)
+    require_company_access(liquidacion.empleado.empresa_id if liquidacion.empleado else None)
     return render_template("modules/liquidacion/ver.html", liquidacion=liquidacion)
 
 
@@ -148,7 +152,8 @@ def ver(liquidacion_id: str):
 @login_required
 @require_write_access()
 def recalcular(liquidacion_id: str):
-    liquidacion = db.get_or_404(Liquidacion, liquidacion_id)
+    liquidacion = scoped_employee_owned_or_404(Liquidacion, liquidacion_id, Liquidacion.empleado_id)
+    require_company_access(liquidacion.empleado.empresa_id if liquidacion.empleado else None)
     nueva, errors, warnings = recalcular_liquidacion(
         liquidacion_id=liquidacion.id,
         fecha_calculo=liquidacion.fecha_calculo,
@@ -169,7 +174,8 @@ def recalcular(liquidacion_id: str):
 @login_required
 @require_write_access()
 def aplicar(liquidacion_id: str):
-    liquidacion = db.get_or_404(Liquidacion, liquidacion_id)
+    liquidacion = scoped_employee_owned_or_404(Liquidacion, liquidacion_id, Liquidacion.empleado_id)
+    require_company_access(liquidacion.empleado.empresa_id if liquidacion.empleado else None)
 
     if liquidacion.estado not in {LiquidacionEstado.BORRADOR, LiquidacionEstado.CALCULADA}:
         flash(_("Solo se pueden aplicar liquidaciones en borrador o calculadas."), "error")
@@ -229,7 +235,8 @@ def aplicar(liquidacion_id: str):
 @login_required
 @require_write_access()
 def pagar(liquidacion_id: str):
-    liquidacion = db.get_or_404(Liquidacion, liquidacion_id)
+    liquidacion = scoped_employee_owned_or_404(Liquidacion, liquidacion_id, Liquidacion.empleado_id)
+    require_company_access(liquidacion.empleado.empresa_id if liquidacion.empleado else None)
 
     if liquidacion.estado != LiquidacionEstado.APLICADO:
         flash(_("Solo se pueden pagar liquidaciones aplicadas."), "error")
@@ -249,7 +256,8 @@ def exportar_excel(liquidacion_id: str):
         flash(_("Excel export no disponible. Instale openpyxl."), "warning")
         return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion_id))
 
-    liquidacion = db.get_or_404(Liquidacion, liquidacion_id)
+    liquidacion = scoped_employee_owned_or_404(Liquidacion, liquidacion_id, Liquidacion.empleado_id)
+    require_company_access(liquidacion.empleado.empresa_id if liquidacion.empleado else None)
 
     try:
         output, filename = ExportService.exportar_liquidacion_excel(liquidacion)

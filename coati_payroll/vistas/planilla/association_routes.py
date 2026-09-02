@@ -3,7 +3,7 @@
 """Routes for managing planilla associations."""
 
 from datetime import date
-from flask import flash, redirect, request, url_for
+from flask import abort, flash, redirect, request, url_for
 from flask_login import current_user
 
 from coati_payroll.model import (
@@ -21,6 +21,7 @@ from coati_payroll.rbac import require_write_access
 from coati_payroll.vistas.planilla import planilla_bp
 from coati_payroll.vistas.planilla.helpers.association_helpers import agregar_asociacion
 from coati_payroll.vistas.planilla.validators.planilla_validators import PlanillaValidator
+from coati_payroll.tenant import require_company_access, scoped_or_404
 
 # Constants
 ROUTE_CONFIG_EMPLEADOS = "planilla.config_empleados"
@@ -33,11 +34,20 @@ LITERAL_CONFIG_EMPLEADOS = "planilla.config_empleados"
 LITERAL_CONFIG_DEDUCCIONES = "planilla.config_deducciones"
 
 
+def _scoped_association(planilla_id: str, model, association_id: str):
+    """Load an association only through its already-scoped planilla."""
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
+    association = db.get_or_404(model, association_id)
+    if association.planilla_id != planilla.id:
+        abort(404)
+    return association
+
+
 @planilla_bp.route("/<planilla_id>/empleado/add", methods=["POST"])
 @require_write_access()
 def add_empleado(planilla_id: str):
     """Add an employee to the planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
     empleado_id = request.form.get("empleado_id")
 
     if not empleado_id:
@@ -55,6 +65,8 @@ def add_empleado(planilla_id: str):
 
     # Validate that employee and planilla belong to the same company
     empleado = db.get_or_404(Empleado, empleado_id)
+    if empleado.empresa_id:
+        require_company_access(empleado.empresa_id)
     is_valid, error_message = PlanillaValidator.validar_empresa_empleado(planilla, empleado)
     if not is_valid:
         flash(_(error_message or "Empleado no válido para esta planilla."), "error")
@@ -77,7 +89,7 @@ def add_empleado(planilla_id: str):
 @require_write_access()
 def remove_empleado(planilla_id: str, association_id: str):
     """Remove an employee from the planilla."""
-    association = db.get_or_404(PlanillaEmpleado, association_id)
+    association = _scoped_association(planilla_id, PlanillaEmpleado, association_id)
     db.session.delete(association)
     db.session.commit()
     flash(_("Empleado removido exitosamente."), "success")
@@ -111,7 +123,7 @@ def add_percepcion(planilla_id: str):
 @require_write_access()
 def remove_percepcion(planilla_id: str, association_id: str):
     """Remove a perception from the planilla."""
-    association = db.get_or_404(PlanillaIngreso, association_id)
+    association = _scoped_association(planilla_id, PlanillaIngreso, association_id)
     db.session.delete(association)
     db.session.commit()
     flash(_("Percepción removida exitosamente."), "success")
@@ -146,7 +158,7 @@ def add_deduccion(planilla_id: str):
 @require_write_access()
 def remove_deduccion(planilla_id: str, association_id: str):
     """Remove a deduction from the planilla."""
-    association = db.get_or_404(PlanillaDeduccion, association_id)
+    association = _scoped_association(planilla_id, PlanillaDeduccion, association_id)
     db.session.delete(association)
     db.session.commit()
     flash(_("Deducción removida exitosamente."), "success")
@@ -157,7 +169,7 @@ def remove_deduccion(planilla_id: str, association_id: str):
 @require_write_access()
 def update_deduccion_priority(planilla_id: str, association_id: str):
     """Update the priority of a deduction."""
-    association = db.get_or_404(PlanillaDeduccion, association_id)
+    association = _scoped_association(planilla_id, PlanillaDeduccion, association_id)
 
     prioridad = request.form.get("prioridad", type=int)
     if prioridad is not None:
@@ -196,7 +208,7 @@ def add_prestacion(planilla_id: str):
 @require_write_access()
 def remove_prestacion(planilla_id: str, association_id: str):
     """Remove a benefit from the planilla."""
-    association = db.get_or_404(PlanillaPrestacion, association_id)
+    association = _scoped_association(planilla_id, PlanillaPrestacion, association_id)
     db.session.delete(association)
     db.session.commit()
     flash(_("Prestación removida exitosamente."), "success")
@@ -230,7 +242,7 @@ def add_regla(planilla_id: str):
 @require_write_access()
 def remove_regla(planilla_id: str, association_id: str):
     """Remove a calculation rule from the planilla."""
-    association = db.get_or_404(PlanillaReglaCalculo, association_id)
+    association = _scoped_association(planilla_id, PlanillaReglaCalculo, association_id)
     db.session.delete(association)
     db.session.commit()
     flash(_("Regla de cálculo removida exitosamente."), "success")

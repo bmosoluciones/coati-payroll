@@ -16,6 +16,7 @@ from coati_payroll.forms import EmployeeForm, SalaryChangeForm
 from coati_payroll.i18n import _
 from coati_payroll.model import CampoPersonalizado, Empleado, HistorialSalario, Moneda, db, utc_now
 from coati_payroll.rbac import require_read_access, require_write_access
+from coati_payroll.tenant import active_empresa_id, accessible_empresas, require_company_access, scope_company_query, scoped_or_404
 from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO, PER_PAGE
 
 employee_bp = Blueprint("employee", __name__, url_prefix="/employee")
@@ -33,9 +34,10 @@ def get_empresa_choices():
     """Get list of companies for select fields."""
     from coati_payroll.model import Empresa
 
-    empresas = (
-        db.session.execute(db.select(Empresa).filter_by(activo=True).order_by(Empresa.razon_social)).scalars().all()
-    )
+    empresas = accessible_empresas()
+    selected = active_empresa_id()
+    if selected:
+        empresas = [empresa for empresa in empresas if empresa.id == selected]
     return [("", _("Seleccionar..."))] + [(e.id, f"{e.codigo} - {e.razon_social}") for e in empresas]
 
 
@@ -205,7 +207,7 @@ def index():
     cargo = request.args.get("cargo", type=str)
 
     # Build query with filters
-    query = db.select(Empleado)
+    query = scope_company_query(db.select(Empleado), Empleado.empresa_id)
 
     if buscar:
         search_term = f"%{buscar}%"
@@ -261,6 +263,7 @@ def new():
     custom_fields = get_custom_fields()
 
     if form.validate_on_submit():
+        require_company_access(form.empresa_id.data)
         employee = Empleado()
         _update_employee_from_form(employee, form, custom_fields, is_new=True)
 
@@ -288,10 +291,7 @@ def new():
 @require_write_access()
 def edit(id_: str):
     """Edit an existing employee. Admin and HR can edit employees."""
-    employee = db.session.get(Empleado, id_)
-    if not employee:
-        flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "error")
-        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
+    employee = scoped_or_404(Empleado, id_, Empleado.empresa_id)
 
     form = EmployeeForm(obj=employee)
     form.moneda_id.choices = get_currency_choices()
@@ -342,10 +342,7 @@ def edit(id_: str):
 @require_write_access()
 def delete(id_: str):
     """Delete an employee. Admin and HR can delete employees."""
-    employee = db.session.get(Empleado, id_)
-    if not employee:
-        flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "error")
-        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
+    employee = scoped_or_404(Empleado, id_, Empleado.empresa_id)
 
     db.session.delete(employee)
     db.session.commit()
@@ -372,7 +369,10 @@ def salary_changes_index():
     empleado_id = request.args.get("empleado_id", type=str)
     estado = request.args.get("estado", type=str)
 
-    query = db.select(HistorialSalario).join(Empleado, HistorialSalario.empleado_id == Empleado.id)
+    query = scope_company_query(
+        db.select(HistorialSalario).join(Empleado, HistorialSalario.empleado_id == Empleado.id),
+        Empleado.empresa_id,
+    )
 
     if empleado_id:
         query = query.filter(HistorialSalario.empleado_id == empleado_id)
@@ -384,7 +384,7 @@ def salary_changes_index():
     pagination = db.paginate(query, page=page, per_page=PER_PAGE, error_out=False)
 
     employee_choices = (
-        db.session.execute(db.select(Empleado).order_by(Empleado.primer_apellido, Empleado.primer_nombre))
+        db.session.execute(scope_company_query(db.select(Empleado), Empleado.empresa_id).order_by(Empleado.primer_apellido, Empleado.primer_nombre))
         .scalars()
         .all()
     )
@@ -403,10 +403,7 @@ def salary_changes_index():
 @require_write_access()
 def salary_change_new(employee_id: str):
     """Create salary change in draft status."""
-    employee = db.session.get(Empleado, employee_id)
-    if not employee:
-        flash(_("Empleado no encontrado."), "error")
-        return redirect(url_for(EMPLOYEE_INDEX_ENDPOINT))
+    employee = scoped_or_404(Empleado, employee_id, Empleado.empresa_id)
 
     form = SalaryChangeForm()
     form.moneda_nueva_id.choices = get_currency_choices()
@@ -445,6 +442,7 @@ def salary_change_approve(change_id: str):
     if not salary_change:
         flash(_("Cambio salarial no encontrado."), "error")
         return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
+    require_company_access(salary_change.empleado.empresa_id if salary_change.empleado else None)
 
     if salary_change.estado != "draft":
         flash(_("Solo se pueden aprobar cambios en borrador."), "warning")
@@ -478,6 +476,7 @@ def salary_change_apply(change_id: str):
     if not salary_change:
         flash(_("Cambio salarial no encontrado."), "error")
         return redirect(url_for(SALARY_CHANGES_INDEX_ENDPOINT))
+    require_company_access(salary_change.empleado.empresa_id if salary_change.empleado else None)
 
     if salary_change.estado != "approved":
         flash(_("Solo se pueden aplicar cambios aprobados."), "warning")

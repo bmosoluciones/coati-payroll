@@ -24,8 +24,10 @@ from coati_payroll.model import (
     CargaInicialPrestacion,
     Empleado,
     Moneda,
+    empresa_prestacion,
 )
 from coati_payroll.rbac import require_role
+from coati_payroll.tenant import concept_scope_query, scope_company_query
 
 # Constants
 MAX_DISPLAYED_ERRORS = 10  # Maximum number of errors to display in bulk upload results
@@ -44,17 +46,27 @@ prestacion_management_bp = Blueprint("prestacion_management", __name__, url_pref
 def dashboard():
     """Prestacion management dashboard."""
     # Statistics
-    total_prestaciones = (
-        db.session.execute(db.select(count(Prestacion.id)).filter(Prestacion.activo.is_(True))).scalar() or 0
-    )
+    total_prestaciones = db.session.execute(
+        concept_scope_query(db.select(count(distinct(Prestacion.id))), empresa_prestacion, Prestacion.id).filter(
+            Prestacion.activo.is_(True)
+        )
+    ).scalar() or 0
 
     # Count employees with benefit balances
-    total_accounts = db.session.execute(db.select(count(distinct(PrestacionAcumulada.empleado_id)))).scalar() or 0
+    total_accounts = db.session.execute(
+        scope_company_query(
+            db.select(count(distinct(PrestacionAcumulada.empleado_id))).join(PrestacionAcumulada.empleado),
+            Empleado.empresa_id,
+        )
+    ).scalar() or 0
 
     # Count pending initial loads
     pending_loads = (
         db.session.execute(
-            db.select(count(CargaInicialPrestacion.id)).filter(CargaInicialPrestacion.estado == "draft")
+            scope_company_query(
+                db.select(count(CargaInicialPrestacion.id)).join(CargaInicialPrestacion.empleado),
+                Empleado.empresa_id,
+            ).filter(CargaInicialPrestacion.estado == "draft")
         ).scalar()
         or 0
     )
@@ -62,8 +74,7 @@ def dashboard():
     # Recent activity - latest transactions
     recent_transactions = (
         db.session.execute(
-            db.select(PrestacionAcumulada)
-            .join(PrestacionAcumulada.empleado)
+            scope_company_query(db.select(PrestacionAcumulada).join(PrestacionAcumulada.empleado), Empleado.empresa_id)
             .order_by(PrestacionAcumulada.fecha_transaccion.desc())
             .limit(10)
         )
@@ -159,7 +170,7 @@ def initial_balance_bulk():
 
                 # Find employee
                 empleado = db.session.execute(
-                    db.select(Empleado).filter(Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True))
+                    scope_company_query(db.select(Empleado), Empleado.empresa_id).filter(Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True))
                 ).scalar_one_or_none()
 
                 if not empleado:
@@ -169,7 +180,10 @@ def initial_balance_bulk():
 
                 # Find prestacion
                 prestacion = db.session.execute(
-                    db.select(Prestacion).filter(Prestacion.codigo == codigo_prestacion, Prestacion.activo.is_(True))
+                    concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id).filter(
+                        Prestacion.codigo == codigo_prestacion,
+                        Prestacion.activo.is_(True),
+                    )
                 ).scalar_one_or_none()
 
                 if not prestacion:
@@ -189,7 +203,10 @@ def initial_balance_bulk():
 
                 # Check for duplicate
                 existing = db.session.execute(
-                    db.select(CargaInicialPrestacion).filter(
+                    scope_company_query(
+                        db.select(CargaInicialPrestacion).join(CargaInicialPrestacion.empleado),
+                        Empleado.empresa_id,
+                    ).filter(
                         CargaInicialPrestacion.empleado_id == empleado.id,
                         CargaInicialPrestacion.prestacion_id == prestacion.id,
                         CargaInicialPrestacion.anio_corte == anio_corte,

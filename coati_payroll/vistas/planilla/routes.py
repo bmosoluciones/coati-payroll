@@ -19,6 +19,7 @@ from coati_payroll.vistas.planilla.helpers import (
 )
 from coati_payroll.vistas.planilla.services import PlanillaService
 from coati_payroll.vistas.constants import TEMPLATE_PLANILLA_FORM
+from coati_payroll.tenant import accessible_empresas, scoped_or_404, scope_company_query
 
 # Import blueprint from __init__.py
 from coati_payroll.vistas.planilla import planilla_bp
@@ -40,7 +41,7 @@ def index():
     empresa_id = request.args.get("empresa_id", type=str) if request.args.get("empresa_id") else None
 
     # Build query with filters
-    query = db.select(Planilla)
+    query = scope_company_query(db.select(Planilla), Planilla.empresa_id)
 
     if buscar:
         search_term = f"%{buscar}%"
@@ -75,9 +76,7 @@ def index():
     tipos_planilla = (
         db.session.execute(db.select(TipoPlanilla).filter_by(activo=True).order_by(TipoPlanilla.codigo)).scalars().all()
     )
-    empresas = (
-        db.session.execute(db.select(Empresa).filter_by(activo=True).order_by(Empresa.razon_social)).scalars().all()
-    )
+    empresas = accessible_empresas()
     nomina_counts = get_nomina_counts_by_planilla([planilla.id for planilla in pagination.items])
 
     return render_template(
@@ -102,6 +101,8 @@ def new():
     populate_form_choices(form)
 
     if form.validate_on_submit():
+        from coati_payroll.tenant import require_company_access
+        require_company_access(form.empresa_id.data)
         vacation_policy_id, policy_error = _validate_vacation_policy(form)
         if policy_error:
             flash(_(policy_error), "danger")
@@ -153,7 +154,7 @@ def _validate_vacation_policy(form) -> tuple[str | None, str | None]:
 @require_write_access()
 def edit(planilla_id: str):
     """Edit basic planilla configuration."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
     form = PlanillaForm(obj=planilla)
     populate_form_choices(form)
 
@@ -232,7 +233,7 @@ def edit(planilla_id: str):
 @require_role(TipoUsuario.ADMIN, TipoUsuario.HHRR)
 def approve(planilla_id: str):
     """Approve a payroll template and preserve its audit trail."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
     if aprobar_planilla(planilla, current_user.usuario):
         db.session.commit()
         flash(_("Planilla aprobada exitosamente."), "success")
@@ -245,7 +246,7 @@ def approve(planilla_id: str):
 @require_role(TipoUsuario.ADMIN, TipoUsuario.HHRR)
 def reject(planilla_id: str):
     """Return a payroll template to draft status with an audit entry."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
     rechazar_planilla(planilla, current_user.usuario, request.form.get("razon") or None)
     db.session.commit()
     flash(_("Planilla marcada como borrador."), "warning")
@@ -256,7 +257,7 @@ def reject(planilla_id: str):
 @require_read_access()
 def config(planilla_id: str):
     """Configuration overview page for a planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     # Get association counts for the summary
     counts = get_planilla_component_counts(planilla_id)
@@ -272,7 +273,7 @@ def config(planilla_id: str):
 @require_write_access()
 def clone(planilla_id: str):
     """Clone a planilla and redirect to edit the new copy."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
     nueva_planilla = PlanillaService.clone_planilla(planilla, creado_por=current_user.usuario)
     flash(_("Planilla clonada exitosamente: %(nombre)s", nombre=nueva_planilla.nombre), "success")
     return redirect(url_for("planilla.edit", planilla_id=nueva_planilla.id))
@@ -282,7 +283,7 @@ def clone(planilla_id: str):
 @require_write_access()
 def delete(planilla_id: str):
     """Delete a planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     can_delete, error_message = PlanillaService.can_delete(planilla)
     if not can_delete:

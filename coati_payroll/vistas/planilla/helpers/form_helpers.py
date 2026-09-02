@@ -29,7 +29,10 @@ from coati_payroll.model import (
     PlanillaDeduccion,
     Percepcion,
     Deduccion,
+    empresa_percepcion,
+    empresa_deduccion,
 )
+from coati_payroll.tenant import active_empresa_id, accessible_empresas, concept_scope_for_company
 
 # Constants
 SELECT_PLACEHOLDER = "-- Seleccionar --"
@@ -47,9 +50,10 @@ def populate_form_choices(form: PlanillaForm):
     monedas = db.session.execute(db.select(Moneda).filter_by(activo=True).order_by(Moneda.codigo)).scalars().all()
     form.moneda_id.choices = [("", _(SELECT_PLACEHOLDER))] + [(m.id, f"{m.codigo} - {m.nombre}") for m in monedas]
 
-    empresas = (
-        db.session.execute(db.select(Empresa).filter_by(activo=True).order_by(Empresa.razon_social)).scalars().all()
-    )
+    empresas = accessible_empresas()
+    selected_empresa_id = active_empresa_id()
+    if selected_empresa_id:
+        empresas = [empresa for empresa in empresas if empresa.id == selected_empresa_id]
     form.empresa_id.choices = [("", _(SELECT_PLACEHOLDER))] + [
         (e.id, f"{e.codigo} - {e.razon_social}") for e in empresas
     ]
@@ -103,7 +107,7 @@ def populate_novedad_form_choices(form, nomina_id: str):
     # Get active percepciones assigned to this planilla
     percepciones = (
         db.session.execute(
-            db.select(Percepcion)
+            concept_scope_for_company(db.select(Percepcion), empresa_percepcion, Percepcion.id, nomina.planilla.empresa_id)
             .join(PlanillaIngreso, PlanillaIngreso.percepcion_id == Percepcion.id)
             .where(
                 PlanillaIngreso.planilla_id == nomina.planilla_id,
@@ -122,7 +126,7 @@ def populate_novedad_form_choices(form, nomina_id: str):
     # Get active deducciones assigned to this planilla excluding tax/social security
     deducciones = (
         db.session.execute(
-            db.select(Deduccion)
+            concept_scope_for_company(db.select(Deduccion), empresa_deduccion, Deduccion.id, nomina.planilla.empresa_id)
             .join(PlanillaDeduccion, PlanillaDeduccion.deduccion_id == Deduccion.id)
             .where(
                 PlanillaDeduccion.planilla_id == nomina.planilla_id,

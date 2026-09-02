@@ -17,16 +17,20 @@ from coati_payroll.model import (
     Deduccion,
     Prestacion,
     ReglaCalculo,
+    empresa_percepcion,
+    empresa_deduccion,
+    empresa_prestacion,
 )
 from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.vistas.planilla import planilla_bp
+from coati_payroll.tenant import concept_scope_for_company, scoped_or_404
 
 
 @planilla_bp.route("/<planilla_id>/config/empleados", methods=["GET"])
 @require_read_access()
 def config_empleados(planilla_id: str):
     """View employees associated with a planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     empleados_asignados = (
         db.session.execute(db.select(PlanillaEmpleado).filter_by(planilla_id=planilla_id)).scalars().all()
@@ -55,14 +59,17 @@ def config_empleados(planilla_id: str):
 @require_read_access()
 def config_percepciones(planilla_id: str):
     """View perceptions associated with a planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     percepciones_asignadas = (
         db.session.execute(db.select(PlanillaIngreso).filter_by(planilla_id=planilla_id)).scalars().all()
     )
 
     percepciones_disponibles = (
-        db.session.execute(db.select(Percepcion).filter_by(activo=True).order_by(Percepcion.nombre)).scalars().all()
+        db.session.execute(
+            concept_scope_for_company(db.select(Percepcion), empresa_percepcion, Percepcion.id, planilla.empresa_id)
+            .filter(Percepcion.activo.is_(True)).order_by(Percepcion.nombre)
+        ).scalars().all()
     )
 
     return render_template(
@@ -77,7 +84,7 @@ def config_percepciones(planilla_id: str):
 @require_read_access()
 def config_deducciones(planilla_id: str):
     """View deductions associated with a planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     deducciones_asignadas = (
         db.session.execute(
@@ -88,7 +95,10 @@ def config_deducciones(planilla_id: str):
     )
 
     deducciones_disponibles = (
-        db.session.execute(db.select(Deduccion).filter_by(activo=True).order_by(Deduccion.nombre)).scalars().all()
+        db.session.execute(
+            concept_scope_for_company(db.select(Deduccion), empresa_deduccion, Deduccion.id, planilla.empresa_id)
+            .filter(Deduccion.activo.is_(True)).order_by(Deduccion.nombre)
+        ).scalars().all()
     )
 
     return render_template(
@@ -103,14 +113,17 @@ def config_deducciones(planilla_id: str):
 @require_write_access()
 def config_prestaciones(planilla_id: str):
     """Manage benefits associated with a planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     prestaciones_asignadas = (
         db.session.execute(db.select(PlanillaPrestacion).filter_by(planilla_id=planilla_id)).scalars().all()
     )
 
     prestaciones_disponibles = (
-        db.session.execute(db.select(Prestacion).filter_by(activo=True).order_by(Prestacion.nombre)).scalars().all()
+        db.session.execute(
+            concept_scope_for_company(db.select(Prestacion), empresa_prestacion, Prestacion.id, planilla.empresa_id)
+            .filter(Prestacion.activo.is_(True)).order_by(Prestacion.nombre)
+        ).scalars().all()
     )
 
     return render_template(
@@ -125,7 +138,7 @@ def config_prestaciones(planilla_id: str):
 @require_read_access()
 def config_reglas(planilla_id: str):
     """View calculation rules associated with a planilla."""
-    planilla = db.get_or_404(Planilla, planilla_id)
+    planilla = scoped_or_404(Planilla, planilla_id, Planilla.empresa_id)
 
     reglas_asignadas = (
         db.session.execute(

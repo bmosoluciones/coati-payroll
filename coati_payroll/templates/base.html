@@ -54,6 +54,19 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
         <!-- Navbar items - visible en pantallas grandes -->
         <div class="navbar-collapse justify-content-end d-none d-lg-flex" id="topNav">
             <ul class="navbar-nav flex-row gap-2 mb-0">
+                {% if current_user.is_authenticated and tenant_empresas %}
+                <li class="nav-item">
+                    <form method="POST" action="{{ url_for('empresa.select_active') }}" class="d-flex align-items-center">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <label for="active_empresa_id" class="visually-hidden">{{ _('Empresa activa') }}</label>
+                        <select id="active_empresa_id" name="empresa_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                            {% for empresa in tenant_empresas %}
+                            <option value="{{ empresa.id }}" {% if empresa.id == active_empresa_id %}selected{% endif %}>{{ empresa.codigo }} - {{ empresa.razon_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('user.profile') }}">
                         <i class="bi bi-person-circle"></i>

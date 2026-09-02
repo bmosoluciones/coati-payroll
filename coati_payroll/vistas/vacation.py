@@ -26,9 +26,19 @@ from coati_payroll.model import (
     VacationNovelty,
     Empleado,
     Empresa,
+    empresa_deduccion,
+    empresa_percepcion,
 )
 from coati_payroll.rbac import require_role, require_read_access, require_write_access
 from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO
+from coati_payroll.tenant import (
+    accessible_empresas,
+    concept_scope_query,
+    policy_scope_query,
+    require_company_access,
+    scope_company_query,
+    scoped_employee_owned_or_404,
+)
 
 vacation_bp = Blueprint("vacation", __name__, url_prefix="/vacation")
 POLICY_INDEX_ENDPOINT = "vacation.policy_index"
@@ -55,7 +65,7 @@ def policy_index():
     page = request.args.get("page", 1, type=int)
     per_page = 20
 
-    query = db.select(VacationPolicy).order_by(VacationPolicy.nombre)
+    query = policy_scope_query(db.select(VacationPolicy)).order_by(VacationPolicy.nombre)
     pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
     policies = pagination.items
 
@@ -86,7 +96,7 @@ def policy_new():
     # Populate planilla choices
     planillas = (
         db.session.execute(
-            db.select(Planilla)
+            scope_company_query(db.select(Planilla), Planilla.empresa_id)
             .options(selectinload(Planilla.empresa))
             .filter(Planilla.activo.is_(True))
             .order_by(Planilla.nombre)
@@ -99,11 +109,7 @@ def policy_new():
     ]
 
     # Populate empresa choices
-    empresas = (
-        db.session.execute(db.select(Empresa).filter(Empresa.activo.is_(True)).order_by(Empresa.razon_social))
-        .scalars()
-        .all()
-    )
+    empresas = accessible_empresas()
     form.empresa_id.choices = [("", _("-- Seleccionar Empresa --"))] + [(e.id, e.razon_social) for e in empresas]
 
     if form.validate_on_submit():
@@ -135,17 +141,22 @@ def policy_edit(policy_id):
     from coati_payroll.forms import VacationPolicyForm
     from coati_payroll.model import Planilla
 
-    policy = db.session.get(VacationPolicy, policy_id)
+    policy = db.session.execute(
+        policy_scope_query(db.select(VacationPolicy)).filter(VacationPolicy.id == policy_id)
+    ).scalar_one_or_none()
     if not policy:
         flash(_("Política no encontrada."), "warning")
         return redirect(url_for(POLICY_INDEX_ENDPOINT))
+    policy_company_id = policy.empresa_id or (policy.planilla.empresa_id if policy.planilla else None)
+    if policy_company_id:
+        require_company_access(policy_company_id)
 
     form = VacationPolicyForm(obj=policy)
 
     # Populate planilla choices
     planillas = (
         db.session.execute(
-            db.select(Planilla)
+            scope_company_query(db.select(Planilla), Planilla.empresa_id)
             .options(selectinload(Planilla.empresa))
             .filter(Planilla.activo.is_(True))
             .order_by(Planilla.nombre)
@@ -158,11 +169,7 @@ def policy_edit(policy_id):
     ]
 
     # Populate empresa choices
-    empresas = (
-        db.session.execute(db.select(Empresa).filter(Empresa.activo.is_(True)).order_by(Empresa.razon_social))
-        .scalars()
-        .all()
-    )
+    empresas = accessible_empresas()
     form.empresa_id.choices = [("", _("-- Seleccionar Empresa --"))] + [(e.id, e.razon_social) for e in empresas]
 
     if form.validate_on_submit():
@@ -190,14 +197,21 @@ def policy_edit(policy_id):
 @require_read_access()
 def policy_detail(policy_id):
     """View vacation policy details."""
-    policy = db.session.get(VacationPolicy, policy_id)
+    policy = db.session.execute(
+        policy_scope_query(db.select(VacationPolicy)).filter(VacationPolicy.id == policy_id)
+    ).scalar_one_or_none()
     if not policy:
         flash(_("Política no encontrada."), "warning")
         return redirect(url_for(POLICY_INDEX_ENDPOINT))
 
     # Get statistics
     total_accounts = (
-        db.session.execute(db.select(count(VacationAccount.id)).filter(VacationAccount.policy_id == policy_id)).scalar()
+        db.session.execute(
+            scope_company_query(
+                db.select(count(VacationAccount.id)).join(VacationAccount.empleado),
+                Empleado.empresa_id,
+            ).filter(VacationAccount.policy_id == policy_id)
+        ).scalar()
         or 0
     )
 
@@ -221,11 +235,9 @@ def account_index():
     per_page = 20
 
     # Join with Empleado to get employee details
-    query = (
-        db.select(VacationAccount)
-        .join(VacationAccount.empleado)
-        .order_by(Empleado.primer_apellido, Empleado.primer_nombre)
-    )
+    query = scope_company_query(
+        db.select(VacationAccount).join(VacationAccount.empleado), Empleado.empresa_id
+    ).order_by(Empleado.primer_apellido, Empleado.primer_nombre)
     pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
     accounts = pagination.items
 
@@ -240,10 +252,8 @@ def account_index():
 @require_read_access()
 def account_detail(account_id):
     """View vacation account details and history."""
-    account = db.session.get(VacationAccount, account_id)
-    if not account:
-        flash(_("Cuenta no encontrada."), "warning")
-        return redirect(url_for("vacation.account_index"))
+    account = scoped_employee_owned_or_404(VacationAccount, account_id, VacationAccount.empleado_id)
+    require_company_access(account.empleado.empresa_id if account.empleado else None)
 
     # Get ledger history
     ledger_entries = (
@@ -318,7 +328,7 @@ def leave_request_index():
     per_page = 20
     estado = request.args.get("estado", None)
 
-    query = db.select(VacationNovelty).join(VacationNovelty.empleado)
+    query = scope_company_query(db.select(VacationNovelty).join(VacationNovelty.empleado), Empleado.empresa_id)
 
     if estado:
         query = query.filter(VacationNovelty.estado == estado)
@@ -345,7 +355,7 @@ def leave_request_new():
     # Asignar choices de empleados activos antes de validar
     empleados = (
         db.session.execute(
-            db.select(Empleado)
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
             .filter(Empleado.activo.is_(True))
             .order_by(Empleado.primer_apellido, Empleado.primer_nombre)
         )
@@ -357,6 +367,8 @@ def leave_request_new():
     ]
 
     if form.validate_on_submit():
+        employee = db.session.get(Empleado, form.empleado_id.data)
+        require_company_access(employee.empresa_id if employee else None)
         # Validate that employee has a vacation account
         account = db.session.execute(
             db.select(VacationAccount).filter(
@@ -408,10 +420,11 @@ def leave_request_new():
 @require_read_access()
 def leave_request_detail(request_id):
     """View vacation leave request details."""
-    leave_request = db.session.get(VacationNovelty, request_id)
+    leave_request = scoped_employee_owned_or_404(VacationNovelty, request_id, VacationNovelty.empleado_id)
     if not leave_request:
         flash(_(LEAVE_REQUEST_NOT_FOUND_MESSAGE), "warning")
         return redirect(url_for(LEAVE_REQUEST_INDEX_ENDPOINT))
+    require_company_access(leave_request.empleado.empresa_id if leave_request.empleado else None)
 
     return render_template(
         "modules/vacation/leave_request_detail.html",
@@ -423,10 +436,11 @@ def leave_request_detail(request_id):
 @require_role(TipoUsuario.ADMIN)
 def leave_request_approve(request_id):
     """Approve a vacation leave request."""
-    leave_request = db.session.get(VacationNovelty, request_id)
+    leave_request = scoped_employee_owned_or_404(VacationNovelty, request_id, VacationNovelty.empleado_id)
     if not leave_request:
         flash(_(LEAVE_REQUEST_NOT_FOUND_MESSAGE), "warning")
         return redirect(url_for(LEAVE_REQUEST_INDEX_ENDPOINT))
+    require_company_access(leave_request.empleado.empresa_id if leave_request.empleado else None)
 
     if leave_request.estado != VacacionEstado.PENDIENTE:
         flash(_("Solo se pueden aprobar solicitudes pendientes."), "warning")
@@ -468,10 +482,11 @@ def leave_request_approve(request_id):
 @require_role(TipoUsuario.ADMIN)
 def leave_request_reject(request_id):
     """Reject a vacation leave request."""
-    leave_request = db.session.get(VacationNovelty, request_id)
+    leave_request = scoped_employee_owned_or_404(VacationNovelty, request_id, VacationNovelty.empleado_id)
     if not leave_request:
         flash(_(LEAVE_REQUEST_NOT_FOUND_MESSAGE), "warning")
         return redirect(url_for(LEAVE_REQUEST_INDEX_ENDPOINT))
+    require_company_access(leave_request.empleado.empresa_id if leave_request.empleado else None)
 
     if leave_request.estado != VacacionEstado.PENDIENTE:
         flash(_("Solo se pueden rechazar solicitudes pendientes."), "warning")
@@ -525,7 +540,7 @@ def register_vacation_taken():
     # Populate employee choices
     empleados = (
         db.session.execute(
-            db.select(Empleado)
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
             .filter(Empleado.activo.is_(True))
             .order_by(Empleado.primer_apellido, Empleado.primer_nombre)
         )
@@ -538,7 +553,11 @@ def register_vacation_taken():
 
     # Populate percepcion choices
     percepciones = (
-        db.session.execute(db.select(Percepcion).filter(Percepcion.activo.is_(True)).order_by(Percepcion.codigo))
+        db.session.execute(
+            concept_scope_query(db.select(Percepcion), empresa_percepcion, Percepcion.id)
+            .filter(Percepcion.activo.is_(True))
+            .order_by(Percepcion.codigo)
+        )
         .scalars()
         .all()
     )
@@ -548,7 +567,11 @@ def register_vacation_taken():
 
     # Populate deduccion choices
     deducciones = (
-        db.session.execute(db.select(Deduccion).filter(Deduccion.activo.is_(True)).order_by(Deduccion.codigo))
+        db.session.execute(
+            concept_scope_query(db.select(Deduccion), empresa_deduccion, Deduccion.id)
+            .filter(Deduccion.activo.is_(True))
+            .order_by(Deduccion.codigo)
+        )
         .scalars()
         .all()
     )
@@ -567,6 +590,7 @@ def register_vacation_taken():
                 form=form,
                 titulo=_(REGISTER_TAKEN_TITLE),
             )
+        require_company_access(empleado.empresa_id)
 
         # Validate tipo_concepto and associated percepcion/deduccion
         tipo_concepto = form.tipo_concepto.data
@@ -700,17 +724,26 @@ def register_vacation_taken():
 def dashboard():
     """Vacation management dashboard."""
     # Statistics
-    total_policies = (
-        db.session.execute(db.select(count(VacationPolicy.id)).filter(VacationPolicy.activo.is_(True))).scalar() or 0
-    )
+    total_policies = db.session.execute(
+        policy_scope_query(db.select(count(VacationPolicy.id))).filter(VacationPolicy.activo.is_(True))
+    ).scalar() or 0
 
     total_accounts = (
-        db.session.execute(db.select(count(VacationAccount.id)).filter(VacationAccount.activo.is_(True))).scalar() or 0
+        db.session.execute(
+            scope_company_query(
+                db.select(count(VacationAccount.id)).join(VacationAccount.empleado),
+                Empleado.empresa_id,
+            ).filter(VacationAccount.activo.is_(True))
+        ).scalar()
+        or 0
     )
 
     pending_requests = (
         db.session.execute(
-            db.select(count(VacationNovelty.id)).filter(VacationNovelty.estado == VacacionEstado.PENDIENTE)
+            scope_company_query(
+                db.select(count(VacationNovelty.id)).join(VacationNovelty.empleado),
+                Empleado.empresa_id,
+            ).filter(VacationNovelty.estado == VacacionEstado.PENDIENTE)
         ).scalar()
         or 0
     )
@@ -718,8 +751,7 @@ def dashboard():
     # Recent activity
     recent_requests = (
         db.session.execute(
-            db.select(VacationNovelty)
-            .join(VacationNovelty.empleado)
+            scope_company_query(db.select(VacationNovelty).join(VacationNovelty.empleado), Empleado.empresa_id)
             .order_by(VacationNovelty.timestamp.desc())
             .limit(10)
         )
@@ -746,7 +778,10 @@ def dashboard():
 def api_employee_balance(employee_id):
     """Get employee vacation balance (AJAX endpoint)."""
     account = db.session.execute(
-        db.select(VacationAccount).filter(VacationAccount.empleado_id == employee_id, VacationAccount.activo.is_(True))
+        scope_company_query(
+            db.select(VacationAccount).join(VacationAccount.empleado),
+            Empleado.empresa_id,
+        ).filter(VacationAccount.empleado_id == employee_id, VacationAccount.activo.is_(True))
     ).scalar_one_or_none()
 
     if not account:
@@ -785,7 +820,7 @@ def initial_balance_form():
     # Populate employee choices
     empleados = (
         db.session.execute(
-            db.select(Empleado)
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
             .filter(Empleado.activo.is_(True))
             .order_by(Empleado.primer_apellido, Empleado.primer_nombre)
         )
@@ -807,6 +842,8 @@ def initial_balance_form():
         if not empleado:
             flash(_(MSG_EMPLEADO_NO_ENCONTRADO), "danger")
             return redirect(url_for("vacation.initial_balance_form"))
+        if empleado.empresa_id:
+            require_company_access(empleado.empresa_id)
 
         # Check if employee has an active vacation account
         account = db.session.execute(
@@ -949,7 +986,7 @@ def initial_balance_bulk():
 
                 # Find employee
                 empleado = db.session.execute(
-                    db.select(Empleado).filter(Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True))
+                    scope_company_query(db.select(Empleado), Empleado.empresa_id).filter(Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True))
                 ).scalar_one_or_none()
 
                 if not empleado:

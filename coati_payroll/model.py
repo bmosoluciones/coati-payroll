@@ -95,6 +95,31 @@ FK_NOMINA_ID = "nomina.id"
 FK_REPORT_ID = "report.id"
 
 
+# Explicit tenant memberships. Empty membership means no access for non-admins;
+# administrators are intentionally handled as unrestricted by tenant.py.
+usuario_empresa = database.Table(
+    "usuario_empresa",
+    database.Column("usuario_id", database.String(26), database.ForeignKey("usuario.id"), primary_key=True),
+    database.Column("empresa_id", database.String(26), database.ForeignKey(FK_EMPRESA_ID), primary_key=True),
+)
+
+empresa_percepcion = database.Table(
+    "empresa_percepcion",
+    database.Column("empresa_id", database.String(26), database.ForeignKey(FK_EMPRESA_ID), primary_key=True),
+    database.Column("concept_id", database.String(26), database.ForeignKey(FK_PERCEPCION_ID), primary_key=True),
+)
+empresa_deduccion = database.Table(
+    "empresa_deduccion",
+    database.Column("empresa_id", database.String(26), database.ForeignKey(FK_EMPRESA_ID), primary_key=True),
+    database.Column("concept_id", database.String(26), database.ForeignKey(FK_DEDUCCION_ID), primary_key=True),
+)
+empresa_prestacion = database.Table(
+    "empresa_prestacion",
+    database.Column("empresa_id", database.String(26), database.ForeignKey(FK_EMPRESA_ID), primary_key=True),
+    database.Column("concept_id", database.String(26), database.ForeignKey(FK_PRESTACION_ID), primary_key=True),
+)
+
+
 # Utiliza orjon para serializar/deserializar JSON
 class OrjsonType(TypeDecorator):
     impl = JSON
@@ -159,6 +184,7 @@ class Usuario(database.Model, BaseTabla, UserMixin):
     tipo = database.Column(database.String(20), nullable=False, default=TipoUsuario.HHRR.value)
     activo = database.Column(database.Boolean(), default=True)
     ultimo_acceso = database.Column(database.DateTime, nullable=True)
+    empresas = database.relationship("Empresa", secondary=usuario_empresa, back_populates="usuarios")
 
     @property
     def is_active(self) -> bool:
@@ -238,6 +264,7 @@ class Empresa(database.Model, BaseTabla):
     # Relationships
     empleados = database.relationship("Empleado", back_populates="empresa")
     planillas = database.relationship("Planilla", back_populates="empresa")
+    usuarios = database.relationship("Usuario", secondary=usuario_empresa, back_populates="empresas")
 
 
 # Gestión de monedas y tipos de cambio
@@ -613,6 +640,7 @@ class Percepcion(database.Model, BaseTabla):
         "PlanillaIngreso",
         back_populates="percepcion",
     )
+    empresas = database.relationship("Empresa", secondary=empresa_percepcion, backref="percepciones_autorizadas")
     nomina_detalles = database.relationship("NominaDetalle", back_populates="percepcion")
     audit_logs = database.relationship(
         "ConceptoAuditLog",
@@ -678,6 +706,7 @@ class Deduccion(database.Model, BaseTabla):
         "PlanillaDeduccion",
         back_populates="deduccion",
     )
+    empresas = database.relationship("Empresa", secondary=empresa_deduccion, backref="deducciones_autorizadas")
     nomina_detalles = database.relationship("NominaDetalle", back_populates="deduccion")
     tablas_impuesto = database.relationship("TablaImpuesto", back_populates="deduccion")
     adelantos = database.relationship("Adelanto", back_populates="deduccion")
@@ -757,6 +786,7 @@ class Prestacion(database.Model, BaseTabla):
         "PlanillaPrestacion",
         back_populates="prestacion",
     )
+    empresas = database.relationship("Empresa", secondary=empresa_prestacion, backref="prestaciones_autorizadas")
     nomina_detalles = database.relationship("NominaDetalle", back_populates="prestacion")
     prestaciones_acumuladas = database.relationship(
         "PrestacionAcumulada", back_populates="prestacion", cascade="all,delete-orphan"

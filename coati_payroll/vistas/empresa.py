@@ -14,6 +14,7 @@ from coati_payroll.enums import NominaEstado, TipoUsuario
 from coati_payroll.i18n import _
 from coati_payroll.model import Empleado, Empresa, Nomina, Planilla, db
 from coati_payroll.rbac import require_role, require_read_access
+from coati_payroll.tenant import accessible_empresas, is_tenant_admin, same_origin_redirect, set_active_empresa
 
 empresa_bp = Blueprint("empresa", __name__, url_prefix="/empresa")
 EMPRESA_INDEX_ENDPOINT = "empresa.index"
@@ -46,6 +47,9 @@ def index():
 
     # Build query with filters
     query = db.select(Empresa)
+    permitted_ids = {empresa.id for empresa in accessible_empresas(active_only=False)}
+    if not is_tenant_admin():
+        query = query.filter(Empresa.id.in_(permitted_ids)) if permitted_ids else query.filter(db.false())
 
     if buscar:
         search_term = f"%{buscar}%"
@@ -75,6 +79,18 @@ def index():
         buscar=buscar,
         estado=estado,
     )
+
+
+@empresa_bp.route("/seleccionar", methods=["POST"])
+@require_read_access()
+def select_active():
+    """Change the company scope for the current session."""
+    empresa_id = request.form.get("empresa_id", "")
+    if empresa_id and set_active_empresa(empresa_id):
+        flash(_("Empresa activa cambiada."), "success")
+    else:
+        flash(_("No tiene acceso a esa empresa."), "danger")
+    return same_origin_redirect(EMPRESA_INDEX_ENDPOINT)
 
 
 @empresa_bp.route("/new", methods=["GET", "POST"])

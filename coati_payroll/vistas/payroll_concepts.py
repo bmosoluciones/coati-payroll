@@ -28,8 +28,18 @@ from coati_payroll.forms import (
     PrestacionForm,
 )
 from coati_payroll.i18n import _
-from coati_payroll.model import Deduccion, Percepcion, Prestacion, db
+from coati_payroll.model import (
+    Deduccion,
+    Percepcion,
+    Prestacion,
+    db,
+    empresa_deduccion,
+    empresa_percepcion,
+    empresa_prestacion,
+    Empresa,
+)
 from coati_payroll.rbac import require_read_access, require_write_access
+from coati_payroll.tenant import accessible_empresas, concept_scope_query
 from coati_payroll.vistas.constants import PER_PAGE
 
 # Create blueprints for each concept type
@@ -39,6 +49,31 @@ prestacion_bp = Blueprint("prestacion", __name__, url_prefix="/prestaciones")
 
 # Constants
 ERROR_CONCEPT_NOT_FOUND = "%(type)s no encontrada."
+
+
+def _populate_concept_company_choices(form) -> None:
+    """Add only permitted companies to the optional concept scope field."""
+    form.empresa_ids.choices = [
+        (empresa.id, f"{empresa.codigo} - {empresa.razon_social}") for empresa in accessible_empresas()
+    ]
+
+
+def _concept_association(concept_type: str):
+    return {
+        "percepcion": empresa_percepcion,
+        "deduccion": empresa_deduccion,
+        "prestacion": empresa_prestacion,
+    }[concept_type]
+
+
+def _get_scoped_concept(concept_type: str, concept_id: str):
+    """Load a concept only if it is global or allowed in the active tenant."""
+    model_class = get_concept_config(concept_type)["model"]
+    return db.session.execute(
+        concept_scope_query(db.select(model_class), _concept_association(concept_type), model_class.id).filter(
+            model_class.id == concept_id
+        )
+    ).scalar_one_or_none()
 
 
 # ============================================================================
@@ -99,8 +134,9 @@ def list_concepts(concept_type: str):
     model_class = config["model"]
 
     page = request.args.get("page", 1, type=int)
+    association = _concept_association(concept_type)
     pagination = db.paginate(
-        db.select(model_class).order_by(model_class.codigo),
+        concept_scope_query(db.select(model_class), association, model_class.id).order_by(model_class.codigo),
         page=page,
         per_page=PER_PAGE,
         error_out=False,
@@ -120,10 +156,13 @@ def create_concept(concept_type: str):
     form_class = config["form"]
 
     form = form_class()
+    _populate_concept_company_choices(form)
 
     if form.validate_on_submit():
         concept = model_class()
         populate_concept_from_form(concept, form)
+        selected_companies = set(form.empresa_ids.data or [])
+        concept.empresas = [empresa for empresa in accessible_empresas() if empresa.id in selected_companies]
         concept.creado_por = current_user.usuario
 
         # Set initial status as draft
@@ -159,7 +198,7 @@ def edit_concept(concept_type: str, concept_id: str):
     model_class = config["model"]
     form_class = config["form"]
 
-    concept = db.session.get(model_class, concept_id)
+    concept = _get_scoped_concept(concept_type, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -181,6 +220,9 @@ def edit_concept(concept_type: str, concept_id: str):
     }
 
     form = form_class(obj=concept)
+    _populate_concept_company_choices(form)
+    if request.method == "GET":
+        form.empresa_ids.data = [empresa.id for empresa in concept.empresas]
     if request.method == "GET" and hasattr(form, "formula_tipo"):
         normalized_formula_type = FormulaType.normalize(getattr(concept, "formula_tipo", None))
         if normalized_formula_type:
@@ -188,6 +230,8 @@ def edit_concept(concept_type: str, concept_id: str):
 
     if form.validate_on_submit():
         populate_concept_from_form(concept, form)
+        selected_companies = set(form.empresa_ids.data or [])
+        concept.empresas = [empresa for empresa in accessible_empresas() if empresa.id in selected_companies]
         concept.modificado_por = current_user.usuario
 
         # Detect changes
@@ -235,9 +279,7 @@ def edit_concept(concept_type: str, concept_id: str):
 def delete_concept(concept_type: str, concept_id: str):
     """Generic delete view for payroll concepts."""
     config = get_concept_config(concept_type)
-    model_class = config["model"]
-
-    concept = db.session.get(model_class, concept_id)
+    concept = _get_scoped_concept(concept_type, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -464,9 +506,7 @@ def approve_concept_route(concept_type: str, concept_id: str):
         return redirect(url_for(f"{concept_type}.{concept_type}_index"))
 
     config = get_concept_config(concept_type)
-    model_class = config["model"]
-
-    concept = db.session.get(model_class, concept_id)
+    concept = _get_scoped_concept(concept_type, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -489,9 +529,7 @@ def reject_concept_route(concept_type: str, concept_id: str):
         return redirect(url_for(f"{concept_type}.{concept_type}_index"))
 
     config = get_concept_config(concept_type)
-    model_class = config["model"]
-
-    concept = db.session.get(model_class, concept_id)
+    concept = _get_scoped_concept(concept_type, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))
@@ -512,7 +550,7 @@ def view_audit_log_route(concept_type: str, concept_id: str):
     config = get_concept_config(concept_type)
     model_class = config["model"]
 
-    concept = db.session.get(model_class, concept_id)
+    concept = _get_scoped_concept(concept_type, concept_id)
     if not concept:
         flash(_(ERROR_CONCEPT_NOT_FOUND, type=config["singular"]), "error")
         return redirect(url_for(f"{config['blueprint']}.{concept_type}_index"))

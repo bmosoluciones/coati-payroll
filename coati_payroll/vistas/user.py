@@ -11,13 +11,19 @@ from coati_payroll.auth import proteger_passwd, validar_acceso
 from coati_payroll.enums import TipoUsuario
 from coati_payroll.forms import UserForm, ProfileForm
 from coati_payroll.i18n import _
-from coati_payroll.model import Usuario, db
+from coati_payroll.model import Empresa, Usuario, db
 from coati_payroll.rbac import require_role
+from coati_payroll.tenant import accessible_empresas
 from coati_payroll.vistas.constants import PER_PAGE
 
 user_bp = Blueprint("user", __name__, url_prefix="/user")
 USER_INDEX_ENDPOINT = "user.index"
 USER_FORM_TEMPLATE = "modules/user/form.html"
+
+
+def _populate_company_choices(form: UserForm) -> None:
+    """Populate company memberships using only companies the admin can see."""
+    form.empresa_ids.choices = [(empresa.id, f"{empresa.codigo} - {empresa.razon_social}") for empresa in accessible_empresas()]
 
 
 @user_bp.route("/", methods=["GET"])
@@ -39,6 +45,7 @@ def index():
 def new():
     """Create a new user. Only administrators can create users."""
     form = UserForm()
+    _populate_company_choices(form)
 
     if form.validate_on_submit():
         user = Usuario()
@@ -54,6 +61,9 @@ def new():
         user.correo_electronico = form.correo_electronico.data
         user.tipo = form.tipo.data
         user.activo = form.activo.data
+        user.empresas = list(
+            db.session.execute(db.select(Empresa).where(Empresa.id.in_(form.empresa_ids.data or []))).scalars().all()
+        )
         user.creado_por = current_user.usuario
 
         db.session.add(user)
@@ -74,6 +84,9 @@ def edit(id_: str):
         return redirect(url_for(USER_INDEX_ENDPOINT))
 
     form = UserForm(obj=user)
+    _populate_company_choices(form)
+    if request.method == "GET":
+        form.empresa_ids.data = [empresa.id for empresa in user.empresas]
 
     if form.validate_on_submit():
         user.usuario = form.usuario.data
@@ -84,6 +97,9 @@ def edit(id_: str):
         user.correo_electronico = form.correo_electronico.data
         user.tipo = form.tipo.data
         user.activo = form.activo.data
+        user.empresas = list(
+            db.session.execute(db.select(Empresa).where(Empresa.id.in_(form.empresa_ids.data or []))).scalars().all()
+        )
         user.modificado_por = current_user.usuario
 
         db.session.commit()
