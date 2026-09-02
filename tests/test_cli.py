@@ -1230,6 +1230,14 @@ def test_database_restore_mysql_failure(app, db_session, monkeypatch):
                 Path(backup_file).unlink()
 
 
+def test_database_restore_mysql_missing_file(app, db_session):
+    """Test MySQL restore rejects a missing dump before invoking the client."""
+    from coati_payroll.cli import _database_restore_mysql
+
+    with app.app_context(), pytest.raises(FileNotFoundError, match="Backup file not found"):
+        _database_restore_mysql("missing.sql", "mysql://user:pass@localhost/dbname")
+
+
 def test_database_restore_postgresql_success(app, db_session, monkeypatch):
     """Test _database_restore_postgresql successfully restores a PostgreSQL database."""
     import subprocess
@@ -1286,3 +1294,11 @@ def test_database_restore_postgresql_failure(app, db_session, monkeypatch):
         finally:
             if Path(backup_file).exists():
                 Path(backup_file).unlink()
+
+
+def test_database_restore_postgresql_missing_file(app, db_session):
+    """Test PostgreSQL restore rejects a missing dump before invoking psql."""
+    from coati_payroll.cli import _database_restore_postgresql
+
+    with app.app_context(), pytest.raises(FileNotFoundError, match="Backup file not found"):
+        _database_restore_postgresql("missing.sql", "postgresql://user:pass@localhost/dbname")

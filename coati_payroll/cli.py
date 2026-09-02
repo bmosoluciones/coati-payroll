@@ -883,6 +883,8 @@ def _database_restore_postgresql(backup_file, db_url_str):
         connection.extend(["-U", parsed.username])
 
     backup_path = Path(backup_file)
+    if not backup_path.is_file():
+        raise FileNotFoundError(f"Backup file not found: {backup_file}")
     if backup_path.suffix.lower() in {".dump", ".backup", ".custom"}:
         command = ["pg_restore", *connection, "--clean", "--if-exists", "--no-owner", "-d", db_name, str(backup_path)]
         result = subprocess.run(command, capture_output=True, text=True, env=env, check=False)
@@ -907,7 +909,10 @@ def _database_restore_mysql(backup_file, db_url_str):
     env = os.environ.copy()
     if parsed.password:
         env["MYSQL_PWD"] = parsed.password
-    with Path(backup_file).open("rb") as backup_stream:
+    backup_path = Path(backup_file)
+    if not backup_path.is_file():
+        raise FileNotFoundError(f"Backup file not found: {backup_file}")
+    with backup_path.open("rb") as backup_stream:
         result = subprocess.run(
             command,
             stdin=backup_stream,
