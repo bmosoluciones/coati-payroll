@@ -161,7 +161,7 @@ def _get_filtered_query(limit: int | None = None, offset: int | None = None):
 def _entries(limit: int | None = None, offset: int | None = None) -> list[dict[str, object]]:
     """Fetch paginated audit entries from all sources."""
     query = _get_filtered_query(limit, offset)
-    if not query:
+    if query is None:
         return []
 
     entries = []
@@ -188,7 +188,7 @@ def _entries(limit: int | None = None, offset: int | None = None) -> list[dict[s
 def _get_total_count() -> int:
     """Get total count of audit entries matching filters without pagination."""
     query = _get_filtered_query()
-    if not query:
+    if query is None:
         return 0
     return db.session.execute(db.select(db.func.count()).select_from(query.subquery())).scalar() or 0
 
@@ -221,7 +221,7 @@ def export_csv():
 
     # Fetch all entries (unfiltered by pagination) for export
     query = _get_filtered_query()
-    if query:
+    if query is not None:
         for row in db.session.execute(query).all():
             timestamp, action, actor, target, details, success = row
             writer.writerow(
