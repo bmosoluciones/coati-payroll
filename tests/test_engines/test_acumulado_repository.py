@@ -280,3 +280,159 @@ class TestAcumuladoRepository:
 
             assert acumulado_previo.salario_bruto_acumulado == Decimal("500.00")
             assert acumulado_previo.salario_gravable_acumulado == Decimal("0.00")
+
+
+class TestPerConceptYtdAccumulation:
+    """The per-concept YTD keys must track each perception and deduction code."""
+
+    def test_update_accumulations_writes_per_concept_keys(self, app, db_session):
+        from types import SimpleNamespace
+
+        with app.app_context():
+            moneda = Moneda(codigo="USD", nombre="Dollar", simbolo="$", activo=True)
+            db_session.add(moneda)
+            db_session.flush()
+
+            empresa = Empresa(codigo="YTD-EMP", razon_social="YTD Corp", ruc="RUC-YTD")
+            db_session.add(empresa)
+            db_session.flush()
+
+            tipo_planilla = TipoPlanilla(
+                codigo="YTD-TIPO",
+                descripcion="Mensual",
+                periodicidad="monthly",
+                dias=30,
+                periodos_por_anio=12,
+                mes_inicio_fiscal=1,
+                dia_inicio_fiscal=1,
+            )
+            db_session.add(tipo_planilla)
+            db_session.flush()
+
+            planilla = Planilla(
+                nombre="YTD Planilla",
+                tipo_planilla_id=tipo_planilla.id,
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(planilla)
+
+            empleado = Empleado(
+                codigo_empleado="YTD-EMPLEADO",
+                primer_nombre="Ytd",
+                primer_apellido="Empleado",
+                identificacion_personal="ID-YTD",
+                fecha_alta=date(2020, 1, 1),
+                salario_base=Decimal("1000.00"),
+                moneda_id=moneda.id,
+                empresa_id=empresa.id,
+                activo=True,
+            )
+            db_session.add(empleado)
+            db_session.flush()
+
+            emp_calculo = EmpleadoCalculo(empleado, planilla)
+            emp_calculo.salario_bruto = Decimal("100.00")
+            emp_calculo.salario_gravable = Decimal("100.00")
+            emp_calculo.salario_neto = Decimal("80.00")
+            emp_calculo.percepciones = [
+                SimpleNamespace(codigo="SALARIO", monto=Decimal("100.00")),
+                SimpleNamespace(codigo="BONO", monto=Decimal("50.00")),
+            ]
+            emp_calculo.deducciones = [
+                SimpleNamespace(codigo="ISSS", monto=Decimal("12.00"), deduccion_id=None),
+                SimpleNamespace(codigo="RENTA", monto=Decimal("8.00"), deduccion_id=None),
+            ]
+
+            periodo_inicio, periodo_fin = date(2026, 1, 1), date(2026, 1, 31)
+            AccumulationProcessor(AcumuladoRepository(db.session)).update_accumulations(
+                emp_calculo, planilla, periodo_inicio, periodo_fin
+            )
+            db_session.commit()
+
+            acumulado = db_session.query(AcumuladoAnual).one()
+            datos = acumulado.datos_adicionales or {}
+
+            assert Decimal(str(datos["percepcion_SALARIO_acumulado"])) == Decimal("100.00")
+            assert Decimal(str(datos["percepcion_BONO_acumulado"])) == Decimal("50.00")
+            assert Decimal(str(datos["deduccion_ISSS_acumulado"])) == Decimal("12.00")
+            assert Decimal(str(datos["deduccion_RENTA_acumulado"])) == Decimal("8.00")
+            assert Decimal(str(datos["total_percepciones_acumulado"])) == Decimal("150.00")
+            assert Decimal(str(datos["total_deducciones_acumulado"])) == Decimal("20.00")
+
+
+def test_per_concept_ytd_accumulation_feeds_annual_limit(app, db_session):
+    from types import SimpleNamespace
+
+    from coati_payroll.model import AcumuladoAnual, Empresa, Moneda, Planilla, TipoPlanilla
+    from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
+    from coati_payroll.nomina_engine.processors.accumulation_processor import AccumulationProcessor
+    from coati_payroll.nomina_engine.repositories.acumulado_repository import AcumuladoRepository
+
+    with app.app_context():
+        moneda = Moneda(codigo="USD2", nombre="Dollar", simbolo="$", activo=True)
+        db_session.add(moneda)
+        db_session.flush()
+        empresa = Empresa(codigo="YTD-EMP2", razon_social="YTD Corp 2", ruc="RUC-YTD2")
+        db_session.add(empresa)
+        db_session.flush()
+        tipo_planilla = TipoPlanilla(
+            codigo="YTD-TIPO2",
+            descripcion="Mensual",
+            periodicidad="monthly",
+            dias=30,
+            periodos_por_anio=12,
+            mes_inicio_fiscal=1,
+            dia_inicio_fiscal=1,
+        )
+        db_session.add(tipo_planilla)
+        db_session.flush()
+        planilla = Planilla(
+            nombre="YTD Planilla 2",
+            tipo_planilla_id=tipo_planilla.id,
+            moneda_id=moneda.id,
+            empresa_id=empresa.id,
+            activo=True,
+        )
+        db_session.add(planilla)
+        empleado = Empleado(
+            codigo_empleado="YTD-EMPLEADO2",
+            primer_nombre="Ytd",
+            primer_apellido="Dos",
+            identificacion_personal="ID-YTD2",
+            fecha_alta=date(2020, 1, 1),
+            salario_base=Decimal("1000.00"),
+            moneda_id=moneda.id,
+            empresa_id=empresa.id,
+            activo=True,
+        )
+        db_session.add(empleado)
+        db_session.flush()
+
+        emp_calculo_cuota_1 = EmpleadoCalculo(empleado, planilla)
+        emp_calculo_cuota_1.salario_bruto = Decimal("0.00")
+        emp_calculo_cuota_1.salario_gravable = Decimal("0.00")
+        emp_calculo_cuota_1.salario_neto = Decimal("0.00")
+        emp_calculo_cuota_1.percepciones = [SimpleNamespace(codigo="BONO", monto=Decimal("60.00"))]
+        emp_calculo_cuota_1.deducciones = []
+        AccumulationProcessor(AcumuladoRepository(db.session)).update_accumulations(
+            emp_calculo_cuota_1, planilla, date(2026, 1, 1), date(2026, 1, 31)
+        )
+        db_session.commit()
+
+        accumulated = (
+            db_session.query(AcumuladoAnual)
+            .filter(db.and_(AcumuladoAnual.empleado_id == empleado.id, AcumuladoAnual.empresa_id == empresa.id))
+            .one()
+        )
+        from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCalculator
+
+        bono = Decimal("50.00")
+        limited = ConceptCalculator.apply_annual_limits(
+            bono,
+            techo_anual=Decimal("100.00"),
+            tope_base_gravable=None,
+            acumulado_anual=Decimal(str(accumulated.datos_adicionales.get("percepcion_BONO_acumulado", 0))),
+        )
+        assert limited == Decimal("40.00")
