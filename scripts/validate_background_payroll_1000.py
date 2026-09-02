@@ -219,7 +219,8 @@ def main() -> int:
                 usuario="load-test",
             )
             dispatch_seconds = time.monotonic() - started
-            _assert(nomina is not None, f"Nomina was not created: {errors}")
+            if nomina is None:
+                raise RuntimeError(f"Nomina was not created: {errors}")
             _assert(not errors, f"Dispatch returned errors: {errors}")
             _assert(
                 nomina.procesamiento_en_background is expect_background,
@@ -238,6 +239,8 @@ def main() -> int:
             )
 
             current = db.session.get(Nomina, nomina_id)
+            if current is None:
+                raise RuntimeError("Nomina disappeared after processing")
             progress = db.session.execute(
                 db.select(NominaProgress).filter(NominaProgress.nomina_id == nomina_id)
             ).scalar_one_or_none()
@@ -255,11 +258,12 @@ def main() -> int:
             )
 
             expected_total = MONTHLY_SALARY * employee_count
-            _assert(current is not None and current.estado == NominaEstado.GENERADO, f"Final state: {current}")
+            _assert(current.estado == NominaEstado.GENERADO, f"Final state: {current}")
             _assert(current.empleados_procesados == employee_count, "Nomina processed count mismatch")
             _assert(current.empleados_con_error == 0, "Nomina contains employee errors")
             if expect_background:
-                _assert(progress is not None, "Background progress row was not persisted")
+                if progress is None:
+                    raise RuntimeError("Background progress row was not persisted")
                 _assert(progress.total_empleados == employee_count, "Progress total mismatch")
                 _assert(progress.empleados_procesados == employee_count, "Progress processed count mismatch")
                 _assert(progress.empleados_con_error == 0, "Progress contains employee errors")
