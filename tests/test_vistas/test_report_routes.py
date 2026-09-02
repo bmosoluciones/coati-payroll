@@ -2,7 +2,49 @@
 # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 """Tests for report routes."""
 
+from coati_payroll.enums import ReportStatus, ReportType
+from coati_payroll.model import Empleado, Empresa, Moneda, Report
 from tests.helpers.auth import login_user
+
+
+def _report_setup(db_session):
+    empresa = Empresa(codigo="RPTROUTE", razon_social="Route Co", ruc="J-123", activo=True)
+    db_session.add(empresa)
+    db_session.flush()
+    moneda = Moneda(codigo="NIO", nombre="Córdoba", simbolo="C$", activo=True)
+    db_session.add(moneda)
+    db_session.flush()
+    emp = Empleado(
+        empresa_id=empresa.id,
+        codigo_empleado="EMP-ROUTE",
+        primer_nombre="Juan",
+        primer_apellido="Pérez",
+        identificacion_personal="001-010101-0001A",
+        salario_base="1000.00",
+        moneda_id=moneda.id,
+        activo=True,
+    )
+    db_session.add(emp)
+    db_session.flush()
+    report = Report(
+        name="Route Report",
+        description="test",
+        type=ReportType.CUSTOM,
+        status=ReportStatus.ENABLED,
+        base_entity="Employee",
+        category="employee",
+        definition={
+            "columns": [
+                {"type": "field", "entity": "Employee", "field": "codigo_empleado", "label": "codigo_empleado"}
+            ],
+            "filters": [],
+            "sorting": [{"field": "codigo_empleado", "direction": "asc"}],
+        },
+    )
+    db_session.add(report)
+    db_session.flush()
+    db_session.commit()
+    return report.id
 
 
 def test_report_index_requires_authentication(app, client, db_session):
@@ -79,3 +121,38 @@ def test_report_export_requires_authentication(app, client, db_session):
         response = client.post("/report/999/export/csv", follow_redirects=False)
         assert response.status_code == 302
         assert "/auth/login" in response.location
+
+
+def test_report_run_async_queues_task(app, client, admin_user, db_session, monkeypatch):
+    """Async report run returns 202 and enqueues the generate_report task."""
+    import coati_payroll.queue.tasks as tasks
+
+    report_id = _report_setup(db_session)
+
+    class _TaskId:
+        def __str__(self):
+            return "task-123"
+
+    called = {}
+
+    def fake_enqueue(name, **kwargs):
+        called["name"] = name
+        called["kwargs"] = kwargs
+        return _TaskId()
+
+    monkeypatch.setattr(tasks.queue, "enqueue", fake_enqueue)
+
+    login_user(client, admin_user.usuario, "admin-password")
+    with app.app_context():
+        response = client.post(
+            f"/report/{report_id}/run",
+            json={"async": True, "primer_nombre": "Juan"},
+        )
+
+    assert response.status_code == 202
+    payload = response.get_json()
+    assert payload["status"] == "queued"
+    assert payload["task_id"] == "task-123"
+    assert called["name"] == "generate_report"
+    assert called["kwargs"]["report_id"] == report_id
+    assert called["kwargs"]["parameters"] == {"primer_nombre": "Juan"}
