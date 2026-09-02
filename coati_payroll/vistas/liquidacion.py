@@ -105,6 +105,7 @@ def nueva():
     if request.method == "POST":
         empleado_id = request.form.get("empleado_id")
         concepto_id = request.form.get("concepto_id") or None
+        causa_terminacion = request.form.get("causa_terminacion") or None
         fecha_calculo_str = request.form.get("fecha_calculo")
 
         try:
@@ -128,6 +129,8 @@ def nueva():
             flash(w, "warning")
 
         if liquidacion:
+            liquidacion.causa_terminacion = causa_terminacion
+            db.session.commit()
             flash(_("Liquidación calculada."), "success")
             return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
 
@@ -225,7 +228,18 @@ def aplicar(liquidacion_id: str):
         db.session.rollback()
         flash(_("No se pudo aplicar la liquidación."), "error")
         return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
+    if engine.errors:
+        db.session.rollback()
+        for error in engine.errors:
+            flash(error, "error")
+        flash(_("La liquidación no se aplicó porque contiene errores de cálculo."), "error")
+        return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
 
+    from coati_payroll.nomina_engine.services.accounting_voucher_service import AccountingVoucherService
+
+    AccountingVoucherService(db.session).generate_liquidacion_voucher(
+        liquidacion, usuario=getattr(current_user, "usuario", None)
+    )
     db.session.commit()
     flash(_("Liquidación aplicada. Empleado marcado como inactivo y desvinculado de planillas."), "success")
     return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
@@ -242,6 +256,14 @@ def pagar(liquidacion_id: str):
         flash(_("Solo se pueden pagar liquidaciones aplicadas."), "error")
         return redirect(url_for(ROUTE_LIQUIDACION_VER, liquidacion_id=liquidacion.id))
 
+    liquidacion.medio_pago = request.form.get("medio_pago") or liquidacion.medio_pago
+    liquidacion.referencia_pago = request.form.get("referencia_pago") or liquidacion.referencia_pago
+    liquidacion.fecha_pago = date.today()
+    liquidacion.detalle_pago = {
+        "medio": liquidacion.medio_pago,
+        "referencia": liquidacion.referencia_pago,
+        "registrado_por": getattr(current_user, "usuario", None),
+    }
     liquidacion.estado = LiquidacionEstado.PAGADO
     db.session.commit()
     flash(_("Liquidación marcada como pagada."), "success")

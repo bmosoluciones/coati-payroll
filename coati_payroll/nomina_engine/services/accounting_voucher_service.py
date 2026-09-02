@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 from collections import defaultdict
 from datetime import date
 
@@ -21,6 +21,7 @@ from coati_payroll.model import (
     Adelanto,
     ComprobanteContable,
     ComprobanteContableLinea,
+    Liquidacion,
     VacationLedger,
     VacationPolicy,
     ConfiguracionCalculos,
@@ -726,6 +727,113 @@ class AccountingVoucherService:
     ) -> ComprobanteContable:
         """Backward-compatible alias for audit voucher generation."""
         return self.generate_audit_voucher(nomina, planilla, fecha_calculo, usuario)
+
+    def generate_liquidacion_voucher(
+        self, liquidacion: Liquidacion, usuario: str | None = None
+    ) -> ComprobanteContable:
+        """Generate a balanced, auditable voucher for a termination settlement.
+
+        Liquidations do not have ``NominaEmpleado`` rows, so their lines use
+        the nullable reference introduced for this purpose and preserve the
+        employee/concept data directly on each line.  Catalog account codes
+        are used when configured; stable fallback accounts keep the voucher
+        balanced while warning that accounting setup is incomplete.
+        """
+        from datetime import datetime, timezone
+
+        employee = liquidacion.empleado
+        if employee is None:
+            raise ValueError("Liquidation employee is required for accounting")
+        voucher = self.session.execute(
+            db.select(ComprobanteContable).filter_by(liquidacion_id=liquidacion.id)
+        ).scalar_one_or_none()
+        warnings: list[str] = []
+        if voucher:
+            self.session.execute(
+                db.delete(ComprobanteContableLinea).where(ComprobanteContableLinea.comprobante_id == voucher.id)
+            )
+            voucher.fecha_calculo = liquidacion.fecha_calculo
+            voucher.concepto = f"Liquidación {employee.codigo_empleado}"
+            voucher.modificado_por = usuario
+            voucher.fecha_modificacion = datetime.now(timezone.utc)
+            voucher.veces_modificado += 1
+            if not voucher.aplicado_por:
+                voucher.aplicado_por = usuario
+                voucher.fecha_aplicacion = datetime.now(timezone.utc)
+        else:
+            voucher = ComprobanteContable(
+                liquidacion_id=liquidacion.id,
+                fecha_calculo=liquidacion.fecha_calculo,
+                concepto=f"Liquidación {employee.codigo_empleado}",
+                moneda_id=employee.moneda_id,
+                veces_modificado=0,
+                aplicado_por=usuario,
+                fecha_aplicacion=datetime.now(timezone.utc),
+            )
+            self.session.add(voucher)
+            self.session.flush()
+
+        total = Decimal("0.00")
+        order = 0
+        employee_name = f"{employee.primer_nombre} {employee.primer_apellido}"
+        for detail in cast(list[Any], liquidacion.detalles):
+            amount = round_money(detail.monto)
+            if amount <= 0:
+                continue
+            source = detail.percepcion or detail.deduccion or detail.prestacion
+            source_debit = getattr(source, "codigo_cuenta_debe", None)
+            source_credit = getattr(source, "codigo_cuenta_haber", None)
+            if detail.tipo == "deduction":
+                debit_account, credit_account = "LIQUIDACION_POR_PAGAR", source_credit or "LIQUIDACION_DEDUCCION"
+            else:
+                debit_account, credit_account = source_debit or "LIQUIDACION_GASTO", "LIQUIDACION_POR_PAGAR"
+            if source is None or not source_debit and not source_credit:
+                warnings.append(f"Sin cuentas configuradas para {detail.codigo}; se usaron cuentas de liquidación")
+            order += 1
+            self.session.add(ComprobanteContableLinea(
+                comprobante_id=voucher.id,
+                nomina_empleado_id=None,
+                empleado_id=employee.id,
+                empleado_codigo=employee.codigo_empleado,
+                empleado_nombre=employee_name,
+                codigo_cuenta=debit_account,
+                descripcion_cuenta=detail.descripcion or detail.codigo,
+                centro_costos=employee.centro_costos,
+                tipo_debito_credito="debito",
+                debito=amount,
+                credito=Decimal("0.00"),
+                monto_calculado=amount,
+                concepto="Liquidación",
+                tipo_concepto="liquidacion",
+                concepto_codigo=detail.codigo,
+                orden=order,
+            ))
+            order += 1
+            self.session.add(ComprobanteContableLinea(
+                comprobante_id=voucher.id,
+                nomina_empleado_id=None,
+                empleado_id=employee.id,
+                empleado_codigo=employee.codigo_empleado,
+                empleado_nombre=employee_name,
+                codigo_cuenta=credit_account,
+                descripcion_cuenta=detail.descripcion or detail.codigo,
+                centro_costos=employee.centro_costos,
+                tipo_debito_credito="credito",
+                debito=Decimal("0.00"),
+                credito=amount,
+                monto_calculado=amount,
+                concepto="Liquidación",
+                tipo_concepto="liquidacion",
+                concepto_codigo=detail.codigo,
+                orden=order,
+            ))
+            total += amount
+        voucher.total_debitos = total
+        voucher.total_creditos = total
+        voucher.balance = Decimal("0.00")
+        voucher.advertencias = warnings
+        self.session.flush()
+        return voucher
 
     def generate_audit_voucher(
         self, nomina: Nomina, planilla: Planilla, fecha_calculo: date | None = None, usuario: str | None = None

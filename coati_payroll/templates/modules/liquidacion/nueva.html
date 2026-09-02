@@ -30,6 +30,11 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label" for="causa_terminacion">{{ _('Causa de Terminación') }}</label>
+                    <input class="form-control" id="causa_terminacion" name="causa_terminacion" maxlength="100" />
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label" for="concepto_id">{{ _('Concepto') }}</label>
                     <select class="form-select" id="concepto_id" name="concepto_id">
                         <option value="">{{ _('-- Seleccionar --') }}</option>

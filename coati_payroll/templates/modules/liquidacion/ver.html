@@ -26,6 +26,10 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
             {% elif liquidacion.estado == 'applied' %}
                 <form method="POST" action="{{ url_for('liquidacion.pagar', liquidacion_id=liquidacion.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label class="visually-hidden" for="medio_pago">{{ _('Medio de Pago') }}</label>
+                    <input class="form-control" id="medio_pago" name="medio_pago" placeholder="{{ _('Medio de pago') }}" value="{{ liquidacion.medio_pago or '' }}">
+                    <label class="visually-hidden" for="referencia_pago">{{ _('Referencia de Pago') }}</label>
+                    <input class="form-control" id="referencia_pago" name="referencia_pago" placeholder="{{ _('Referencia') }}" value="{{ liquidacion.referencia_pago or '' }}">
                     <button type="submit" class="btn btn-success">{{ _('Marcar Pagada') }}</button>
                 </form>
             {% endif %}
@@ -55,6 +59,9 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     <div><strong>{{ _('Total Deducciones') }}:</strong> {{ liquidacion.total_deducciones }}</div>
                     <div><strong>{{ _('Total Neto') }}:</strong> {{ liquidacion.total_neto }}</div>
                     <div><strong>{{ _('Estado') }}:</strong> {{ liquidacion.estado }}</div>
+                    <div><strong>{{ _('Causa') }}:</strong> {{ liquidacion.causa_terminacion or '-' }}</div>
+                    <div><strong>{{ _('Medio de Pago') }}:</strong> {{ liquidacion.medio_pago or '-' }}</div>
+                    <div><strong>{{ _('Referencia de Pago') }}:</strong> {{ liquidacion.referencia_pago or '-' }}</div>
                 </div>
             </div>
         </div>

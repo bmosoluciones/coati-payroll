@@ -13,6 +13,7 @@ from typing import Any, cast
 from sqlalchemy import select
 
 from coati_payroll.enums import LiquidacionEstado, NominaEstado
+from coati_payroll.formula_engine import FormulaEngine, FormulaEngineError
 from coati_payroll.model import (
     ConfiguracionCalculos,
     Empleado,
@@ -137,6 +138,24 @@ class LiquidacionEngine:
             total_bruto += monto_dias
             orden += 1
 
+        # Jurisdiction-specific severance, bonus and proportional-benefit
+        # rules are supplied as the same safe formula schema used by payroll.
+        # A missing schema intentionally means no extra statutory line.
+        monto_configurado = self._calcular_concepto_configurado(liquidacion, tasa_dia, total_bruto)
+        if monto_configurado > 0:
+            concepto = liquidacion.concepto
+            liquidacion.detalles.append(
+                LiquidacionDetalle(
+                    tipo="income",
+                    codigo=concepto.codigo,
+                    descripcion=concepto.nombre,
+                    monto=monto_configurado,
+                    orden=orden,
+                )
+            )
+            total_bruto += monto_configurado
+            orden += 1
+
         # Vacation payout on termination: the pending vacation balance is
         # valued at the daily salary and paid out when the policy allows it.
         monto_vacaciones = self._procesar_vacaciones_finiquito(
@@ -204,6 +223,33 @@ class LiquidacionEngine:
         liquidacion.advertencias_calculo = list(self.warnings)
 
         return liquidacion
+
+    def _calcular_concepto_configurado(
+        self, liquidacion: Liquidacion, tasa_dia: Decimal, total_bruto: Decimal
+    ) -> Decimal:
+        """Evaluate the selected jurisdiction-specific liquidation rule."""
+        concepto = liquidacion.concepto
+        schema = concepto.esquema_json if concepto else None
+        if not schema:
+            return Decimal("0.00")
+        fecha_alta = self.empleado.fecha_alta or self.fecha_calculo
+        dias_servicio = max(0, (self.fecha_calculo - fecha_alta).days)
+        inputs = {
+            "salario_mensual": Decimal(str(self.empleado.salario_base or 0)),
+            "salario_diario": tasa_dia,
+            "dias_por_pagar": Decimal(str(liquidacion.dias_por_pagar)),
+            "dias_servicio": Decimal(str(dias_servicio)),
+            "anos_servicio": Decimal(str(dias_servicio)) / Decimal("365.25"),
+            "total_bruto": total_bruto,
+            "total_deducciones": Decimal("0.00"),
+        }
+        try:
+            result = FormulaEngine(schema).execute(inputs)
+            amount = Decimal(str(result.get("output", 0)))
+            return max(Decimal("0.00"), amount).quantize(Decimal("0.01"))
+        except (FormulaEngineError, ValueError, TypeError) as exc:
+            self.errors.append(f"Concepto de liquidación {concepto.codigo}: {exc}")
+            return Decimal("0.00")
 
     def _procesar_vacaciones_finiquito(
         self, liquidacion: Liquidacion, tasa_dia: Decimal, apply_side_effects: bool, orden: int

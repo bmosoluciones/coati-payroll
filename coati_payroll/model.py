@@ -1141,6 +1141,8 @@ class LiquidacionConcepto(database.Model, BaseTabla):
     codigo = database.Column(database.String(50), unique=True, nullable=False, index=True)
     nombre = database.Column(database.String(150), nullable=False)
     descripcion = database.Column(database.String(255), nullable=True)
+    jurisdiccion = database.Column(database.String(100), nullable=True)
+    esquema_json = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
     activo = database.Column(database.Boolean(), default=True, nullable=False)
 
 
@@ -1154,6 +1156,11 @@ class Liquidacion(database.Model, BaseTabla):
     fecha_calculo = database.Column(database.Date, nullable=False, default=date.today)
     ultimo_dia_pagado = database.Column(database.Date, nullable=True)
     dias_por_pagar = database.Column(database.Integer, nullable=False, default=0)
+    causa_terminacion = database.Column(database.String(100), nullable=True)
+    medio_pago = database.Column(database.String(40), nullable=True)
+    referencia_pago = database.Column(database.String(150), nullable=True)
+    fecha_pago = database.Column(database.Date, nullable=True)
+    detalle_pago = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
 
     estado = database.Column(
         database.String(30), nullable=False, default=LiquidacionEstado.BORRADOR
@@ -1168,6 +1175,7 @@ class Liquidacion(database.Model, BaseTabla):
 
     empleado = database.relationship("Empleado")
     concepto = database.relationship("LiquidacionConcepto")
+    comprobante_contable = database.relationship("ComprobanteContable", back_populates="liquidacion", uselist=False)
     detalles = database.relationship("LiquidacionDetalle", back_populates="liquidacion", cascade="all,delete-orphan")
 
 
@@ -1261,7 +1269,8 @@ class ComprobanteContable(database.Model, BaseTabla):
 
     __tablename__ = "comprobante_contable"
 
-    nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=False, unique=True)
+    nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=True, unique=True)
+    liquidacion_id = database.Column(database.String(26), database.ForeignKey("liquidacion.id"), nullable=True, unique=True)
 
     # Header information
     fecha_calculo = database.Column(database.Date, nullable=False, default=date.today)
@@ -1286,6 +1295,7 @@ class ComprobanteContable(database.Model, BaseTabla):
     veces_modificado = database.Column(database.Integer, nullable=False, default=0)
 
     nomina = database.relationship("Nomina", back_populates="comprobante_contable")
+    liquidacion = database.relationship("Liquidacion", back_populates="comprobante_contable")
     moneda = database.relationship("Moneda")
     lineas = database.relationship(
         "ComprobanteContableLinea",
@@ -1316,7 +1326,7 @@ class ComprobanteContableLinea(database.Model, BaseTabla):
         database.String(26), database.ForeignKey("comprobante_contable.id"), nullable=False, index=True
     )
     nomina_empleado_id = database.Column(
-        database.String(26), database.ForeignKey("nomina_empleado.id"), nullable=False, index=True
+        database.String(26), database.ForeignKey("nomina_empleado.id"), nullable=True, index=True
     )
 
     # Employee information for audit trail (denormalized for easier reporting)
