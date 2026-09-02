@@ -80,9 +80,7 @@ class EmployeeValidator(BaseValidator):
 
         salario = salario_base_override if salario_base_override is not None else empleado.salario_base
         if salario is None or salario <= Decimal("0.00"):
-            result.add_error(
-                f"Empleado {empleado.codigo_empleado} tiene salario base inválido ({salario})"
-            )
+            result.add_error(f"Empleado {empleado.codigo_empleado} tiene salario base inválido ({salario})")
 
         if not empleado.empresa_id:
             result.add_error(f"Empleado {empleado.codigo_empleado} no está asignado a ninguna empresa")

@@ -371,9 +371,9 @@ def recalcular_liquidacion(liquidacion_id: str, fecha_calculo: date | None = Non
     for entry in payouts:
         account = db.session.get(VacationAccount, entry.account_id)
         if account:
-            account.current_balance = (
-                Decimal(str(account.current_balance)) + Decimal(str(-entry.quantity))
-            ).quantize(Decimal("0.0001"))
+            account.current_balance = (Decimal(str(account.current_balance)) + Decimal(str(-entry.quantity))).quantize(
+                Decimal("0.0001")
+            )
         db.session.delete(entry)
 
     # Remove existing details

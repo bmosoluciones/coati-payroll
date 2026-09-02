@@ -165,11 +165,24 @@ def edit(planilla_id: str):
             return render_template(TEMPLATE_PLANILLA_FORM, form=form, planilla=planilla, is_edit=True, **counts)
 
         campos_editables = (
-            "nombre", "descripcion", "tipo_planilla_id", "moneda_id", "empresa_id", "mes_inicio_fiscal",
-            "vacation_policy_id", "periodo_fiscal_inicio", "periodo_fiscal_fin", "prioridad_prestamos",
-            "prioridad_adelantos", "aplicar_prestamos_automatico", "aplicar_adelantos_automatico",
-            "codigo_cuenta_debe_salario", "descripcion_cuenta_debe_salario", "codigo_cuenta_haber_salario",
-            "descripcion_cuenta_haber_salario", "activo",
+            "nombre",
+            "descripcion",
+            "tipo_planilla_id",
+            "moneda_id",
+            "empresa_id",
+            "mes_inicio_fiscal",
+            "vacation_policy_id",
+            "periodo_fiscal_inicio",
+            "periodo_fiscal_fin",
+            "prioridad_prestamos",
+            "prioridad_adelantos",
+            "aplicar_prestamos_automatico",
+            "aplicar_adelantos_automatico",
+            "codigo_cuenta_debe_salario",
+            "descripcion_cuenta_debe_salario",
+            "codigo_cuenta_haber_salario",
+            "descripcion_cuenta_haber_salario",
+            "activo",
         )
         valores_anteriores = {campo: getattr(planilla, campo) for campo in campos_editables}
 

@@ -155,8 +155,9 @@ class SnapshotService:
         # change cannot rewrite a historical recalculation.
         employees = (
             self.session.execute(
-                db.select(PlanillaEmpleado)
-                .filter(PlanillaEmpleado.planilla_id == planilla.id, PlanillaEmpleado.activo.is_(True))
+                db.select(PlanillaEmpleado).filter(
+                    PlanillaEmpleado.planilla_id == planilla.id, PlanillaEmpleado.activo.is_(True)
+                )
             )
             .scalars()
             .all()
@@ -455,9 +456,7 @@ class SnapshotService:
         for field in fields:
             value = getattr(association, field, None)
             result[field] = (
-                str(value)
-                if value is not None and field in {"monto_predeterminado", "porcentaje"}
-                else value
+                str(value) if value is not None and field in {"monto_predeterminado", "porcentaje"} else value
             )
         return result
 
