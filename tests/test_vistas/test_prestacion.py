@@ -272,7 +272,7 @@ def test_initial_balance_bulk_post_invalid_excel_file(app, client, admin_user, d
 def test_initial_balance_bulk_post_missing_required_fields(app, client, admin_user, db_session):
     """Test POST with Excel file missing required fields."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file with incomplete data (missing saldo_acumulado)
@@ -299,7 +299,7 @@ def test_initial_balance_bulk_post_missing_required_fields(app, client, admin_us
 def test_initial_balance_bulk_post_empty_required_fields(app, client, admin_user, db_session):
     """Test POST with Excel file with empty string required fields."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file with empty strings in required fields
@@ -326,7 +326,7 @@ def test_initial_balance_bulk_post_empty_required_fields(app, client, admin_user
 def test_initial_balance_bulk_post_employee_not_found(app, client, admin_user, db_session):
     """Test POST with non-existent employee."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file with non-existent employee
@@ -353,7 +353,7 @@ def test_initial_balance_bulk_post_employee_not_found(app, client, admin_user, d
 def test_initial_balance_bulk_post_prestacion_not_found(app, client, admin_user, db_session):
     """Test POST with non-existent prestacion."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file with non-existent prestacion
@@ -380,7 +380,7 @@ def test_initial_balance_bulk_post_prestacion_not_found(app, client, admin_user,
 def test_initial_balance_bulk_post_moneda_not_found(app, client, admin_user, db_session):
     """Test POST with non-existent moneda."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file with non-existent moneda
@@ -486,7 +486,7 @@ def test_initial_balance_bulk_post_successful_upload(app, client, admin_user, db
 def test_initial_balance_bulk_post_default_tipo_cambio(app, client, admin_user, db_session):
     """Test POST with missing tipo_cambio uses default 1.0."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file without tipo_cambio (only 6 columns)
@@ -515,7 +515,7 @@ def test_initial_balance_bulk_post_default_tipo_cambio(app, client, admin_user, 
 def test_initial_balance_bulk_post_default_observaciones(app, client, admin_user, db_session):
     """Test POST with missing observaciones uses default text."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file without observaciones (only 7 columns)
@@ -585,7 +585,7 @@ def test_initial_balance_bulk_post_mixed_success_and_errors(app, client, admin_u
 def test_initial_balance_bulk_post_many_errors_truncates_display(app, client, admin_user, db_session):
     """Test POST with many errors only displays first MAX_DISPLAYED_ERRORS."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file with 15 invalid rows (more than MAX_DISPLAYED_ERRORS=10)
@@ -612,7 +612,7 @@ def test_initial_balance_bulk_post_many_errors_truncates_display(app, client, ad
 def test_initial_balance_bulk_post_processing_exception(app, client, admin_user, db_session):
     """Test POST handles exception during record processing."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create Excel file with data that will cause processing error (invalid decimal)
@@ -639,7 +639,7 @@ def test_initial_balance_bulk_post_processing_exception(app, client, admin_user,
 def test_initial_balance_bulk_post_commit_exception(app, client, admin_user, db_session):
     """Test POST handles database commit exception."""
     with app.app_context():
-        test_data = create_test_data(db_session)
+        create_test_data(db_session)
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create valid Excel file

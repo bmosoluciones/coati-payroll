@@ -728,9 +728,7 @@ class AccountingVoucherService:
         """Backward-compatible alias for audit voucher generation."""
         return self.generate_audit_voucher(nomina, planilla, fecha_calculo, usuario)
 
-    def generate_liquidacion_voucher(
-        self, liquidacion: Liquidacion, usuario: str | None = None
-    ) -> ComprobanteContable:
+    def generate_liquidacion_voucher(self, liquidacion: Liquidacion, usuario: str | None = None) -> ComprobanteContable:
         """Generate a balanced, auditable voucher for a termination settlement.
 
         Liquidations do not have ``NominaEmpleado`` rows, so their lines use
@@ -790,43 +788,47 @@ class AccountingVoucherService:
             if source is None or not source_debit and not source_credit:
                 warnings.append(f"Sin cuentas configuradas para {detail.codigo}; se usaron cuentas de liquidación")
             order += 1
-            self.session.add(ComprobanteContableLinea(
-                comprobante_id=voucher.id,
-                nomina_empleado_id=None,
-                empleado_id=employee.id,
-                empleado_codigo=employee.codigo_empleado,
-                empleado_nombre=employee_name,
-                codigo_cuenta=debit_account,
-                descripcion_cuenta=detail.descripcion or detail.codigo,
-                centro_costos=employee.centro_costos,
-                tipo_debito_credito="debito",
-                debito=amount,
-                credito=Decimal("0.00"),
-                monto_calculado=amount,
-                concepto="Liquidación",
-                tipo_concepto="liquidacion",
-                concepto_codigo=detail.codigo,
-                orden=order,
-            ))
+            self.session.add(
+                ComprobanteContableLinea(
+                    comprobante_id=voucher.id,
+                    nomina_empleado_id=None,
+                    empleado_id=employee.id,
+                    empleado_codigo=employee.codigo_empleado,
+                    empleado_nombre=employee_name,
+                    codigo_cuenta=debit_account,
+                    descripcion_cuenta=detail.descripcion or detail.codigo,
+                    centro_costos=employee.centro_costos,
+                    tipo_debito_credito="debito",
+                    debito=amount,
+                    credito=Decimal("0.00"),
+                    monto_calculado=amount,
+                    concepto="Liquidación",
+                    tipo_concepto="liquidacion",
+                    concepto_codigo=detail.codigo,
+                    orden=order,
+                )
+            )
             order += 1
-            self.session.add(ComprobanteContableLinea(
-                comprobante_id=voucher.id,
-                nomina_empleado_id=None,
-                empleado_id=employee.id,
-                empleado_codigo=employee.codigo_empleado,
-                empleado_nombre=employee_name,
-                codigo_cuenta=credit_account,
-                descripcion_cuenta=detail.descripcion or detail.codigo,
-                centro_costos=employee.centro_costos,
-                tipo_debito_credito="credito",
-                debito=Decimal("0.00"),
-                credito=amount,
-                monto_calculado=amount,
-                concepto="Liquidación",
-                tipo_concepto="liquidacion",
-                concepto_codigo=detail.codigo,
-                orden=order,
-            ))
+            self.session.add(
+                ComprobanteContableLinea(
+                    comprobante_id=voucher.id,
+                    nomina_empleado_id=None,
+                    empleado_id=employee.id,
+                    empleado_codigo=employee.codigo_empleado,
+                    empleado_nombre=employee_name,
+                    codigo_cuenta=credit_account,
+                    descripcion_cuenta=detail.descripcion or detail.codigo,
+                    centro_costos=employee.centro_costos,
+                    tipo_debito_credito="credito",
+                    debito=Decimal("0.00"),
+                    credito=amount,
+                    monto_calculado=amount,
+                    concepto="Liquidación",
+                    tipo_concepto="liquidacion",
+                    concepto_codigo=detail.codigo,
+                    orden=order,
+                )
+            )
             total += amount
         voucher.total_debitos = total
         voucher.total_creditos = total

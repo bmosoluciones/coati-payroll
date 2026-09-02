@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
@@ -24,7 +26,9 @@ USER_FORM_TEMPLATE = "modules/user/form.html"
 
 def _populate_company_choices(form: UserForm) -> None:
     """Populate company memberships using only companies the admin can see."""
-    form.empresa_ids.choices = [(empresa.id, f"{empresa.codigo} - {empresa.razon_social}") for empresa in accessible_empresas()]
+    form.empresa_ids.choices = [
+        (empresa.id, f"{empresa.codigo} - {empresa.razon_social}") for empresa in accessible_empresas()
+    ]
 
 
 @user_bp.route("/", methods=["GET"])
@@ -89,7 +93,8 @@ def edit(id_: str):
     form = UserForm(obj=user)
     _populate_company_choices(form)
     if request.method == "GET":
-        form.empresa_ids.data = [empresa.id for empresa in user.empresas]
+        empresas = cast(list[Empresa], user.empresas)
+        form.empresa_ids.data = [empresa.id for empresa in empresas]
 
     if form.validate_on_submit():
         old_username = user.usuario
@@ -104,8 +109,13 @@ def edit(id_: str):
         user.idioma = form.idioma.data or None
         user.tipo = form.tipo.data
         user.activo = form.activo.data
-        user.empresas = list(
-            db.session.execute(db.select(Empresa).where(Empresa.id.in_(form.empresa_ids.data or []))).scalars().all()
+        user.empresas = cast(
+            Any,
+            list(
+                db.session.execute(db.select(Empresa).where(Empresa.id.in_(form.empresa_ids.data or [])))
+                .scalars()
+                .all()
+            ),
         )
         user.modificado_por = current_user.usuario
 

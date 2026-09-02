@@ -52,6 +52,7 @@ def enforce_planilla_tenant_scope():
         if nomina is None or nomina.planilla is None or not company_is_accessible(nomina.planilla.empresa_id):
             abort(404)
 
+
 # Import all route modules to register them with the blueprint
 # This must be done after creating the blueprint
 for module_name in (

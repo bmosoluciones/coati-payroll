@@ -2,7 +2,7 @@
 """Regression tests for company/tenant isolation."""
 
 from coati_payroll.auth import proteger_passwd
-from coati_payroll.model import Deduccion, Empleado, Empresa, Percepcion, Prestacion, Usuario, db
+from coati_payroll.model import Deduccion, Empleado, Empresa, Percepcion, Prestacion, Usuario
 from tests.helpers.auth import login_user
 
 

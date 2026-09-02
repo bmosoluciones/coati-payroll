@@ -587,15 +587,18 @@ class PercepcionForm(FlaskForm):
         description=_(REPORT_UNIT_DESCRIPTION),
     )
     techo_anual = DecimalField(
-        _("Techo Anual"), validators=[Optional(), NumberRange(min=0)],
+        _("Techo Anual"),
+        validators=[Optional(), NumberRange(min=0)],
         description=_("Máximo acumulado anual para este concepto; vacío significa sin límite."),
     )
     tope_base_gravable = DecimalField(
-        _("Tope de Base Gravable"), validators=[Optional(), NumberRange(min=0)],
+        _("Tope de Base Gravable"),
+        validators=[Optional(), NumberRange(min=0)],
         description=_("Límite anual alternativo para la base gravable."),
     )
     monto_exento = DecimalField(
-        _("Monto Exento"), validators=[Optional(), NumberRange(min=0)],
+        _("Monto Exento"),
+        validators=[Optional(), NumberRange(min=0)],
         description=_("Parte del concepto que no incrementa la base gravable en cada período."),
     )
     gravable = BooleanField(
@@ -669,8 +672,12 @@ class PercepcionForm(FlaskForm):
     )
     activo = BooleanField(_("Activo"), default=True)
     empresa_ids = SelectMultipleField(
-        _("Empresas autorizadas"), validators=[Optional()], coerce=str,
-        description=_("Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."),
+        _("Empresas autorizadas"),
+        validators=[Optional()],
+        coerce=str,
+        description=_(
+            "Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."
+        ),
     )
     submit = SubmitField(_("Guardar"))
 
@@ -772,15 +779,18 @@ class DeduccionForm(FlaskForm):
         description=_(REPORT_UNIT_DESCRIPTION),
     )
     techo_anual = DecimalField(
-        _("Techo Anual"), validators=[Optional(), NumberRange(min=0)],
+        _("Techo Anual"),
+        validators=[Optional(), NumberRange(min=0)],
         description=_("Máximo acumulado anual para este concepto; vacío significa sin límite."),
     )
     tope_base_gravable = DecimalField(
-        _("Tope de Base Gravable"), validators=[Optional(), NumberRange(min=0)],
+        _("Tope de Base Gravable"),
+        validators=[Optional(), NumberRange(min=0)],
         description=_("Límite anual alternativo para la base gravable."),
     )
     monto_exento = DecimalField(
-        _("Monto Exento"), validators=[Optional(), NumberRange(min=0)],
+        _("Monto Exento"),
+        validators=[Optional(), NumberRange(min=0)],
         description=_("Monto de la deducción excluido de la base gravable cuando aplique."),
     )
     antes_impuesto = BooleanField(
@@ -854,8 +864,12 @@ class DeduccionForm(FlaskForm):
     )
     activo = BooleanField(_("Activo"), default=True)
     empresa_ids = SelectMultipleField(
-        _("Empresas autorizadas"), validators=[Optional()], coerce=str,
-        description=_("Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."),
+        _("Empresas autorizadas"),
+        validators=[Optional()],
+        coerce=str,
+        description=_(
+            "Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."
+        ),
     )
     submit = SubmitField(_("Guardar"))
 
@@ -1227,8 +1241,12 @@ class PrestacionForm(FlaskForm):
     )
     activo = BooleanField(_("Activo"), default=True)
     empresa_ids = SelectMultipleField(
-        _("Empresas autorizadas"), validators=[Optional()], coerce=str,
-        description=_("Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."),
+        _("Empresas autorizadas"),
+        validators=[Optional()],
+        coerce=str,
+        description=_(
+            "Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."
+        ),
     )
     submit = SubmitField(_("Guardar"))
 

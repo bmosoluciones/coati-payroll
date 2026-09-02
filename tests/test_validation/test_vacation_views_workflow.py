@@ -181,8 +181,6 @@ def test_vacation_policy_new_post_creates_policy(app, client, admin_user, db_ses
         assert created is not None
 
 
-
-
 @pytest.mark.validation
 def test_vacation_policy_new_post_allows_empty_accrual_rate_and_min_service_days(app, client, admin_user, db_session):
     with app.app_context():
@@ -218,8 +216,11 @@ def test_vacation_policy_new_post_allows_empty_accrual_rate_and_min_service_days
         assert created.accrual_rate == Decimal("0.0000")
         assert created.min_service_days == 0
 
+
 @pytest.mark.validation
-def test_vacation_leave_request_approve_only_marks_approved_until_payroll_execution(app, client, admin_user, db_session):
+def test_vacation_leave_request_approve_only_marks_approved_until_payroll_execution(
+    app, client, admin_user, db_session
+):
     with app.app_context():
         empresa, moneda, _, planilla = _create_base_company_struct(db_session)
         empleado = _create_employee(db_session, empresa.id, moneda.id)
@@ -485,7 +486,7 @@ def test_vacation_initial_balance_bulk_post_applies_balance_from_excel(app, clie
 
 @pytest.mark.validation
 def test_vacation_register_taken_success(app, client, admin_user, db_session):
-    """Test successful POST to vacation taken registration, creating VacationNovelty and NominaNovedad with null nomina_id."""
+    """Test POST registration of a vacation taken without a payroll."""
     with app.app_context():
         empresa, moneda, _, planilla = _create_base_company_struct(db_session)
         empleado = _create_employee(db_session, empresa.id, moneda.id)
@@ -540,6 +541,7 @@ def test_vacation_register_taken_success(app, client, admin_user, db_session):
 
         # Verify NominaNovedad was created with floating/null nomina_id
         from coati_payroll.model import NominaNovedad
+
         nomina_novedad = db_session.query(NominaNovedad).filter_by(empleado_id=empleado.id).one_or_none()
         assert nomina_novedad is not None
         assert nomina_novedad.nomina_id is None

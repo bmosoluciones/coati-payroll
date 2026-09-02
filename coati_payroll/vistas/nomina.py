@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from flask import Blueprint, render_template, request
 
-from coati_payroll.model import Nomina, Planilla, Empresa, db
+from coati_payroll.model import Nomina, Planilla, db
 from coati_payroll.rbac import require_read_access
 from coati_payroll.vistas.constants import PER_PAGE
 from coati_payroll.tenant import accessible_empresas, scope_company_query
@@ -54,9 +54,15 @@ def index():
     )
 
     # Get choices for filter dropdowns
-    planillas = db.session.execute(
-        scope_company_query(db.select(Planilla), Planilla.empresa_id).filter_by(activo=True).order_by(Planilla.nombre)
-    ).scalars().all()
+    planillas = (
+        db.session.execute(
+            scope_company_query(db.select(Planilla), Planilla.empresa_id)
+            .filter_by(activo=True)
+            .order_by(Planilla.nombre)
+        )
+        .scalars()
+        .all()
+    )
     empresas = accessible_empresas()
 
     return render_template(

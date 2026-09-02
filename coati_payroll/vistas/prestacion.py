@@ -46,19 +46,25 @@ prestacion_management_bp = Blueprint("prestacion_management", __name__, url_pref
 def dashboard():
     """Prestacion management dashboard."""
     # Statistics
-    total_prestaciones = db.session.execute(
-        concept_scope_query(db.select(count(distinct(Prestacion.id))), empresa_prestacion, Prestacion.id).filter(
-            Prestacion.activo.is_(True)
-        )
-    ).scalar() or 0
+    total_prestaciones = (
+        db.session.execute(
+            concept_scope_query(db.select(count(distinct(Prestacion.id))), empresa_prestacion, Prestacion.id).filter(
+                Prestacion.activo.is_(True)
+            )
+        ).scalar()
+        or 0
+    )
 
     # Count employees with benefit balances
-    total_accounts = db.session.execute(
-        scope_company_query(
-            db.select(count(distinct(PrestacionAcumulada.empleado_id))).join(PrestacionAcumulada.empleado),
-            Empleado.empresa_id,
-        )
-    ).scalar() or 0
+    total_accounts = (
+        db.session.execute(
+            scope_company_query(
+                db.select(count(distinct(PrestacionAcumulada.empleado_id))).join(PrestacionAcumulada.empleado),
+                Empleado.empresa_id,
+            )
+        ).scalar()
+        or 0
+    )
 
     # Count pending initial loads
     pending_loads = (
@@ -170,7 +176,9 @@ def initial_balance_bulk():
 
                 # Find employee
                 empleado = db.session.execute(
-                    scope_company_query(db.select(Empleado), Empleado.empresa_id).filter(Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True))
+                    scope_company_query(db.select(Empleado), Empleado.empresa_id).filter(
+                        Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True)
+                    )
                 ).scalar_one_or_none()
 
                 if not empleado:

@@ -18,7 +18,6 @@ from coati_payroll.model import (
     Empleado,
     Empresa,
     Moneda,
-    Nomina,
     NominaEmpleado,
     Planilla,
     PlanillaEmpleado,
@@ -48,9 +47,7 @@ def _apply_vacation_accruals(nomina, planilla, db_session, usuario="test_user"):
         apply_side_effects=True,
     )
 
-    nomina_empleados = db_session.execute(
-        db.select(NominaEmpleado).filter_by(nomina_id=nomina.id)
-    ).scalars().all()
+    nomina_empleados = db_session.execute(db.select(NominaEmpleado).filter_by(nomina_id=nomina.id)).scalars().all()
 
     for ne in nomina_empleados:
         emp = ne.empleado or db_session.get(Empleado, ne.empleado_id)

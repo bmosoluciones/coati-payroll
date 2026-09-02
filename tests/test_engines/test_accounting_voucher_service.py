@@ -224,8 +224,6 @@ class TestAccountingConfigurationValidation:
             assert any("INSS Laboral" in w and "débito" in w for w in warnings)
             assert any("INSS Laboral" in w and "crédito" in w for w in warnings)
 
-
-
     def test_validate_paid_vacation_policy_requires_accounts(self, app, db_session):
         """Paid vacation policy should warn when liability accounts are missing."""
         with app.app_context():
@@ -400,12 +398,11 @@ class TestAccountingVoucherGeneration:
                 .filter(ComprobanteContableLinea.comprobante_id == comprobante.id)
                 .all()
             )
-            vac_lines = [l for l in lineas if l.tipo_concepto == "vacation_liability"]
+            vac_lines = [linea for linea in lineas if linea.tipo_concepto == "vacation_liability"]
 
             assert len(vac_lines) == 2
-            assert any(l.codigo_cuenta == "5201" and l.debito > 0 for l in vac_lines)
-            assert any(l.codigo_cuenta == "2205" and l.credito > 0 for l in vac_lines)
-
+            assert any(linea.codigo_cuenta == "5201" and linea.debito > 0 for linea in vac_lines)
+            assert any(linea.codigo_cuenta == "2205" and linea.credito > 0 for linea in vac_lines)
 
     def test_generate_voucher_reverses_paid_vacation_liability_on_usage(self, app, db_session):
         """Usage entries (vacation_novelty) must reverse liability in same payroll voucher."""
@@ -547,12 +544,12 @@ class TestAccountingVoucherGeneration:
                 .filter(ComprobanteContableLinea.comprobante_id == comprobante.id)
                 .all()
             )
-            vac_lines = [l for l in lineas if l.tipo_concepto == "vacation_liability"]
+            vac_lines = [linea for linea in lineas if linea.tipo_concepto == "vacation_liability"]
 
             assert len(vac_lines) == 2
             # usage should reverse: debit liability, credit expense
-            assert any(l.codigo_cuenta == "2205" and l.debito > 0 for l in vac_lines)
-            assert any(l.codigo_cuenta == "5201" and l.credito > 0 for l in vac_lines)
+            assert any(linea.codigo_cuenta == "2205" and linea.debito > 0 for linea in vac_lines)
+            assert any(linea.codigo_cuenta == "5201" and linea.credito > 0 for linea in vac_lines)
 
     def test_generate_voucher_base_salary(self, app, db_session):
         """Test voucher generation for base salary."""
@@ -645,13 +642,13 @@ class TestAccountingVoucherGeneration:
             lineas = db_session.query(ComprobanteContableLinea).filter_by(comprobante_id=comprobante.id).all()
             assert len(lineas) == 2  # Debit and credit
 
-            linea_debe = [l for l in lineas if l.tipo_debito_credito == "debito"][0]
+            linea_debe = [linea for linea in lineas if linea.tipo_debito_credito == "debito"][0]
             assert linea_debe.codigo_cuenta == "5101"
             assert linea_debe.debito == Decimal("15000.00")
             assert linea_debe.centro_costos == "CC-01"
             assert linea_debe.empleado_codigo == "EMP001"
 
-            linea_haber = [l for l in lineas if l.tipo_debito_credito == "credito"][0]
+            linea_haber = [linea for linea in lineas if linea.tipo_debito_credito == "credito"][0]
             assert linea_haber.codigo_cuenta == "2101"
             assert linea_haber.credito == Decimal("15000.00")
             assert linea_haber.centro_costos == "CC-01"
@@ -731,7 +728,7 @@ class TestAccountingVoucherGeneration:
 
             # Check that lines have null cost center
             lineas = db_session.query(ComprobanteContableLinea).filter_by(comprobante_id=comprobante.id).all()
-            assert all(l.centro_costos is None for l in lineas)
+            assert all(linea.centro_costos is None for linea in lineas)
 
     def test_generate_voucher_with_loan(self, app, db_session):
         """Test voucher generation with loan deductions."""
@@ -854,16 +851,16 @@ class TestAccountingVoucherGeneration:
             assert len(lineas) >= 4
 
             # Find loan lines
-            loan_lines = [l for l in lineas if l.tipo_concepto == "loan"]
+            loan_lines = [linea for linea in lineas if linea.tipo_concepto == "loan"]
             assert len(loan_lines) == 2
 
             # Check loan debit (salary payable)
-            loan_debe = [l for l in loan_lines if l.tipo_debito_credito == "debito"][0]
+            loan_debe = [linea for linea in loan_lines if linea.tipo_debito_credito == "debito"][0]
             assert loan_debe.codigo_cuenta == "2101"  # Salary payable
             assert loan_debe.debito == Decimal("1000.00")
 
             # Check loan credit (loan control)
-            loan_haber = [l for l in loan_lines if l.tipo_debito_credito == "credito"][0]
+            loan_haber = [linea for linea in loan_lines if linea.tipo_debito_credito == "credito"][0]
             assert loan_haber.codigo_cuenta == "1301"  # Loan control
             assert loan_haber.credito == Decimal("1000.00")
 

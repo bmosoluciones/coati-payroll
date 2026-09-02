@@ -42,9 +42,7 @@ def test_api_token_is_hashed_and_scope_is_enforced(app, client, db_session):
 
 def test_expired_token_is_rejected_without_timezone_error(app, client, admin_user, db_session):
     with app.app_context():
-        _record, raw_token = issue_api_token(
-            admin_user, "expired", {"read"}, datetime.now(UTC) - timedelta(minutes=1)
-        )
+        _record, raw_token = issue_api_token(admin_user, "expired", {"read"}, datetime.now(UTC) - timedelta(minutes=1))
         db_session.commit()
 
         response = client.get("/api/v1/employees", headers={"Authorization": f"Bearer {raw_token}"})

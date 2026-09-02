@@ -14,24 +14,16 @@ The system tracks three types of absences:
 from datetime import date
 from decimal import Decimal
 
-import pytest
 
 from coati_payroll.enums import FormulaType
 from coati_payroll.nomina_engine.processors.novelty_processor import NoveltyProcessor
-from coati_payroll.nomina_engine.calculators.deduction_calculator import DeductionCalculator
-from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCalculator
-from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
-from coati_payroll.nomina_engine.results.warning_collector import WarningCollector
 from coati_payroll.nomina_engine.repositories.novelty_repository import NoveltyRepository
 from coati_payroll.model import (
-    db,
     Empresa,
     Moneda,
     TipoPlanilla,
     Planilla,
     Empleado,
-    Deduccion,
-    PlanillaDeduccion,
     Percepcion,
     PlanillaIngreso,
     NominaNovedad,
@@ -53,7 +45,6 @@ class TestNoveltyProcessor:
                 codigo="TEST001",
                 razon_social="Test Company SA",
                 ruc="J-12345678",
-
             )
             db_session.add(empresa)
             db_session.flush()
@@ -147,7 +138,6 @@ class TestNoveltyProcessor:
                 codigo="TEST001",
                 razon_social="Test Company SA",
                 ruc="J-12345678",
-
             )
             db_session.add(empresa)
             db_session.flush()
@@ -442,10 +432,7 @@ class TestMedicalSubsidyScenario:
             assert "SUBSIDIO_MEDICO_DIA12" not in codigos_descuento
 
             # Verify total subsidy amount
-            total_subsidio = sum(
-                novedades.get(f"SUBSIDIO_MEDICO_DIA{day}", Decimal("0.00"))
-                for day in [10, 11, 12]
-            )
+            total_subsidio = sum(novedades.get(f"SUBSIDIO_MEDICO_DIA{day}", Decimal("0.00")) for day in [10, 11, 12])
             expected_total_subsidio = (Decimal("15000.00") / Decimal("30")) * Decimal("0.80") * Decimal("3")
             assert abs(total_subsidio - expected_total_subsidio) < Decimal("0.01")
 
@@ -621,7 +608,7 @@ class TestMedicalSubsidyScenario:
             # Base salary for biweekly: 15,000.00
             # After absence deduction: 15,000.00 - 5,000.00 = 10,000.00
             # After subsidy perception: 10,000.00 + 3,000.00 = 13,000.00
-            print(f"\n=== Test Case Verification ===")
+            print("\n=== Test Case Verification ===")
             print(f"Salario Mensual: {salario_mensual}")
             print(f"Salario Quincenal: {salario_quincenal}")
             print(f"Salario Diario: {salario_diario}")
@@ -630,4 +617,4 @@ class TestMedicalSubsidyScenario:
             print(f"Salario después de Ausencia: {salario_despues_ausencia}")
             print(f"Subsidio (60%): {subsidio_monto}")
             print(f"Total Ingreso Esperado: {total_ingreso_esperado}")
-            print(f"==============================\n")
+            print("==============================\n")

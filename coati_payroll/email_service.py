@@ -19,9 +19,9 @@ from coati_payroll.model import ConfiguracionCorreo, db
 
 def get_email_configuration(*, create: bool = False) -> ConfiguracionCorreo | None:
     """Return the singleton email configuration stored in the database."""
-    configuration = db.session.execute(
-        db.select(ConfiguracionCorreo).order_by(ConfiguracionCorreo.id)
-    ).scalars().first()
+    configuration = (
+        db.session.execute(db.select(ConfiguracionCorreo).order_by(ConfiguracionCorreo.id)).scalars().first()
+    )
     if configuration is None and create:
         configuration = ConfiguracionCorreo()
         db.session.add(configuration)
@@ -80,7 +80,7 @@ def send_email(to: str, subject: str, body: str, *, html_body: str | None = None
     so callers can keep authentication and recovery responses generic.
     """
     configuration = get_email_configuration()
-    if not email_delivery_configured(configuration):
+    if configuration is None or not email_delivery_configured(configuration):
         log.warning("Email delivery requested but SMTP is not configured in the database")
         return False
 
@@ -104,6 +104,7 @@ def send_email(to: str, subject: str, body: str, *, html_body: str | None = None
         message.add_alternative(html_body, subtype="html")
 
     password = decrypt_smtp_password(configuration)
+    server: smtplib.SMTP | smtplib.SMTP_SSL
     try:
         if configuration.smtp_use_ssl:
             server = smtplib.SMTP_SSL(

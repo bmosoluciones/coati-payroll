@@ -5,10 +5,6 @@
 from __future__ import annotations
 
 import importlib
-import os
-import sys
-from unittest.mock import patch
-import pytest
 
 from coati_payroll import config
 
@@ -93,7 +89,10 @@ def test_module_reload_mysql_correction(monkeypatch):
     # Reload the config module to trigger its database correction logic
     importlib.reload(config)
 
-    assert config.CONFIGURACION["SQLALCHEMY_DATABASE_URI"] == "mysql+mysqlconnector://coati_user:pass@localhost:3306/coati_db"
+    assert (
+        config.CONFIGURACION["SQLALCHEMY_DATABASE_URI"]
+        == "mysql+mysqlconnector://coati_user:pass@localhost:3306/coati_db"
+    )
 
     # Clean up by reloading config in default state
     monkeypatch.delenv("DATABASE_URL", raising=False)

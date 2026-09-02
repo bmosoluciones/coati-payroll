@@ -684,15 +684,15 @@ def sync_exchange_rates(
     shape can be used. Only currencies already configured in the catalog are
     imported, preventing an external provider from silently changing master data.
     """
-    base = (base_currency or os.getenv("EXCHANGE_RATES_BASE_CURRENCY", "USD")).upper()
+    base = (base_currency or os.getenv("EXCHANGE_RATES_BASE_CURRENCY") or "USD").upper()
     configured_primary = primary_currencies or {
         code.strip().upper()
         for code in os.getenv("EXCHANGE_RATES_PRIMARY_CURRENCIES", "EUR").split(",")
         if code.strip()
     }
-    url = source_url or os.getenv(
-        "EXCHANGE_RATES_URL", "https://api.frankfurter.app/latest?from={base}"
-    ).format(base=base)
+    url = source_url or os.getenv("EXCHANGE_RATES_URL", "https://api.frankfurter.app/latest?from={base}").format(
+        base=base
+    )
     timeout = float(os.getenv("EXCHANGE_RATES_TIMEOUT_SECONDS", "15"))
     with urlopen(url, timeout=timeout) as response:  # noqa: S310 - URL is explicit configuration
         payload = json.load(response)
@@ -712,9 +712,7 @@ def sync_exchange_rates(
             if destination_code not in configured_primary:
                 skipped += 1
                 continue
-            destination = db.session.execute(
-                db.select(Moneda).filter_by(codigo=destination_code)
-            ).scalar_one_or_none()
+            destination = db.session.execute(db.select(Moneda).filter_by(codigo=destination_code)).scalar_one_or_none()
             if destination is None or destination.id == origin.id:
                 skipped += 1
                 continue

@@ -68,8 +68,11 @@ def config_percepciones(planilla_id: str):
     percepciones_disponibles = (
         db.session.execute(
             concept_scope_for_company(db.select(Percepcion), empresa_percepcion, Percepcion.id, planilla.empresa_id)
-            .filter(Percepcion.activo.is_(True)).order_by(Percepcion.nombre)
-        ).scalars().all()
+            .filter(Percepcion.activo.is_(True))
+            .order_by(Percepcion.nombre)
+        )
+        .scalars()
+        .all()
     )
 
     return render_template(
@@ -97,8 +100,11 @@ def config_deducciones(planilla_id: str):
     deducciones_disponibles = (
         db.session.execute(
             concept_scope_for_company(db.select(Deduccion), empresa_deduccion, Deduccion.id, planilla.empresa_id)
-            .filter(Deduccion.activo.is_(True)).order_by(Deduccion.nombre)
-        ).scalars().all()
+            .filter(Deduccion.activo.is_(True))
+            .order_by(Deduccion.nombre)
+        )
+        .scalars()
+        .all()
     )
 
     return render_template(
@@ -122,8 +128,11 @@ def config_prestaciones(planilla_id: str):
     prestaciones_disponibles = (
         db.session.execute(
             concept_scope_for_company(db.select(Prestacion), empresa_prestacion, Prestacion.id, planilla.empresa_id)
-            .filter(Prestacion.activo.is_(True)).order_by(Prestacion.nombre)
-        ).scalars().all()
+            .filter(Prestacion.activo.is_(True))
+            .order_by(Prestacion.nombre)
+        )
+        .scalars()
+        .all()
     )
 
     return render_template(

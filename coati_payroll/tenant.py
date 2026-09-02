@@ -10,12 +10,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from flask import abort, flash, redirect, request, session, url_for
+from flask import abort, redirect, request, session, url_for
 from flask_login import current_user
 from sqlalchemy import or_
 
 from coati_payroll.enums import TipoUsuario
-from coati_payroll.i18n import _
 from coati_payroll.model import Empresa, db
 
 ACTIVE_COMPANY_SESSION_KEY = "active_empresa_id"
@@ -155,16 +154,20 @@ def concept_scope_query(query: Any, association_table: Any, concept_id_column: A
     if permitted is None and selected is None:
         return query
     company_ids = {selected} if selected else permitted
-    return query.outerjoin(association_table, concept_id_column == association_table.c.concept_id).filter(
-        or_(association_table.c.empresa_id.is_(None), association_table.c.empresa_id.in_(company_ids or set()))
-    ).distinct()
+    return (
+        query.outerjoin(association_table, concept_id_column == association_table.c.concept_id)
+        .filter(or_(association_table.c.empresa_id.is_(None), association_table.c.empresa_id.in_(company_ids or set())))
+        .distinct()
+    )
 
 
 def concept_scope_for_company(query: Any, association_table: Any, concept_id_column: Any, empresa_id: str) -> Any:
     """Limit concepts to global definitions or definitions allowed for a company."""
-    return query.outerjoin(association_table, concept_id_column == association_table.c.concept_id).filter(
-        or_(association_table.c.empresa_id.is_(None), association_table.c.empresa_id == empresa_id)
-    ).distinct()
+    return (
+        query.outerjoin(association_table, concept_id_column == association_table.c.concept_id)
+        .filter(or_(association_table.c.empresa_id.is_(None), association_table.c.empresa_id == empresa_id))
+        .distinct()
+    )
 
 
 def policy_scope_query(query: Any) -> Any:
@@ -176,13 +179,17 @@ def policy_scope_query(query: Any) -> Any:
     if permitted is None and selected is None:
         return query
     company_ids = {selected} if selected else permitted
-    return query.outerjoin(Planilla, VacationPolicy.planilla_id == Planilla.id).filter(
-        or_(
-            db.and_(VacationPolicy.empresa_id.is_(None), VacationPolicy.planilla_id.is_(None)),
-            VacationPolicy.empresa_id.in_(company_ids or set()),
-            db.and_(VacationPolicy.empresa_id.is_(None), Planilla.empresa_id.in_(company_ids or set())),
+    return (
+        query.outerjoin(Planilla, VacationPolicy.planilla_id == Planilla.id)
+        .filter(
+            or_(
+                db.and_(VacationPolicy.empresa_id.is_(None), VacationPolicy.planilla_id.is_(None)),
+                VacationPolicy.empresa_id.in_(company_ids or set()),
+                db.and_(VacationPolicy.empresa_id.is_(None), Planilla.empresa_id.in_(company_ids or set())),
+            )
         )
-    ).distinct()
+        .distinct()
+    )
 
 
 def same_origin_redirect(default_endpoint: str):

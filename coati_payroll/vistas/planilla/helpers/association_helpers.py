@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 """Helper functions for managing planilla associations."""
 
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.sql.functions import count
@@ -154,7 +154,7 @@ def agregar_asociacion(
 
     concept_model = _CONCEPT_MODELS.get(tipo_componente)
     if concept_model is not None:
-        concept = db.session.get(concept_model, componente_id)
+        concept = cast(Any, db.session.get(concept_model, componente_id))
         if concept is None:
             return False, f"{tipo_componente} no encontrada", None
         if concept.empresas and not any(empresa.id == planilla.empresa_id for empresa in concept.empresas):

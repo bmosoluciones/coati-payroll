@@ -50,7 +50,9 @@ def _require_token(scope: str = "read"):
             scheme, _, raw_token = header.partition(" ")
             if scheme.lower() != "bearer" or not raw_token:
                 return jsonify(error="Bearer token required"), 401
-            record = db.session.execute(db.select(ApiToken).filter_by(token_hash=_hash_token(raw_token))).scalar_one_or_none()
+            record = db.session.execute(
+                db.select(ApiToken).filter_by(token_hash=_hash_token(raw_token))
+            ).scalar_one_or_none()
             now = datetime.now(UTC)
             if record is None or record.revocado_en is not None or not record.usuario or not record.usuario.activo:
                 return jsonify(error="Invalid or revoked token"), 401
@@ -97,11 +99,18 @@ def employees():
     if company_ids is not None:
         query = query.where(Empleado.empresa_id.in_(company_ids))
     rows = db.session.execute(query).scalars().all()
-    return jsonify(data=[{
-        "id": employee.id, "codigo": employee.codigo_empleado,
-        "nombre": f"{employee.primer_nombre} {employee.primer_apellido}".strip(),
-        "empresa_id": employee.empresa_id, "activo": employee.activo,
-    } for employee in rows])
+    return jsonify(
+        data=[
+            {
+                "id": employee.id,
+                "codigo": employee.codigo_empleado,
+                "nombre": f"{employee.primer_nombre} {employee.primer_apellido}".strip(),
+                "empresa_id": employee.empresa_id,
+                "activo": employee.activo,
+            }
+            for employee in rows
+        ]
+    )
 
 
 @api_bp.get("/payrolls")
@@ -112,25 +121,45 @@ def payrolls():
     if company_ids is not None:
         query = query.where(Planilla.empresa_id.in_(company_ids))
     rows = db.session.execute(query.limit(100)).scalars().all()
-    return jsonify(data=[{
-        "id": payroll.id, "planilla_id": payroll.planilla_id,
-        "periodo_inicio": payroll.periodo_inicio.isoformat(), "periodo_fin": payroll.periodo_fin.isoformat(),
-        "estado": payroll.estado, "total_neto": str(payroll.total_neto or 0),
-    } for payroll in rows])
+    return jsonify(
+        data=[
+            {
+                "id": payroll.id,
+                "planilla_id": payroll.planilla_id,
+                "periodo_inicio": payroll.periodo_inicio.isoformat(),
+                "periodo_fin": payroll.periodo_fin.isoformat(),
+                "estado": payroll.estado,
+                "total_neto": str(payroll.total_neto or 0),
+            }
+            for payroll in rows
+        ]
+    )
 
 
 @api_bp.get("/payrolls/<string:payroll_id>/results")
 @_require_token()
 def payroll_results(payroll_id: str):
     payroll = db.session.get(Nomina, payroll_id)
-    if payroll is None or not payroll.planilla or (_company_ids() is not None and payroll.planilla.empresa_id not in _company_ids()):
+    company_ids = _company_ids()
+    if (
+        payroll is None
+        or not payroll.planilla
+        or (company_ids is not None and payroll.planilla.empresa_id not in company_ids)
+    ):
         return jsonify(error="Payroll not found"), 404
     employees = db.session.execute(db.select(NominaEmpleado).filter_by(nomina_id=payroll.id)).scalars().all()
-    return jsonify(data=[{
-        "employee_id": row.empleado_id, "gross": str(row.salario_bruto or 0),
-        "income": str(row.total_ingresos or 0), "deductions": str(row.total_deducciones or 0),
-        "net": str(row.salario_neto or 0),
-    } for row in employees])
+    return jsonify(
+        data=[
+            {
+                "employee_id": row.empleado_id,
+                "gross": str(row.salario_bruto or 0),
+                "income": str(row.total_ingresos or 0),
+                "deductions": str(row.total_deducciones or 0),
+                "net": str(row.salario_neto or 0),
+            }
+            for row in employees
+        ]
+    )
 
 
 @api_bp.get("/reports")
@@ -148,8 +177,17 @@ def novelties_list():
     query = db.select(NominaNovedad).order_by(NominaNovedad.fecha_novedad.desc()).limit(100)
     rows = db.session.execute(query).scalars().all()
     rows = [row for row in rows if _employee_allowed(row.empleado_id)]
-    return jsonify(data=[{"id": row.id, "empleado_id": row.empleado_id, "codigo_concepto": row.codigo_concepto,
-                         "valor": str(row.valor_cantidad)} for row in rows])
+    return jsonify(
+        data=[
+            {
+                "id": row.id,
+                "empleado_id": row.empleado_id,
+                "codigo_concepto": row.codigo_concepto,
+                "valor": str(row.valor_cantidad),
+            }
+            for row in rows
+        ]
+    )
 
 
 @api_bp.post("/novelties")
@@ -162,8 +200,10 @@ def novelties_create():
     if not employee_id or not _employee_allowed(employee_id) or not payload.get("codigo_concepto"):
         return jsonify(error="empleado_id and codigo_concepto are required"), 400
     novelty = NominaNovedad(
-        empleado_id=employee_id, codigo_concepto=payload["codigo_concepto"],
-        tipo_valor=payload.get("tipo_valor", "monto"), valor_cantidad=payload.get("valor_cantidad", 0),
+        empleado_id=employee_id,
+        codigo_concepto=payload["codigo_concepto"],
+        tipo_valor=payload.get("tipo_valor", "monto"),
+        valor_cantidad=payload.get("valor_cantidad", 0),
         creado_por=g.api_user.usuario,
     )
     db.session.add(novelty)

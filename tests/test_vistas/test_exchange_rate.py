@@ -490,7 +490,6 @@ def test_exchange_rate_import_valid_excel_updates_existing(app, client, admin_us
         )
         db_session.add(existing_rate)
         db_session.commit()
-        rate_id = existing_rate.id
 
         login_user(client, admin_user.usuario, "admin-password")
 

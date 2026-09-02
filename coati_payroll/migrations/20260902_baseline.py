@@ -11,7 +11,6 @@ revisions run.
 
 from alembic import op
 
-
 revision = "20260902_baseline"
 down_revision = None
 branch_labels = None
@@ -32,5 +31,3 @@ def downgrade():
     ordinary downgrade.  Database destruction remains an explicit
     ``payrollctl database drop`` operation.
     """
-
-

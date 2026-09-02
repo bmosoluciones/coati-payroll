@@ -5,7 +5,6 @@
 from alembic import op
 import sqlalchemy as sa
 
-
 revision = "20260902_liquidacion_accounting"
 down_revision = "20260902_concept_annual_limits"
 branch_labels = None
@@ -26,8 +25,11 @@ def upgrade():
     if inspector.has_table("liquidacion"):
         columns = _columns("liquidacion")
         additions = {
-            "causa_terminacion": sa.String(100), "medio_pago": sa.String(40),
-            "referencia_pago": sa.String(150), "fecha_pago": sa.Date(), "detalle_pago": sa.JSON(),
+            "causa_terminacion": sa.String(100),
+            "medio_pago": sa.String(40),
+            "referencia_pago": sa.String(150),
+            "fecha_pago": sa.Date(),
+            "detalle_pago": sa.JSON(),
         }
         for name, column in additions.items():
             if name not in columns:

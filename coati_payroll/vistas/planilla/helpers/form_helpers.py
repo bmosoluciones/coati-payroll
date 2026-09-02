@@ -21,7 +21,6 @@ from coati_payroll.model import (
     db,
     TipoPlanilla,
     Moneda,
-    Empresa,
     VacationPolicy,
     Nomina,
     NominaEmpleado,
@@ -107,7 +106,9 @@ def populate_novedad_form_choices(form, nomina_id: str):
     # Get active percepciones assigned to this planilla
     percepciones = (
         db.session.execute(
-            concept_scope_for_company(db.select(Percepcion), empresa_percepcion, Percepcion.id, nomina.planilla.empresa_id)
+            concept_scope_for_company(
+                db.select(Percepcion), empresa_percepcion, Percepcion.id, nomina.planilla.empresa_id
+            )
             .join(PlanillaIngreso, PlanillaIngreso.percepcion_id == Percepcion.id)
             .where(
                 PlanillaIngreso.planilla_id == nomina.planilla_id,

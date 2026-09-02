@@ -17,15 +17,11 @@ from unittest.mock import MagicMock, patch
 from coati_payroll.enums import EstadoAprobacion, NominaEstado, TipoUsuario
 from coati_payroll.model import (
     Percepcion,
-    Deduccion,
-    Prestacion,
     Planilla,
     Nomina,
     ReglaCalculo,
     ConceptoAuditLog,
-    PlanillaAuditLog,
     NominaAuditLog,
-    ReglaCalculoAuditLog,
     TipoPlanilla,
     Empresa,
     Moneda,
@@ -37,14 +33,10 @@ from coati_payroll.audit_helpers import (
     rechazar_concepto,
     marcar_como_borrador_si_editado,
     detectar_cambios,
-    aprobar_planilla,
-    rechazar_planilla,
     marcar_planilla_como_borrador_si_editada,
     aprobar_nomina,
     aplicar_nomina,
     anular_nomina,
-    aprobar_regla_calculo,
-    rechazar_regla_calculo,
     marcar_regla_calculo_como_borrador_si_editada,
 )
 from coati_payroll.vistas.planilla.services.nomina_service import NominaService
@@ -123,9 +115,11 @@ def test_sox_concept_approval_workflow(app, db_session):
         assert percepcion.aprobado_en is None
 
         # Verify audit logs exist
-        logs = db_session.execute(
-            db.select(ConceptoAuditLog).filter(ConceptoAuditLog.percepcion_id == percepcion.id)
-        ).scalars().all()
+        logs = (
+            db_session.execute(db.select(ConceptoAuditLog).filter(ConceptoAuditLog.percepcion_id == percepcion.id))
+            .scalars()
+            .all()
+        )
         assert len(logs) >= 2
 
         # Check approval log
@@ -178,8 +172,9 @@ def test_sox_concept_reverts_to_draft_on_edit(app, db_session):
 
         # Check audit log entry
         log = db_session.execute(
-            db.select(ConceptoAuditLog)
-            .filter(ConceptoAuditLog.percepcion_id == percepcion.id, ConceptoAuditLog.accion == "updated")
+            db.select(ConceptoAuditLog).filter(
+                ConceptoAuditLog.percepcion_id == percepcion.id, ConceptoAuditLog.accion == "updated"
+            )
         ).scalar_one()
         assert log.usuario == "editor_user"
         assert "Estado cambiado a borrador" in log.descripcion
@@ -268,9 +263,9 @@ def test_sox_nomina_state_transitions_and_audit(app, db_session, sox_setup):
         assert nomina.razon_anulacion == "Error de digitación"
 
         # Verify audit logs for payroll transitions
-        logs = db_session.execute(
-            db.select(NominaAuditLog).filter(NominaAuditLog.nomina_id == nomina.id)
-        ).scalars().all()
+        logs = (
+            db_session.execute(db.select(NominaAuditLog).filter(NominaAuditLog.nomina_id == nomina.id)).scalars().all()
+        )
         assert len(logs) == 3
 
         actions = [log.accion for log in logs]
@@ -363,8 +358,9 @@ def test_sox_recalculation_consistency(mock_engine_class, app, db_session, sox_s
 
         # Check audit log for recalculation
         log = db_session.execute(
-            db.select(NominaAuditLog)
-            .filter(NominaAuditLog.nomina_id == new_nomina.id, NominaAuditLog.accion == "recalculated")
+            db.select(NominaAuditLog).filter(
+                NominaAuditLog.nomina_id == new_nomina.id, NominaAuditLog.accion == "recalculated"
+            )
         ).scalar_one()
         assert log.usuario == "sox_auditor"
         assert f"Nómina recalculada desde nómina original {original_id}" in log.descripcion

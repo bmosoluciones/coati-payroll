@@ -290,7 +290,9 @@ class TestTablaAmortizacion:
         num_cuotas = 12
         fecha_inicio = date(2024, 1, 1)
 
-        tabla = generar_tabla_amortizacion(principal, tasa_anual, num_cuotas, fecha_inicio, metodo=MetodoAmortizacion.FRANCES)
+        tabla = generar_tabla_amortizacion(
+            principal, tasa_anual, num_cuotas, fecha_inicio, metodo=MetodoAmortizacion.FRANCES
+        )
 
         assert len(tabla) == 12
         # All payments should be equal (1000 each)
@@ -308,7 +310,9 @@ class TestTablaAmortizacion:
         num_cuotas = 12
         fecha_inicio = date(2024, 1, 1)
 
-        tabla = generar_tabla_amortizacion(principal, tasa_anual, num_cuotas, fecha_inicio, metodo=MetodoAmortizacion.FRANCES)
+        tabla = generar_tabla_amortizacion(
+            principal, tasa_anual, num_cuotas, fecha_inicio, metodo=MetodoAmortizacion.FRANCES
+        )
 
         assert len(tabla) == 12
 
@@ -333,7 +337,9 @@ class TestTablaAmortizacion:
         num_cuotas = 12
         fecha_inicio = date(2024, 1, 1)
 
-        tabla = generar_tabla_amortizacion(principal, tasa_anual, num_cuotas, fecha_inicio, metodo=MetodoAmortizacion.ALEMAN)
+        tabla = generar_tabla_amortizacion(
+            principal, tasa_anual, num_cuotas, fecha_inicio, metodo=MetodoAmortizacion.ALEMAN
+        )
 
         assert len(tabla) == 12
 

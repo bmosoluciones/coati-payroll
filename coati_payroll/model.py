@@ -1287,7 +1287,9 @@ class ComprobanteContable(database.Model, BaseTabla):
     __tablename__ = "comprobante_contable"
 
     nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=True, unique=True)
-    liquidacion_id = database.Column(database.String(26), database.ForeignKey("liquidacion.id"), nullable=True, unique=True)
+    liquidacion_id = database.Column(
+        database.String(26), database.ForeignKey("liquidacion.id"), nullable=True, unique=True
+    )
 
     # Header information
     fecha_calculo = database.Column(database.Date, nullable=False, default=date.today)
@@ -1927,9 +1929,7 @@ class ConfiguracionCorreo(database.Model, BaseTabla):
 
     # Email verification is deliberately separate from TOTP/MFA. It is an
     # optional step-up check only for credentials presented by an unknown browser.
-    proteger_inicio_sesion_origen_desconocido = database.Column(
-        database.Boolean, nullable=False, default=False
-    )
+    proteger_inicio_sesion_origen_desconocido = database.Column(database.Boolean, nullable=False, default=False)
     codigo_login_expira_minutos = database.Column(database.Integer, nullable=False, default=10)
     navegador_confiable_dias = database.Column(database.Integer, nullable=False, default=30)
 

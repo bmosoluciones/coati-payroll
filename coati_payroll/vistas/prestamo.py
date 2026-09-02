@@ -85,7 +85,11 @@ def index():
 
     # Get all employees for filter dropdown
     empleados = (
-        db.session.execute(scope_company_query(db.select(Empleado), Empleado.empresa_id).filter_by(activo=True).order_by(Empleado.primer_apellido))
+        db.session.execute(
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
+            .filter_by(activo=True)
+            .order_by(Empleado.primer_apellido)
+        )
         .scalars()
         .all()
     )
@@ -110,7 +114,11 @@ def new():
 
     # Populate select fields
     empleados = (
-        db.session.execute(scope_company_query(db.select(Empleado), Empleado.empresa_id).filter_by(activo=True).order_by(Empleado.primer_apellido))
+        db.session.execute(
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
+            .filter_by(activo=True)
+            .order_by(Empleado.primer_apellido)
+        )
         .scalars()
         .all()
     )

@@ -614,7 +614,8 @@ class PayrollExecutionService:
         emp_calculo.salario_bruto = emp_calculo.salario_neto_inasistencia + emp_calculo.total_percepciones
         emp_calculo.salario_gravable = emp_calculo.salario_neto_inasistencia + sum(
             p.monto_gravable if p.monto_gravable is not None else max(Decimal("0.00"), p.monto - p.monto_exento)
-            for p in emp_calculo.percepciones if p.gravable
+            for p in emp_calculo.percepciones
+            if p.gravable
         )
         emp_calculo.variables_calculo.update(
             {

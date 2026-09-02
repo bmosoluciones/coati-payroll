@@ -65,8 +65,17 @@ def test_voucher_uses_frozen_concept_accounts_when_catalog_changes():
     )
 
     service._build_concept_lines(
-        comprobante, nomina, nomina_empleado, empleado, "Empleado Uno", None, detalle, 0, 0,
-        Decimal("0.00"), Decimal("0.00"),
+        comprobante,
+        nomina,
+        nomina_empleado,
+        empleado,
+        "Empleado Uno",
+        None,
+        detalle,
+        0,
+        0,
+        Decimal("0.00"),
+        Decimal("0.00"),
     )
 
     assert [line.codigo_cuenta for line in session.added] == ["HIST-DEBE", "HIST-HABER"]
@@ -99,11 +108,11 @@ def test_voucher_uses_frozen_base_salary_accounts_when_planilla_changes():
         "codigo_cuenta_haber_salario": "SAL-HIST-HABER",
         "descripcion_cuenta_haber_salario": "Pasivo histórico",
     }
+
+
 def test_voucher_uses_frozen_currency_when_planilla_currency_changes():
     """Voucher headers must identify the currency used by the original payroll."""
-    nomina = SimpleNamespace(
-        catalogos_snapshot={"contexto_planilla": {"moneda_id": "HISTORICA"}}
-    )
+    nomina = SimpleNamespace(catalogos_snapshot={"contexto_planilla": {"moneda_id": "HISTORICA"}})
 
     assert AccountingVoucherService._voucher_currency_id(nomina, SimpleNamespace(moneda_id="NUEVA")) == "HISTORICA"
 

@@ -519,8 +519,12 @@ class TestExportarNominaExcel:
             db_session.flush()
 
             db_session.add(PlanillaIngreso(planilla_id=planilla.id, percepcion_id=percepcion.id, orden=1, activo=True))
-            db_session.add(PlanillaDeduccion(planilla_id=planilla.id, deduccion_id=deduccion.id, prioridad=1, activo=True))
-            db_session.add(PlanillaPrestacion(planilla_id=planilla.id, prestacion_id=prestacion.id, orden=1, activo=True))
+            db_session.add(
+                PlanillaDeduccion(planilla_id=planilla.id, deduccion_id=deduccion.id, prioridad=1, activo=True)
+            )
+            db_session.add(
+                PlanillaPrestacion(planilla_id=planilla.id, prestacion_id=prestacion.id, orden=1, activo=True)
+            )
             db_session.add_all(
                 [
                     NominaDetalle(
@@ -667,7 +671,9 @@ class TestExportarNominaExcel:
             prestacion = Prestacion(codigo="BEN_A", nombre="Prestacion Base", formula_tipo="fixed", activo=True)
             db_session.add(prestacion)
             db_session.flush()
-            db_session.add(PlanillaPrestacion(planilla_id=planilla.id, prestacion_id=prestacion.id, orden=1, activo=True))
+            db_session.add(
+                PlanillaPrestacion(planilla_id=planilla.id, prestacion_id=prestacion.id, orden=1, activo=True)
+            )
             db_session.add(
                 NominaDetalle(
                     nomina_empleado_id=nomina_empleado.id,
@@ -694,7 +700,9 @@ class TestExportarNominaExcel:
                     nomina_empleado_id=nomina_empleado.id,
                     empleado_id=nomina_empleado.empleado_id,
                     empleado_codigo=nomina_empleado.empleado.codigo_empleado,
-                    empleado_nombre=f"{nomina_empleado.empleado.primer_nombre} {nomina_empleado.empleado.primer_apellido}",
+                    empleado_nombre=(
+                        f"{nomina_empleado.empleado.primer_nombre} " f"{nomina_empleado.empleado.primer_apellido}"
+                    ),
                     codigo_cuenta="2199",
                     descripcion_cuenta="Pasivo vacaciones",
                     centro_costos="CC-001",
@@ -1166,7 +1174,6 @@ class TestExportarComprobanteExcel:
 
             # Verify it's a valid Excel file (starts with ZIP signature)
             assert content.startswith(b"PK")
-
 
     def test_exportar_comprobante_excel_incluye_estado_id_y_trazabilidad(
         self, app, db_session, planilla, nomina, moneda, empleado
@@ -1975,7 +1982,6 @@ class TestExportarComprobanteDetalladoExcel:
             # Verify it's a valid Excel file (starts with ZIP signature)
             assert content.startswith(b"PK")
 
-
     def test_exportar_comprobante_detallado_excel_incluye_estado_id_y_trazabilidad(
         self, app, db_session, planilla, nomina, moneda, empleado
     ):
@@ -2509,7 +2515,9 @@ def test_exportar_comprobante_resumido_excel(app, db_session, planilla, nomina, 
         assert filename is not None
 
 
-def test_exportar_comprobante_detailed_with_modifications_and_warnings(app, db_session, planilla, nomina, moneda, empleado):
+def test_exportar_comprobante_detailed_with_modifications_and_warnings(
+    app, db_session, planilla, nomina, moneda, empleado
+):
     """Test detailed Excel export when the voucher is modified and has warnings."""
     from coati_payroll.model import ComprobanteContable, ComprobanteContableLinea, NominaEmpleado
     from coati_payroll.vistas.planilla.services.export_service import ExportService
@@ -2543,7 +2551,7 @@ def test_exportar_comprobante_detailed_with_modifications_and_warnings(app, db_s
             fecha_modificacion=date(2025, 2, 1),
             aplicado_por="hr_user",
             fecha_aplicacion=datetime(2025, 1, 31, 12, 0, 0),
-            advertencias=["Incomplete setup warning", "Rounding discrepancy"]
+            advertencias=["Incomplete setup warning", "Rounding discrepancy"],
         )
         db_session.add(comprobante)
         db_session.flush()

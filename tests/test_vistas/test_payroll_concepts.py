@@ -2,7 +2,6 @@
 # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 """Comprehensive tests for payroll concepts CRUD (coati_payroll/vistas/payroll_concepts.py)."""
 
-
 from sqlalchemy import select
 from coati_payroll.enums import FormulaType
 from coati_payroll.model import Deduccion, Percepcion, Prestacion

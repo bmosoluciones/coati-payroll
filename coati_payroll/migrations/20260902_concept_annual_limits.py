@@ -5,7 +5,6 @@
 from alembic import op
 import sqlalchemy as sa
 
-
 revision = "20260902_concept_annual_limits"
 down_revision = "20260902_user_locale"
 branch_labels = None

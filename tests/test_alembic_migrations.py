@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.pool import StaticPool
 
+
 @pytest.mark.xfail
 def test_alembic_upgrade_app_context(monkeypatch):
     """
@@ -115,6 +116,7 @@ def test_alembic_upgrade_app_context(monkeypatch):
         # Cerrar sesión de forma explícita
         db.session.close()
 
+
 @pytest.mark.xfail
 def test_alembic_stamp_and_upgrade(monkeypatch):
     """
@@ -181,6 +183,7 @@ def test_alembic_stamp_and_upgrade(monkeypatch):
         assert version_after == version, "La versión no debe cambiar después de upgrade en BD actualizada"
 
         db.session.close()
+
 
 @pytest.mark.xfail
 def test_alembic_current_command(monkeypatch):

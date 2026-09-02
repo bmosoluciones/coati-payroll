@@ -18,12 +18,9 @@ import pytest
 
 from coati_payroll.formula_engine import FormulaEngine
 
-
 pytestmark = pytest.mark.release_validation
 ROOT = Path(__file__).parents[1]
-CA = json.loads(
-    (ROOT / "coati_payroll" / "jurisdictions" / "central_america_2026.json").read_text(encoding="utf-8")
-)
+CA = json.loads((ROOT / "coati_payroll" / "jurisdictions" / "central_america_2026.json").read_text(encoding="utf-8"))
 
 
 def _profile(filename: str) -> dict:

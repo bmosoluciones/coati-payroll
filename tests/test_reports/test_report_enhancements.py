@@ -12,10 +12,12 @@ def test_custom_report_expression_is_safe_and_calculated(app, db_session):
         report = Report(
             name="Expression Report",
             base_entity="Employee",
-            definition={"columns": [
-                {"type": "field", "field": "salario_base"},
-                {"type": "expression", "expression": "salario_base * 2", "label": "double"},
-            ]},
+            definition={
+                "columns": [
+                    {"type": "field", "field": "salario_base"},
+                    {"type": "expression", "expression": "salario_base * 2", "label": "double"},
+                ]
+            },
         )
         builder = CustomReportBuilder(report)
         assert builder.validate_definition() == []

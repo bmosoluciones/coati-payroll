@@ -4,7 +4,6 @@
 from alembic import op
 import sqlalchemy as sa
 
-
 revision = "20260902_security_audit"
 down_revision = "20260902_api_tokens"
 branch_labels = None

@@ -9,6 +9,7 @@ from __future__ import annotations
 # <-------------------------------------------------------------------------> #
 from datetime import datetime, UTC, timedelta
 import hmac
+from typing import cast
 
 # <-------------------------------------------------------------------------> #
 # Third party libraries
@@ -128,9 +129,7 @@ def validar_acceso(usuario_id: str, acceso: str, /) -> bool:
 
 def _find_user(identifier: str) -> Usuario | None:
     """Find a user by username or email without exposing which one matched."""
-    registro = database.session.execute(
-        database.select(Usuario).filter_by(usuario=identifier)
-    ).scalar_one_or_none()
+    registro = database.session.execute(database.select(Usuario).filter_by(usuario=identifier)).scalar_one_or_none()
     if registro is None:
         registro = database.session.execute(
             database.select(Usuario).filter_by(correo_electronico=identifier)
@@ -252,7 +251,7 @@ def reset_password(token: str):
         if token_record is None or token_record.usuario is None:
             flash(_("El enlace de recuperación no es válido o ya expiró."), "error")
             return redirect(url_for("auth.forgot_password"))
-        usuario = token_record.usuario
+        usuario = cast(Usuario, token_record.usuario)
         usuario.acceso = proteger_passwd(form.nueva_contrasena.data)
         usuario.intentos_login_fallidos = 0
         usuario.bloqueado_hasta = None

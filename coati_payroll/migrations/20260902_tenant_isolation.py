@@ -12,7 +12,6 @@ memberships afterwards.
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "20260902_tenant_isolation"
 down_revision = "20260902_baseline"

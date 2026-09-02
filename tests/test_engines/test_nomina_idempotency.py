@@ -11,11 +11,23 @@ These tests ensure that:
 from datetime import date
 from decimal import Decimal
 
-from coati_payroll.enums import NominaEstado, AdelantoEstado
+from coati_payroll.enums import AdelantoEstado
 from coati_payroll.model import (
-    Empresa, Moneda, TipoPlanilla, Planilla, Empleado, PlanillaEmpleado,
-    Adelanto, AdelantoAbono, InteresAdelanto, AcumuladoAnual,
-    VacationPolicy, VacationAccount, VacationLedger, ConfiguracionCalculos, db
+    Empresa,
+    Moneda,
+    TipoPlanilla,
+    Planilla,
+    Empleado,
+    PlanillaEmpleado,
+    Adelanto,
+    AdelantoAbono,
+    InteresAdelanto,
+    AcumuladoAnual,
+    VacationPolicy,
+    VacationAccount,
+    VacationLedger,
+    ConfiguracionCalculos,
+    db,
 )
 from coati_payroll.vistas.planilla.services.nomina_service import NominaService
 
@@ -28,8 +40,11 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
         db_session.add(moneda)
 
         empresa = Empresa(
-            codigo="TEST001", razon_social="Test Company SA", ruc="J-12345678",
-            primer_mes_nomina=1, primer_anio_nomina=2025
+            codigo="TEST001",
+            razon_social="Test Company SA",
+            ruc="J-12345678",
+            primer_mes_nomina=1,
+            primer_anio_nomina=2025,
         )
         db_session.add(empresa)
         db_session.flush()
@@ -104,6 +119,7 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
         # Create active loan/advance for the employee
         # Deduccion is required for loans (with an associated deduccion_id)
         from coati_payroll.model import Deduccion
+
         deduccion = Deduccion(
             codigo="PRESTAMO_DED",
             nombre="Prestamo Deduccion",
@@ -160,9 +176,7 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
         # a) Accumulations
         acumulado = db_session.execute(
             db.select(AcumuladoAnual).filter_by(
-                empleado_id=empleado.id,
-                tipo_planilla_id=tipo_planilla.id,
-                periodo_fiscal_inicio=date(2025, 1, 1)
+                empleado_id=empleado.id, tipo_planilla_id=tipo_planilla.id, periodo_fiscal_inicio=date(2025, 1, 1)
             )
         ).scalar_one()
         assert acumulado.salario_bruto_acumulado == Decimal("20000.00")
@@ -194,6 +208,7 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
 
         # Let's apply the payroll
         from coati_payroll.vistas.planilla.nomina_routes import _aplicar_vacaciones_nomina
+
         _aplicar_vacaciones_nomina(nomina, planilla, "admin")
         db_session.commit()
 
@@ -223,15 +238,22 @@ def test_anular_nomina_reverts_all_side_effects(app, db_session):
         # b) Loans and interests reverted
         assert loan.saldo_pendiente == Decimal("5000.00")
         assert loan.interes_acumulado == Decimal("0.00")
-        assert db_session.execute(
-            db.select(AdelantoAbono).filter_by(adelanto_id=loan.id, nomina_id=nomina.id)
-        ).scalar_one_or_none() is None
-        assert db_session.execute(
-            db.select(InteresAdelanto).filter_by(adelanto_id=loan.id, nomina_id=nomina.id)
-        ).scalar_one_or_none() is None
+        assert (
+            db_session.execute(
+                db.select(AdelantoAbono).filter_by(adelanto_id=loan.id, nomina_id=nomina.id)
+            ).scalar_one_or_none()
+            is None
+        )
+        assert (
+            db_session.execute(
+                db.select(InteresAdelanto).filter_by(adelanto_id=loan.id, nomina_id=nomina.id)
+            ).scalar_one_or_none()
+            is None
+        )
 
         # c) Vacation ledger entry deleted and balance reverted to 0
-        assert db_session.execute(
-            db.select(VacationLedger).filter_by(account_id=vac_account.id)
-        ).scalar_one_or_none() is None
+        assert (
+            db_session.execute(db.select(VacationLedger).filter_by(account_id=vac_account.id)).scalar_one_or_none()
+            is None
+        )
         assert vac_account.current_balance == Decimal("0.0000")

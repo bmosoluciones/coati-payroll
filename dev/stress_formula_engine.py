@@ -14,13 +14,16 @@ from decimal import Decimal
 # Ensure the coati_payroll module is on the python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from coati_payroll.formula_engine import FormulaEngine
+from coati_payroll.formula_engine import FormulaEngine  # noqa: E402
 
 # Complex real-world reference tax & deduction schema
 STRESS_SCHEMA = {
     "meta": {
         "name": "Nicaragua/LATAM Progressive Income Tax & Social Security with Caps",
-        "description": "Stress-testing with complex progressive lookup tables, overtime calculations, conditional logic, and social security ceilings.",
+        "description": (
+            "Stress-testing with complex progressive lookup tables, overtime calculations, "
+            "conditional logic, and social security ceilings."
+        ),
     },
     "inputs": [
         {"name": "salario_base", "type": "decimal", "default": 0},
@@ -107,7 +110,7 @@ STRESS_SCHEMA = {
             "name": "neto_pagar",
             "type": "calculation",
             "formula": "salario_bruto_mensual - deduccion_seguro_social - monthly_tax",
-        }
+        },
     ],
     "tax_tables": {
         "latam_progressive_ir": [
@@ -145,7 +148,7 @@ def run_stress_test():
                 "novedad_COMISION": Decimal("0.00"),
                 "meses_restantes": 12,
                 "salario_acumulado": Decimal("0.00"),
-                "ir_retenido_acumulado": Decimal("0.00")
+                "ir_retenido_acumulado": Decimal("0.00"),
             },
             # Expected values:
             # Hourly rate: 9500 / 30 / 8 = 39.5833
@@ -158,7 +161,7 @@ def run_stress_test():
             # Tax annual: (112646.28 - 100000) * 0.15 = 1896.942 -> 1896.94
             # Tax monthly: 1896.94 / 12 = 158.08
             # Payout: 10093.75 - 706.56 - 158.08 = 9229.11
-            "expected_payout": Decimal("9229.11")
+            "expected_payout": Decimal("9229.11"),
         },
         {
             "profile": "Perfil 2: Gerente con Salario Superior a Tope de INSS",
@@ -167,8 +170,8 @@ def run_stress_test():
                 "novedad_HORAS_EXTRA": Decimal("0"),
                 "novedad_COMISION": Decimal("15000.00"),
                 "meses_restantes": 6,  # Mid-year
-                "salario_acumulado": Decimal("600000.00"), # Already has high accumulation
-                "ir_retenido_acumulado": Decimal("100000.00")
+                "salario_acumulado": Decimal("600000.00"),  # Already has high accumulation
+                "ir_retenido_acumulado": Decimal("100000.00"),
             },
             # Expected values:
             # Gross: 120000 + 15000 = 135000
@@ -180,7 +183,7 @@ def run_stress_test():
             # Pending tax: 342270 - 100000 (acumulado) = 242270.00
             # Monthly tax: 242270 / 6 = 40378.33
             # Payout: 135000 - 7350 - 40378.33 = 87271.67
-            "expected_payout": Decimal("87271.67")
+            "expected_payout": Decimal("87271.67"),
         },
         {
             "profile": "Perfil 3: Ejecutivo con Rango de Impuesto Medio",
@@ -190,7 +193,7 @@ def run_stress_test():
                 "novedad_COMISION": Decimal("5000.00"),
                 "meses_restantes": 12,
                 "salario_acumulado": Decimal("0.00"),
-                "ir_retenido_acumulado": Decimal("0.00")
+                "ir_retenido_acumulado": Decimal("0.00"),
             },
             # Expected:
             # Gross: 35000
@@ -200,7 +203,7 @@ def run_stress_test():
             # Annual tax bracket 350k-500k: 45000 + (390600 - 350000) * 0.25 = 45000 + 10150 = 55150.00
             # Monthly tax: 55150 / 12 = 4595.83
             # Payout: 35000 - 2450 - 4595.83 = 27954.17
-            "expected_payout": Decimal("27954.17")
+            "expected_payout": Decimal("27954.17"),
         },
         {
             "profile": "Perfil 4: Empleado de Bajos Ingresos Exento de Impuesto",
@@ -210,7 +213,7 @@ def run_stress_test():
                 "novedad_COMISION": Decimal("0"),
                 "meses_restantes": 12,
                 "salario_acumulado": Decimal("0.00"),
-                "ir_retenido_acumulado": Decimal("0.00")
+                "ir_retenido_acumulado": Decimal("0.00"),
             },
             # Expected:
             # Gross: 7000
@@ -219,7 +222,7 @@ def run_stress_test():
             # Projected: 78120
             # Tax bracket (under 100k): 0
             # Payout: 7000 - 490 = 6510.00
-            "expected_payout": Decimal("6510.00")
+            "expected_payout": Decimal("6510.00"),
         },
         {
             "profile": "Perfil 5: Ajuste de Fin de Año Fiscal con Reajuste",
@@ -229,7 +232,7 @@ def run_stress_test():
                 "novedad_COMISION": Decimal("10000.00"),
                 "meses_restantes": 1,  # Last month!
                 "salario_acumulado": Decimal("440000.00"),
-                "ir_retenido_acumulado": Decimal("50000.00")
+                "ir_retenido_acumulado": Decimal("50000.00"),
             },
             # Expected:
             # Gross: 50000
@@ -240,8 +243,8 @@ def run_stress_test():
             # Pending tax: 79125 - 50000 = 29125.00
             # Monthly tax (1 month left): 29125.00
             # Payout: 50000 - 3500 - 29125 = 17375.00
-            "expected_payout": Decimal("17375.00")
-        }
+            "expected_payout": Decimal("17375.00"),
+        },
     ]
 
     print("2. Ejecutando verificación de precisión matemática de cada perfil...")
@@ -254,7 +257,10 @@ def run_stress_test():
         actual = Decimal(result["output"])
 
         print(f"\n   -> {profile}")
-        print(f"      Entradas: Salario Base={inputs['salario_base']}, Horas Extra={inputs['novedad_HORAS_EXTRA']}, Comisión={inputs['novedad_COMISION']}")
+        print(
+            f"      Entradas: Salario Base={inputs['salario_base']}, "
+            f"Horas Extra={inputs['novedad_HORAS_EXTRA']}, Comisión={inputs['novedad_COMISION']}"
+        )
         print(f"      Bruto Mensual Calculado: {result['variables']['salario_bruto_mensual']}")
         print(f"      Deducción INSS Calculada: {result['variables']['deduccion_seguro_social']}")
         print(f"      Proyección Anual Imponible: {result['variables']['base_imponible_anual']}")

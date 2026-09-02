@@ -8,7 +8,6 @@ from decimal import Decimal
 
 from tests.helpers.auth import login_user
 
-
 # ============================================================================
 # FIXTURES
 # ============================================================================
@@ -410,6 +409,7 @@ def test_planilla_delete_is_blocked_if_has_nominas(app, client, admin_user, db_s
 
         existing = db_session.get(Planilla, planilla.id)
         assert existing is not None
+
 
 def test_planilla_index_shows_clone_action(app, client, admin_user, db_session, planilla):
     """Test that planilla index displays clone action for each planilla."""
@@ -1228,9 +1228,12 @@ def test_nueva_novedad_rejects_negative_value(
         assert response.status_code == 200
         from coati_payroll.model import NominaNovedad, db
 
-        assert db_session.execute(
-            db.select(NominaNovedad).filter_by(nomina_id=nomina.id, codigo_concepto="BONO")
-        ).scalar_one_or_none() is None
+        assert (
+            db_session.execute(
+                db.select(NominaNovedad).filter_by(nomina_id=nomina.id, codigo_concepto="BONO")
+            ).scalar_one_or_none()
+            is None
+        )
 
 
 def test_nueva_novedad_post_uses_concept_absence_defaults_when_flags_omitted(
@@ -1675,7 +1678,7 @@ def test_edit_delete_floating_novelty_outside_range_is_rejected(
     percepcion,
     planilla_novedad_conceptos,
 ):
-    """Test editing and deleting a floating novelty (nomina_id is None) whose date is outside the Nomina's range is blocked."""
+    """Test blocking edits to a floating novelty outside the payroll date range."""
     with app.app_context():
         login_user(client, admin_user.usuario, "admin-password")
 
@@ -1848,11 +1851,23 @@ def test_planilla_approval_routes_change_state_and_create_audit_log(client, db_s
     db_session.refresh(planilla)
     assert planilla.estado_aprobacion == "approved"
     assert planilla.aprobado_por == admin_user.usuario
-    assert db_session.execute(db.select(PlanillaAuditLog).filter_by(planilla_id=planilla.id, accion="approved")).scalar_one_or_none() is not None
+    assert (
+        db_session.execute(
+            db.select(PlanillaAuditLog).filter_by(planilla_id=planilla.id, accion="approved")
+        ).scalar_one_or_none()
+        is not None
+    )
 
-    response = client.post(f"/planilla/{planilla.id}/reject", data={"razon": "Ajuste pendiente"}, follow_redirects=False)
+    response = client.post(
+        f"/planilla/{planilla.id}/reject", data={"razon": "Ajuste pendiente"}, follow_redirects=False
+    )
     assert response.status_code == 302
     db_session.refresh(planilla)
     assert planilla.estado_aprobacion == "draft"
     assert planilla.aprobado_por is None
-    assert db_session.execute(db.select(PlanillaAuditLog).filter_by(planilla_id=planilla.id, accion="rejected")).scalar_one_or_none() is not None
+    assert (
+        db_session.execute(
+            db.select(PlanillaAuditLog).filter_by(planilla_id=planilla.id, accion="rejected")
+        ).scalar_one_or_none()
+        is not None
+    )

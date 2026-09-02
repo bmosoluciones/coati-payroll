@@ -81,7 +81,9 @@ def nueva():
             scope_company_query(db.select(Empleado), Empleado.empresa_id)
             .filter(Empleado.activo.is_(True))
             .order_by(Empleado.codigo_empleado)
-        ).scalars().all()
+        )
+        .scalars()
+        .all()
     ]
 
     form.prestacion_id.choices = [("", _("-- Seleccionar --"))] + [
@@ -90,7 +92,9 @@ def nueva():
             concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id)
             .filter(Prestacion.activo.is_(True))
             .order_by(Prestacion.codigo)
-        ).scalars().all()
+        )
+        .scalars()
+        .all()
     ]
 
     form.moneda_id.choices = [("", _("-- Seleccionar --"))] + [
@@ -167,7 +171,9 @@ def editar(carga_id):
             scope_company_query(db.select(Empleado), Empleado.empresa_id)
             .filter(Empleado.activo.is_(True))
             .order_by(Empleado.codigo_empleado)
-        ).scalars().all()
+        )
+        .scalars()
+        .all()
     ]
 
     form.prestacion_id.choices = [("", _("-- Seleccionar --"))] + [
@@ -176,7 +182,9 @@ def editar(carga_id):
             concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id)
             .filter(Prestacion.activo.is_(True))
             .order_by(Prestacion.codigo)
-        ).scalars().all()
+        )
+        .scalars()
+        .all()
     ]
 
     form.moneda_id.choices = [("", _("-- Seleccionar --"))] + [
@@ -311,21 +319,37 @@ def reporte():
         query = query.filter(PrestacionAcumulada.fecha_transaccion <= fecha_hasta)
 
     # Order by date
-    transacciones = db.session.execute(query.order_by(
-        PrestacionAcumulada.empleado_id, PrestacionAcumulada.prestacion_id, PrestacionAcumulada.fecha_transaccion
-    )).scalars().all()
+    transacciones = (
+        db.session.execute(
+            query.order_by(
+                PrestacionAcumulada.empleado_id,
+                PrestacionAcumulada.prestacion_id,
+                PrestacionAcumulada.fecha_transaccion,
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     # Get choices for filters
-    empleados = db.session.execute(
-        scope_company_query(db.select(Empleado), Empleado.empresa_id)
-        .filter(Empleado.activo.is_(True))
-        .order_by(Empleado.codigo_empleado)
-    ).scalars().all()
-    prestaciones = db.session.execute(
-        concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id)
-        .filter(Prestacion.activo.is_(True))
-        .order_by(Prestacion.codigo)
-    ).scalars().all()
+    empleados = (
+        db.session.execute(
+            scope_company_query(db.select(Empleado), Empleado.empresa_id)
+            .filter(Empleado.activo.is_(True))
+            .order_by(Empleado.codigo_empleado)
+        )
+        .scalars()
+        .all()
+    )
+    prestaciones = (
+        db.session.execute(
+            concept_scope_query(db.select(Prestacion), empresa_prestacion, Prestacion.id)
+            .filter(Prestacion.activo.is_(True))
+            .order_by(Prestacion.codigo)
+        )
+        .scalars()
+        .all()
+    )
 
     return render_template(
         "modules/carga_inicial_prestacion/reporte.html",

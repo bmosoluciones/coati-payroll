@@ -25,7 +25,6 @@ from coati_payroll.model import (
     VacationLedger,
     VacationNovelty,
     Empleado,
-    Empresa,
     empresa_deduccion,
     empresa_percepcion,
 )
@@ -724,9 +723,12 @@ def register_vacation_taken():
 def dashboard():
     """Vacation management dashboard."""
     # Statistics
-    total_policies = db.session.execute(
-        policy_scope_query(db.select(count(VacationPolicy.id))).filter(VacationPolicy.activo.is_(True))
-    ).scalar() or 0
+    total_policies = (
+        db.session.execute(
+            policy_scope_query(db.select(count(VacationPolicy.id))).filter(VacationPolicy.activo.is_(True))
+        ).scalar()
+        or 0
+    )
 
     total_accounts = (
         db.session.execute(
@@ -986,7 +988,9 @@ def initial_balance_bulk():
 
                 # Find employee
                 empleado = db.session.execute(
-                    scope_company_query(db.select(Empleado), Empleado.empresa_id).filter(Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True))
+                    scope_company_query(db.select(Empleado), Empleado.empresa_id).filter(
+                        Empleado.codigo_empleado == codigo_empleado, Empleado.activo.is_(True)
+                    )
                 ).scalar_one_or_none()
 
                 if not empleado:

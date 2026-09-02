@@ -249,7 +249,11 @@ def test_india_ay_2026_27_complete_multi_employee_payroll_from_json_profile(app,
                 assert employee_result.salario_bruto == Decimal(expected["gross"])
                 assert {item.codigo: item.monto for item in employee_result.deducciones} == {
                     PROFILE["rules"]["epf_employee"]["code"]: Decimal(expected["epf_employee"]),
-                    **({PROFILE["rules"]["income_tax"]["code"]: Decimal(expected["tds"])} if Decimal(expected["tds"]) != Decimal("0.00") else {}),
+                    **(
+                        {PROFILE["rules"]["income_tax"]["code"]: Decimal(expected["tds"])}
+                        if Decimal(expected["tds"]) != Decimal("0.00")
+                        else {}
+                    ),
                 }
                 assert employee_result.salario_neto == Decimal(expected["net"])
                 assert {item.codigo: item.monto for item in employee_result.prestaciones} == expected_benefits

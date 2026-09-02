@@ -36,7 +36,6 @@ from coati_payroll.model import (
     empresa_deduccion,
     empresa_percepcion,
     empresa_prestacion,
-    Empresa,
 )
 from coati_payroll.rbac import require_read_access, require_write_access
 from coati_payroll.tenant import accessible_empresas, concept_scope_query
@@ -195,7 +194,7 @@ def create_concept(concept_type: str):
 def edit_concept(concept_type: str, concept_id: str):
     """Generic edit view for payroll concepts."""
     config = get_concept_config(concept_type)
-    model_class = config["model"]
+    config["model"]
     form_class = config["form"]
 
     concept = _get_scoped_concept(concept_type, concept_id)
@@ -559,7 +558,7 @@ def reject_concept_route(concept_type: str, concept_id: str):
 def view_audit_log_route(concept_type: str, concept_id: str):
     """View audit log for a specific concept."""
     config = get_concept_config(concept_type)
-    model_class = config["model"]
+    config["model"]
 
     concept = _get_scoped_concept(concept_type, concept_id)
     if not concept:

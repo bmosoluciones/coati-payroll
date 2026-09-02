@@ -22,8 +22,13 @@ def test_exempt_amount_is_exposed_on_perception_item():
     calculator = PerceptionCalculator(SimpleNamespace(calculate=lambda *args, **kwargs: Decimal("100.00")))
     calculator.percepciones_snapshot = {"p1": {"monto_exento": "30.00"}}
     perception = Percepcion(
-        id="p1", codigo="BONUS", nombre="Bonus", formula_tipo="fixed", monto_default=Decimal("100.00"),
-        activo=True, gravable=True,
+        id="p1",
+        codigo="BONUS",
+        nombre="Bonus",
+        formula_tipo="fixed",
+        monto_default=Decimal("100.00"),
+        activo=True,
+        gravable=True,
     )
     association = SimpleNamespace(
         activo=True, percepcion=perception, monto_predeterminado=None, porcentaje=None, orden=1
@@ -41,8 +46,13 @@ def test_taxable_base_ceiling_does_not_reduce_paid_perception():
     calculator = PerceptionCalculator(SimpleNamespace(calculate=lambda *args, **kwargs: Decimal("100.00")))
     calculator.percepciones_snapshot = {"p2": {"tope_base_gravable": "250.00"}}
     perception = Percepcion(
-        id="p2", codigo="BONUS2", nombre="Bonus", formula_tipo="fixed", monto_default=Decimal("100.00"),
-        activo=True, gravable=True,
+        id="p2",
+        codigo="BONUS2",
+        nombre="Bonus",
+        formula_tipo="fixed",
+        monto_default=Decimal("100.00"),
+        activo=True,
+        gravable=True,
     )
     association = SimpleNamespace(
         activo=True, percepcion=perception, monto_predeterminado=None, porcentaje=None, orden=1
@@ -66,12 +76,22 @@ def test_taxable_base_ceiling_includes_salary_and_previous_perceptions():
         "p4": {"tope_base_gravable": "250.00"},
     }
     first = Percepcion(
-        id="p3", codigo="BONUS3", nombre="Bonus 3", formula_tipo="fixed", monto_default=Decimal("100.00"),
-        activo=True, gravable=True,
+        id="p3",
+        codigo="BONUS3",
+        nombre="Bonus 3",
+        formula_tipo="fixed",
+        monto_default=Decimal("100.00"),
+        activo=True,
+        gravable=True,
     )
     second = Percepcion(
-        id="p4", codigo="BONUS4", nombre="Bonus 4", formula_tipo="fixed", monto_default=Decimal("100.00"),
-        activo=True, gravable=True,
+        id="p4",
+        codigo="BONUS4",
+        nombre="Bonus 4",
+        formula_tipo="fixed",
+        monto_default=Decimal("100.00"),
+        activo=True,
+        gravable=True,
     )
     planilla = SimpleNamespace(
         planilla_percepciones=[

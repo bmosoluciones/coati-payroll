@@ -868,7 +868,10 @@ def test_prestamo_condonacion_post_record_forgiveness(app, client, admin_user, d
                 "autorizado_por": "Gerente General",
                 "documento_soporte": "resolucion",  # Must match one of the choices
                 "referencia_documento": "RES-2025-001",
-                "justificacion": "Condonación parcial por méritos del empleado en reconocimiento a su excelente desempeño laboral durante el último año.",
+                "justificacion": (
+                    "Condonación parcial por méritos del empleado en reconocimiento a su excelente "
+                    "desempeño laboral durante el último año."
+                ),
             },
             follow_redirects=False,
         )

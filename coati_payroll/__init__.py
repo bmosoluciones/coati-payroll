@@ -18,7 +18,7 @@ from datetime import datetime
 # <-------------------------------------------------------------------------> #
 # Third party packages
 # <-------------------------------------------------------------------------> #
-from flask import Flask, flash, redirect, url_for, session
+from flask import Flask, flash, redirect, url_for
 from flask_alembic import Alembic
 from flask_babel import Babel
 from flask_login import LoginManager

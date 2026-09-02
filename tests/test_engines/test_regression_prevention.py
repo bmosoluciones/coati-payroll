@@ -20,11 +20,16 @@ from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCa
 from coati_payroll.nomina_engine.calculators.deduction_calculator import DeductionCalculator
 from coati_payroll.nomina_engine.repositories.config_repository import ConfigRepository
 from coati_payroll.nomina_engine.domain.employee_calculation import EmpleadoCalculo
-from coati_payroll.nomina_engine.domain.calculation_items import DeduccionItem
-from coati_payroll.nomina_engine.validators import NominaEngineError
 from coati_payroll.formula_engine import FormulaEngineError
 from coati_payroll.model import (
-    Empresa, Moneda, TipoPlanilla, Planilla, Empleado, PlanillaEmpleado, Deduccion, PlanillaDeduccion, db
+    Empresa,
+    Moneda,
+    TipoPlanilla,
+    Planilla,
+    Empleado,
+    PlanillaEmpleado,
+    Deduccion,
+    PlanillaDeduccion,
 )
 
 
@@ -87,9 +92,7 @@ class TestRegressionPreventionCalculations:
             ("dias", Decimal("1000.00"), Decimal("7"), Decimal("100"), Decimal("233.33")),
         ],
     )
-    def test_fractional_rates_round_only_after_concept_total(
-        self, formula_tipo, base, novedad, porcentaje, expected
-    ):
+    def test_fractional_rates_round_only_after_concept_total(self, formula_tipo, base, novedad, porcentaje, expected):
         """Rounding a rate before multiplication must not change the pay amount."""
         calculator = ConceptCalculator(config_repository=None, warnings=[])
         calculator.configuracion_snapshot = {
@@ -254,7 +257,7 @@ class TestRegressionPreventionCalculations:
             config_repo = ConfigRepository(db_session)
             calculator = SalaryCalculator(config_repo)
 
-            # Monthly salary of 15000.00, hired mid-period (e.g. starting on Jan 16th, which leaves exactly 16 days worked in Jan)
+            # Monthly salary of 15000.00, hired mid-period on Jan 16th.
             # Days in period: Jan 1 to Jan 31 (31 days)
             # Worked days: Jan 16 to Jan 31 (16 days)
             # Expecting monthly rate of 15000 * (16 / 31)
@@ -285,7 +288,7 @@ class TestRegressionPreventionCalculations:
                 razon_social="Regression Prev Corp 3",
                 ruc="J-98765434",
                 primer_mes_nomina=1,
-                primer_anio_nomina=2024
+                primer_anio_nomina=2024,
             )
             db_session.add(empresa)
             db_session.flush()

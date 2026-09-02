@@ -122,7 +122,6 @@ if __name__ == "__main__":
         test_basic_operations()
         test_safe_functions()
         test_security_violations()
-        test_dos_prevention()
         test_division_by_zero()
         test_undefined_variable()
 

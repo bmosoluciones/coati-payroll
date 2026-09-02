@@ -5,7 +5,6 @@
 from alembic import op
 import sqlalchemy as sa
 
-
 revision = "20260902_api_tokens"
 down_revision = "20260902_liquidacion_accounting"
 branch_labels = None

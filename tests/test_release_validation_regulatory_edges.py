@@ -16,7 +16,6 @@ import pytest
 
 from coati_payroll.formula_engine import CalculationError, FormulaEngine
 
-
 pytestmark = pytest.mark.release_validation
 ROOT = Path(__file__).parents[1]
 

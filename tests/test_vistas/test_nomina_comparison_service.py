@@ -213,7 +213,6 @@ def test_iso_utc_normalizes_naive_and_aware_datetimes() -> None:
     assert NominaComparisonService._iso_utc(aware).endswith("+00:00")
 
 
-
 def test_planilla_actual_aprobada_true_only_for_aplicado_o_pagado() -> None:
     nomina_aplicada = SimpleNamespace(estado=NominaEstado.APLICADO)
     nomina_pagada = SimpleNamespace(estado=NominaEstado.PAGADO)
@@ -254,7 +253,7 @@ def test_compare_or_cached_handles_integrity_error_on_concurrent_insert(monkeypa
             self.add_called = True
 
         def commit(self) -> None:
-            raise IntegrityError('insert', {}, Exception('duplicate'))
+            raise IntegrityError("insert", {}, Exception("duplicate"))
 
         def rollback(self) -> None:
             self.rollback_called = True
@@ -268,26 +267,30 @@ def test_compare_or_cached_handles_integrity_error_on_concurrent_insert(monkeypa
     )
 
     cache_reads = iter([None, cached_row])
-    monkeypatch.setattr(NominaComparisonService, '_get_cached', staticmethod(lambda *_args: next(cache_reads)))
-    monkeypatch.setattr(NominaComparisonService, 'build_comparison', classmethod(lambda cls, **_kwargs: {"fresh": True}))
-    monkeypatch.setattr(NominaComparisonService, '_nomina_version', staticmethod(lambda _nomina: datetime(2026, 2, 22, 11, 0, 0)))
-    monkeypatch.setattr(NominaComparisonService, '_planilla_actual_aprobada', staticmethod(lambda _nomina: False))
-    monkeypatch.setattr(NominaComparisonService, '_flujo_aprobacion', staticmethod(lambda _nomina: {}))
+    monkeypatch.setattr(NominaComparisonService, "_get_cached", staticmethod(lambda *_args: next(cache_reads)))
+    monkeypatch.setattr(
+        NominaComparisonService, "build_comparison", classmethod(lambda cls, **_kwargs: {"fresh": True})
+    )
+    monkeypatch.setattr(
+        NominaComparisonService, "_nomina_version", staticmethod(lambda _nomina: datetime(2026, 2, 22, 11, 0, 0))
+    )
+    monkeypatch.setattr(NominaComparisonService, "_planilla_actual_aprobada", staticmethod(lambda _nomina: False))
+    monkeypatch.setattr(NominaComparisonService, "_flujo_aprobacion", staticmethod(lambda _nomina: {}))
 
     from coati_payroll.vistas.planilla.services import nomina_comparison_service as module
 
-    monkeypatch.setattr(module.db, 'session', fake_session)
+    monkeypatch.setattr(module.db, "session", fake_session)
 
     payload = NominaComparisonService.compare_or_cached(
-        planilla=SimpleNamespace(id='PLA-1'),
-        nomina_base=SimpleNamespace(id='NOM-BASE', modificado_en=None, actualizado_en=None, fecha_generacion=None),
-        nomina_actual=SimpleNamespace(id='NOM-ACT', modificado_en=None, actualizado_en=None, fecha_generacion=None),
+        planilla=SimpleNamespace(id="PLA-1"),
+        nomina_base=SimpleNamespace(id="NOM-BASE", modificado_en=None, actualizado_en=None, fecha_generacion=None),
+        nomina_actual=SimpleNamespace(id="NOM-ACT", modificado_en=None, actualizado_en=None, fecha_generacion=None),
     )
 
     assert fake_session.add_called is True
     assert fake_session.rollback_called is True
-    assert payload['is_cached'] is True
-    assert payload['from'] == 'cache'
+    assert payload["is_cached"] is True
+    assert payload["from"] == "cache"
 
 
 def test_build_calidad_includes_floating_novelties(monkeypatch) -> None:
@@ -300,12 +303,14 @@ def test_build_calidad_includes_floating_novelties(monkeypatch) -> None:
     class FakeScalars:
         def __init__(self, items) -> None:
             self.items = items
+
         def all(self):
             return self.items
 
     class FakeResult:
         def __init__(self, items) -> None:
             self.items = items
+
         def scalars(self):
             return FakeScalars(self.items)
 
@@ -318,7 +323,8 @@ def test_build_calidad_includes_floating_novelties(monkeypatch) -> None:
                 return FakeResult(["EMP-2", "EMP-3", "EMP-4"])
 
     from coati_payroll.vistas.planilla.services import nomina_comparison_service as module
-    monkeypatch.setattr(module.db, 'session', FakeSession())
+
+    monkeypatch.setattr(module.db, "session", FakeSession())
 
     # Act
     res = NominaComparisonService._build_calidad(nomina_base, nomina_actual, 10)
@@ -347,6 +353,7 @@ def test_comparar_reglas_vacaciones_includes_floating_vacations(monkeypatch) -> 
     class FakeResult:
         def __init__(self, items) -> None:
             self.items = items
+
         def all(self):
             return self.items
 
@@ -362,7 +369,8 @@ def test_comparar_reglas_vacaciones_includes_floating_vacations(monkeypatch) -> 
                 return FakeResult([("VAC", Decimal("15")), ("EXTRA", Decimal("5"))])
 
     from coati_payroll.vistas.planilla.services import nomina_comparison_service as module
-    monkeypatch.setattr(module.db, 'session', FakeSession())
+
+    monkeypatch.setattr(module.db, "session", FakeSession())
 
     # Act
     res = NominaComparisonService._comparar_reglas_vacaciones(nomina_base, nomina_actual)
@@ -381,7 +389,11 @@ def test_comparar_reglas_vacaciones_includes_floating_vacations(monkeypatch) -> 
     sql0 = str(executed_stmts[0].compile(compile_kwargs={"literal_binds": True})).lower()
     assert "nomina_novedad.nomina_id = 'nom-base'" in sql0
     assert "nomina_novedad.nomina_id is null" in sql0
-    assert "es_descanso_vacaciones is true" in sql0 or "es_descanso_vacaciones = true" in sql0 or "es_descanso_vacaciones is" in sql0
+    assert (
+        "es_descanso_vacaciones is true" in sql0
+        or "es_descanso_vacaciones = true" in sql0
+        or "es_descanso_vacaciones is" in sql0
+    )
 
 
 # ============================================================================
@@ -391,6 +403,7 @@ def test_comparar_reglas_vacaciones_includes_floating_vacations(monkeypatch) -> 
 
 def _create_planilla(db_session):
     from coati_payroll.model import Planilla, TipoPlanilla, Moneda, Empresa
+
     tipo = TipoPlanilla(codigo="MENSUAL", descripcion="Mensual", dias=30, periodicidad="mensual")
     moneda = Moneda(codigo="USD", nombre="Dólar")
     empresa = Empresa(codigo="EMP", razon_social="Test Corp", ruc="123")
@@ -419,9 +432,15 @@ def test_transferir_comparativas_edge_cases(app, db_session):
     with app.app_context():
         planilla = _create_planilla(db_session)
 
-        n_orig = Nomina(id="NOM_ORIGINAL", planilla_id=planilla.id, periodo_inicio=date(2025,1,1), periodo_fin=date(2025,1,15))
-        n_new = Nomina(id="NOM_NUEVA", planilla_id=planilla.id, periodo_inicio=date(2025,1,1), periodo_fin=date(2025,1,15))
-        n_other = Nomina(id="NOM_OTRA", planilla_id=planilla.id, periodo_inicio=date(2025,1,16), periodo_fin=date(2025,1,31))
+        n_orig = Nomina(
+            id="NOM_ORIGINAL", planilla_id=planilla.id, periodo_inicio=date(2025, 1, 1), periodo_fin=date(2025, 1, 15)
+        )
+        n_new = Nomina(
+            id="NOM_NUEVA", planilla_id=planilla.id, periodo_inicio=date(2025, 1, 1), periodo_fin=date(2025, 1, 15)
+        )
+        n_other = Nomina(
+            id="NOM_OTRA", planilla_id=planilla.id, periodo_inicio=date(2025, 1, 16), periodo_fin=date(2025, 1, 31)
+        )
         db_session.add_all([n_orig, n_new, n_other])
         db_session.flush()
 
@@ -430,16 +449,14 @@ def test_transferir_comparativas_edge_cases(app, db_session):
             planilla_id=planilla.id,
             nomina_base_id=n_orig.id,
             nomina_actual_id=n_other.id,
-            resumen_json={"es_calculo_actual": True}
+            resumen_json={"es_calculo_actual": True},
         )
         db_session.add(comp)
         db_session.commit()
 
         # Run transfer
         NominaComparisonService.refresh_after_recalculo(
-            planilla_id=planilla.id,
-            nomina_original_id=n_orig.id,
-            nomina_nueva_id=n_new.id
+            planilla_id=planilla.id, nomina_original_id=n_orig.id, nomina_nueva_id=n_new.id
         )
 
         assert comp.nomina_base_id == n_new.id
@@ -448,7 +465,15 @@ def test_transferir_comparativas_edge_cases(app, db_session):
 
 def test_cargar_conceptos_catalogo(app, db_session):
     """Test _comparar_componentes_planilla correctly fetches lists of rules and concepts."""
-    from coati_payroll.model import Percepcion, Deduccion, Prestacion, ReglaCalculo, PlanillaIngreso, PlanillaDeduccion, PlanillaPrestacion
+    from coati_payroll.model import (
+        Percepcion,
+        Deduccion,
+        Prestacion,
+        ReglaCalculo,
+        PlanillaIngreso,
+        PlanillaDeduccion,
+        PlanillaPrestacion,
+    )
     from coati_payroll.vistas.planilla.services.nomina_comparison_service import NominaComparisonService
 
     with app.app_context():
@@ -457,7 +482,7 @@ def test_cargar_conceptos_catalogo(app, db_session):
         perc = Percepcion(codigo="P_TEST", nombre="Perc Test")
         ded = Deduccion(codigo="D_TEST", nombre="Ded Test")
         pres = Prestacion(codigo="PR_TEST", nombre="Pres Test")
-        reg = ReglaCalculo(codigo="R_TEST", nombre="Rule Test", vigente_desde=date(2025,1,1))
+        reg = ReglaCalculo(codigo="R_TEST", nombre="Rule Test", vigente_desde=date(2025, 1, 1))
         db_session.add_all([perc, ded, pres, reg])
         db_session.flush()
 
@@ -465,6 +490,7 @@ def test_cargar_conceptos_catalogo(app, db_session):
         db_session.add(PlanillaDeduccion(planilla_id=planilla.id, deduccion_id=ded.id))
         db_session.add(PlanillaPrestacion(planilla_id=planilla.id, prestacion_id=pres.id))
         from coati_payroll.model import PlanillaReglaCalculo
+
         db_session.add(PlanillaReglaCalculo(planilla_id=planilla.id, regla_calculo_id=reg.id, orden=1))
         db_session.commit()
 
@@ -483,8 +509,20 @@ def test_get_nominas_disponibles_and_default(app, db_session):
     with app.app_context():
         planilla = _create_planilla(db_session)
 
-        n1 = Nomina(id="NOM_1", planilla_id=planilla.id, estado="generado", periodo_inicio=date(2025,1,1), periodo_fin=date(2025,1,15))
-        n2 = Nomina(id="NOM_2", planilla_id=planilla.id, estado="generado", periodo_inicio=date(2025,1,16), periodo_fin=date(2025,1,31))
+        n1 = Nomina(
+            id="NOM_1",
+            planilla_id=planilla.id,
+            estado="generado",
+            periodo_inicio=date(2025, 1, 1),
+            periodo_fin=date(2025, 1, 15),
+        )
+        n2 = Nomina(
+            id="NOM_2",
+            planilla_id=planilla.id,
+            estado="generado",
+            periodo_inicio=date(2025, 1, 16),
+            periodo_fin=date(2025, 1, 31),
+        )
         db_session.add_all([n1, n2])
         db_session.commit()
 

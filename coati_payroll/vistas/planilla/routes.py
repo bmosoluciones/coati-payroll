@@ -29,7 +29,7 @@ from coati_payroll.vistas.planilla import planilla_bp
 @require_read_access()
 def index():
     """List all planillas with pagination and filters."""
-    from coati_payroll.model import TipoPlanilla, Empresa
+    from coati_payroll.model import TipoPlanilla
     from coati_payroll.vistas.constants import PER_PAGE
 
     page = request.args.get("page", 1, type=int)
@@ -102,6 +102,7 @@ def new():
 
     if form.validate_on_submit():
         from coati_payroll.tenant import require_company_access
+
         require_company_access(form.empresa_id.data)
         vacation_policy_id, policy_error = _validate_vacation_policy(form)
         if policy_error:

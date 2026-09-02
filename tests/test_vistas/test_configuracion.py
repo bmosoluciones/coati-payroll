@@ -77,5 +77,5 @@ def test_configuracion_cambiar_idioma_to_english(app, client, admin_user, db_ses
 
 
 # Note: End-to-end workflow test removed due to session management complexity in parallel test execution.
-# The individual tests above (test_configuracion_cambiar_idioma_to_spanish and test_configuracion_cambiar_idioma_to_english)
+# The individual language-change tests above
 # already provide adequate coverage for the language change functionality.

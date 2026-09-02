@@ -16,8 +16,14 @@ from coati_payroll.forms import EmployeeForm, SalaryChangeForm
 from coati_payroll.i18n import _
 from coati_payroll.model import CampoPersonalizado, Empleado, HistorialSalario, Moneda, db, utc_now
 from coati_payroll.rbac import require_read_access, require_write_access
-from coati_payroll.tenant import active_empresa_id, accessible_empresas, require_company_access, scope_company_query, scoped_or_404
-from coati_payroll.vistas.constants import MSG_EMPLEADO_NO_ENCONTRADO, PER_PAGE
+from coati_payroll.tenant import (
+    active_empresa_id,
+    accessible_empresas,
+    require_company_access,
+    scope_company_query,
+    scoped_or_404,
+)
+from coati_payroll.vistas.constants import PER_PAGE
 
 employee_bp = Blueprint("employee", __name__, url_prefix="/employee")
 EMPLOYEE_INDEX_ENDPOINT = "employee.index"
@@ -32,7 +38,6 @@ def get_currency_choices():
 
 def get_empresa_choices():
     """Get list of companies for select fields."""
-    from coati_payroll.model import Empresa
 
     empresas = accessible_empresas()
     selected = active_empresa_id()
@@ -384,7 +389,11 @@ def salary_changes_index():
     pagination = db.paginate(query, page=page, per_page=PER_PAGE, error_out=False)
 
     employee_choices = (
-        db.session.execute(scope_company_query(db.select(Empleado), Empleado.empresa_id).order_by(Empleado.primer_apellido, Empleado.primer_nombre))
+        db.session.execute(
+            scope_company_query(db.select(Empleado), Empleado.empresa_id).order_by(
+                Empleado.primer_apellido, Empleado.primer_nombre
+            )
+        )
         .scalars()
         .all()
     )

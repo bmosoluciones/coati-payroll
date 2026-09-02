@@ -435,11 +435,7 @@ def test_payroll_by_period_report_filters_and_coercion(app, db_session):
         report_func = get_system_report("payroll_by_period")
 
         # Call with date ISO strings and planilla_id filter
-        params = {
-            "periodo_inicio": "2026-07-01",
-            "periodo_fin": "2026-07-31",
-            "planilla_id": "PLANILLA_XYZ"
-        }
+        params = {"periodo_inicio": "2026-07-01", "periodo_fin": "2026-07-31", "planilla_id": "PLANILLA_XYZ"}
         results = report_func(params)
         assert len(results) == 1
         assert results[0]["Código"] == "NOM-2026-07"
@@ -448,7 +444,7 @@ def test_payroll_by_period_report_filters_and_coercion(app, db_session):
 
 def test_payroll_employee_detail_report_empty_and_success(app, db_session):
     """Test payroll_employee_detail_report under empty and valid scenarios."""
-    from coati_payroll.model import NominaEmpleado, Empleado, Empresa
+    from coati_payroll.model import NominaEmpleado
 
     with app.app_context():
         report_func = get_system_report("payroll_employee_detail")
@@ -483,7 +479,7 @@ def test_payroll_employee_detail_report_empty_and_success(app, db_session):
 
 def test_payroll_perceptions_deductions_summaries(app, db_session):
     """Test aggregated perceptions and deductions reports."""
-    from coati_payroll.model import NominaDetalle, NominaEmpleado, Empresa
+    from coati_payroll.model import NominaDetalle, NominaEmpleado
     from coati_payroll.enums import TipoDetalle
 
     with app.app_context():
@@ -516,14 +512,14 @@ def test_payroll_perceptions_deductions_summaries(app, db_session):
             codigo="PERC_01",
             descripcion="Bonus",
             tipo=TipoDetalle.INGRESO,
-            monto=500.0
+            monto=500.0,
         )
         det2 = NominaDetalle(
             nomina_empleado_id=nomina_emp.id,
             codigo="DED_01",
             descripcion="Tax",
             tipo=TipoDetalle.DEDUCCION,
-            monto=150.0
+            monto=150.0,
         )
         db_session.add(det1)
         db_session.add(det2)
@@ -544,7 +540,7 @@ def test_payroll_perceptions_deductions_summaries(app, db_session):
 
 def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
     """Test date parsing and custom query parameters on vacation taken report."""
-    from coati_payroll.model import VacationLedger, VacationAccount, VacationPolicy, Empleado, Empresa
+    from coati_payroll.model import VacationLedger, VacationAccount, VacationPolicy
 
     with app.app_context():
         # Create employee and ledger usage entry
@@ -556,11 +552,7 @@ def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
         db_session.add(policy)
         db_session.commit()
 
-        acc = VacationAccount(
-            empleado_id=emp.id,
-            policy_id=policy.id,
-            current_balance=5.0
-        )
+        acc = VacationAccount(empleado_id=emp.id, policy_id=policy.id, current_balance=5.0)
         db_session.add(acc)
         db_session.commit()
 
@@ -571,7 +563,7 @@ def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
             fecha=date(2026, 8, 15),
             quantity=-5.0,
             source="manual",
-            observaciones="Summer vacation"
+            observaciones="Summer vacation",
         )
         ledger_accrual = VacationLedger(
             account_id=acc.id,
@@ -580,7 +572,7 @@ def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
             fecha=date(2026, 8, 1),
             quantity=10.0,
             source="manual",
-            observaciones="Standard Accrual"
+            observaciones="Standard Accrual",
         )
         db_session.add(ledger)
         db_session.add(ledger_accrual)
@@ -589,10 +581,7 @@ def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
         report_func = get_system_report("vacation_taken_by_period")
 
         # Test with date ISO strings
-        params = {
-            "fecha_inicio": "2026-08-01",
-            "fecha_fin": "2026-08-31"
-        }
+        params = {"fecha_inicio": "2026-08-01", "fecha_fin": "2026-08-31"}
         results = report_func(params)
         assert len(results) == 1
         assert results[0]["Días Usados"] == 5.0
@@ -601,7 +590,7 @@ def test_vacation_taken_by_period_report_iso_conversion(app, db_session):
 
 def test_vacation_balance_report_execution(app, db_session):
     """Test execution of vacation_balance_by_employee system report."""
-    from coati_payroll.model import VacationAccount, VacationPolicy, Empleado, Empresa, VacationLedger
+    from coati_payroll.model import VacationAccount, VacationPolicy, VacationLedger
     from decimal import Decimal
 
     with app.app_context():
@@ -614,11 +603,7 @@ def test_vacation_balance_report_execution(app, db_session):
         db_session.add(policy)
         db_session.commit()
 
-        acc = VacationAccount(
-            empleado_id=emp.id,
-            policy_id=policy.id,
-            current_balance=Decimal("12.5")
-        )
+        acc = VacationAccount(empleado_id=emp.id, policy_id=policy.id, current_balance=Decimal("12.5"))
         db_session.add(acc)
         db_session.commit()
 
@@ -630,7 +615,7 @@ def test_vacation_balance_report_execution(app, db_session):
             fecha=date(2026, 8, 1),
             quantity=Decimal("15.0"),
             source="manual",
-            observaciones="Initial Accrual"
+            observaciones="Initial Accrual",
         )
         ledger_usage = VacationLedger(
             account_id=acc.id,
@@ -639,7 +624,7 @@ def test_vacation_balance_report_execution(app, db_session):
             fecha=date(2026, 8, 5),
             quantity=Decimal("-2.5"),
             source="manual",
-            observaciones="Taken"
+            observaciones="Taken",
         )
         db_session.add_all([ledger_accrual, ledger_usage])
         db_session.commit()

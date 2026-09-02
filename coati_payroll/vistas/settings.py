@@ -41,9 +41,13 @@ def email():
         if form.smtp_use_tls.data and form.smtp_use_ssl.data:
             form.smtp_use_ssl.errors.append(_("Seleccione TLS o SSL, no ambos."))
         if form.activo.data and (not form.smtp_host.data or not form.sender_email.data):
-            form.smtp_host.errors.append(_("El servidor SMTP y el correo remitente son requeridos al habilitar el envío."))
-        if form.smtp_username.data and not form.smtp_password.data and not (
-            configuration and configuration.smtp_password_encrypted
+            form.smtp_host.errors.append(
+                _("El servidor SMTP y el correo remitente son requeridos al habilitar el envío.")
+            )
+        if (
+            form.smtp_username.data
+            and not form.smtp_password.data
+            and not (configuration and configuration.smtp_password_encrypted)
         ):
             form.smtp_password.errors.append(_("La contraseña SMTP es requerida cuando se especifica un usuario."))
 

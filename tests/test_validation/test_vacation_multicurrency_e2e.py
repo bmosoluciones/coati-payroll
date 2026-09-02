@@ -24,7 +24,6 @@ from coati_payroll.model import (
     VacationLedger,
     VacationPolicy,
     ComprobanteContable,
-    ComprobanteContableLinea,
 )
 from coati_payroll.vistas.planilla.services.nomina_service import NominaService
 
@@ -218,7 +217,9 @@ def test_vacation_liability_respects_exchange_rate(app, client, admin_user, db_s
         from coati_payroll.nomina_engine.services.accounting_voucher_service import AccountingVoucherService
 
         # Delete old comprobante
-        old_comprobante = db_session.query(ComprobanteContable).filter(ComprobanteContable.nomina_id == nomina.id).first()
+        old_comprobante = (
+            db_session.query(ComprobanteContable).filter(ComprobanteContable.nomina_id == nomina.id).first()
+        )
         if old_comprobante:
             db_session.delete(old_comprobante)
             db_session.flush()
@@ -274,8 +275,8 @@ def test_vacation_liability_respects_exchange_rate(app, client, admin_user, db_s
         # Expected liability: 37,500 NIO monthly / 30 dias_base * 1 day = 1,250 NIO
         expected_liability = Decimal("1250.00")
 
-        debit_line = next((l for l in vacation_lines if l.codigo_cuenta == "5101"), None)
-        credit_line = next((l for l in vacation_lines if l.codigo_cuenta == "2103"), None)
+        debit_line = next((linea for linea in vacation_lines if linea.codigo_cuenta == "5101"), None)
+        credit_line = next((linea for linea in vacation_lines if linea.codigo_cuenta == "2103"), None)
 
         assert debit_line is not None, "Debit vacation liability line not found"
         assert credit_line is not None, "Credit vacation liability line not found"

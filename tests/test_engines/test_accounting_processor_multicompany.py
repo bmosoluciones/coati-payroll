@@ -15,7 +15,6 @@ from coati_payroll.model import (
     Prestacion,
     PrestacionAcumulada,
     Planilla,
-    PlanillaEmpleado,
     TipoPlanilla,
     db,
 )
