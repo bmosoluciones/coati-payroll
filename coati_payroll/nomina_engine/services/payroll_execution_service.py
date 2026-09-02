@@ -149,9 +149,7 @@ class PayrollExecutionService:
                 planilla, periodo_inicio, periodo_fin, fecha_calculo, excluded_nomina_id=excluded_nomina_id
             )
         elif excluded_nomina_id:
-            snapshot_errors = self.snapshot_service.validate_planilla_snapshot(
-                planilla, snapshot.get("catalogos", {})
-            )
+            snapshot_errors = self.snapshot_service.validate_planilla_snapshot(planilla, snapshot.get("catalogos", {}))
             if snapshot_errors:
                 errors.extend(snapshot_errors)
                 return None, [], errors, warnings.to_list()
@@ -515,9 +513,7 @@ class PayrollExecutionService:
             periodo_fin,
             planilla_empleado=planilla_empleado,
             allow_historical_inactive=employee_snapshot is not None,
-            salario_base_override=(
-                Decimal(str(employee_snapshot["salario_base"])) if employee_snapshot else None
-            ),
+            salario_base_override=(Decimal(str(employee_snapshot["salario_base"])) if employee_snapshot else None),
             moneda_id_override=employee_snapshot.get("moneda_id") if employee_snapshot else None,
         )
         if not employee_validation.is_valid:
@@ -534,7 +530,7 @@ class PayrollExecutionService:
         emp_calculo.salario_base = salary_snapshot
         emp_calculo.salario_mensual = salary_snapshot
         emp_calculo.moneda_origen_id = currency_snapshot
-        exchange_employee = empleado
+        exchange_employee: Any = empleado
         if currency_snapshot != empleado.moneda_id:
             exchange_employee = SimpleNamespace(
                 moneda_id=currency_snapshot,
@@ -725,9 +721,7 @@ class PayrollExecutionService:
             empresa_primer_mes_nomina=bootstrap_context.get("primer_mes_nomina"),
             empresa_primer_anio_nomina=bootstrap_context.get("primer_anio_nomina"),
         )
-        emp_calculo.vacaciones_resumen = vacation_processor.process_vacations(
-            emp_calculo.empleado, nomina_empleado
-        )
+        emp_calculo.vacaciones_resumen = vacation_processor.process_vacations(emp_calculo.empleado, nomina_empleado)
 
     def _resolve_company_bootstrap_context(
         self,

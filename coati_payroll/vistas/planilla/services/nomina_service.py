@@ -231,7 +231,7 @@ class NominaService:
     def _rollback_payment(abono, adelanto_model) -> None:
         """Restore an advance balance after removing a payroll payment."""
         from coati_payroll.enums import AdelantoEstado
-        from coati_payroll.model import Nomina, TipoCambio
+        from coati_payroll.model import TipoCambio
 
         adelanto = db.session.get(adelanto_model, abono.adelanto_id)
         if adelanto:

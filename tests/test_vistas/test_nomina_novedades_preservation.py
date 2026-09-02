@@ -35,14 +35,14 @@ def test_recalcular_nomina_does_not_delete_nomina_novedad_defensive():
 @pytest.mark.validation
 class TestRecalculoNominaUnit:
     """Unit tests for payroll recalculation with novedades preservation.
-    
+
     These tests verify that:
     1. Novedades (payroll events) are preserved when recalculating a payroll
     2. Novedades are correctly re-linked to the new nomina
-    
+
     Novedades are master data (overtime, bonuses, absences, etc.) that should
     never be deleted during recalculation, as HR staff would have to re-enter them.
-    
+
     These are unit tests that simulate the recalculation logic without calling
     the full NominaEngine to avoid complexity with overlapping period validation.
     The actual NominaService.recalcular_nomina() method is tested in
@@ -209,7 +209,7 @@ class TestRecalculoNominaUnit:
 
             # Manually delete the old nomina and move novedades (simulating recalculation)
             # This tests the core logic without running the full engine
-            
+
             # Create a new nomina (simulating recalculation result)
             nomina_nueva = Nomina(
                 planilla_id=planilla.id,
@@ -233,13 +233,13 @@ class TestRecalculoNominaUnit:
 
             # Delete related records but preserve novedades
             db_session.delete(nomina_empleado)
-            
+
             # CRITICAL: Move novedades to new nomina (this is what recalcular_nomina does)
             novedad_ids = [novedad1.id, novedad2.id, novedad3.id]
             db_session.execute(
                 db.update(NominaNovedad).where(NominaNovedad.id.in_(novedad_ids)).values(nomina_id=nomina_nueva.id)
             )
-            
+
             # Delete old nomina
             original_nomina_id = nomina_original.id
             db_session.delete(nomina_original)
@@ -259,7 +259,7 @@ class TestRecalculoNominaUnit:
             for novedad in novedades_after:
                 assert novedad.nomina_id == nomina_nueva.id, f"Novedad {novedad.id} must be linked to new nomina"
                 assert novedad.id in original_novedad_data, f"Novedad {novedad.id} should be an original novedad"
-                
+
                 codigo, valor, tipo = original_novedad_data[novedad.id]
                 assert novedad.codigo_concepto == codigo, f"Novedad {novedad.id} should have codigo {codigo}"
                 assert novedad.valor_cantidad == valor, f"Novedad {novedad.id} should have valor {valor}"

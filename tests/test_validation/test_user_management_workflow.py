@@ -362,7 +362,7 @@ def test_user_type_segregation_and_permissions(client, app, db_session, admin_us
             # Note: Rate limiting is disabled in testing mode (app.config["TESTING"]=True)
             # so we don't need to reset the limiter here. This prevents blocking
             # multiple login attempts during tests.
-            
+
             # Login
             login_response = login_user(client, usuario, password)
             assert login_response.status_code in (302, 303), f"User {usuario} should login successfully"

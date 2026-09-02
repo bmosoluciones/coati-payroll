@@ -51,7 +51,7 @@ def _apply_vacation_accruals(nomina, planilla, db_session, usuario="test_user"):
     nomina_empleados = db_session.execute(
         db.select(NominaEmpleado).filter_by(nomina_id=nomina.id)
     ).scalars().all()
-    
+
     for ne in nomina_empleados:
         emp = ne.empleado or db_session.get(Empleado, ne.empleado_id)
         if emp and emp.activo:

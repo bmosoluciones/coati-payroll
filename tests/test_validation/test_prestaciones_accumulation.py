@@ -542,10 +542,10 @@ def test_prestaciones_monthly_settlement(app, db_session):
         for i, trans in enumerate(transacciones):
             assert trans.tipo_transaccion == "adicion", f"Transaction {i+1} should be 'adicion'"
             assert trans.monto_transaccion > Decimal("0"), f"Transaction {i+1} should have positive amount"
-            
+
             # Monthly prestaciones reset each month, so previous balance should always be 0
             assert trans.saldo_anterior == Decimal("0.00"), f"Transaction {i+1} previous balance should be 0.00 (monthly reset)"
-            
+
             # New balance equals the transaction amount (no accumulation from previous months)
             assert trans.saldo_nuevo == trans.monto_transaccion, f"Transaction {i+1} new balance should equal transaction amount"
 

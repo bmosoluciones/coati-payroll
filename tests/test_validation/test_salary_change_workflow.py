@@ -205,4 +205,3 @@ def test_salary_change_stores_currency_and_applies_on_currency_change(app, clien
         db_session.refresh(empleado)
         assert empleado.salario_base == Decimal("500.00")
         assert empleado.moneda_id == moneda_usd.id
-

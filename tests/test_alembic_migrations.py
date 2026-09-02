@@ -161,7 +161,7 @@ def test_alembic_stamp_and_upgrade(monkeypatch):
                 db.metadata.create_all(bind=db.engine, checkfirst=True)
             else:
                 raise
-        
+
         ensure_database_initialized(app)
 
         # Marcar como actualizada
@@ -221,7 +221,7 @@ def test_alembic_current_command(monkeypatch):
                 db.metadata.create_all(bind=db.engine, checkfirst=True)
             else:
                 raise
-        
+
         ensure_database_initialized(app)
         alembic.stamp("head")
         db.session.commit()

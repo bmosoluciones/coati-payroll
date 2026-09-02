@@ -234,8 +234,11 @@ class EmployeeProcessingService:
         # Add novelties
         for codigo, valor in emp_calculo.novedades.items():
             variables[f"novedad_{codigo}"] = valor
-        for field_name, field_info in AVAILABLE_DATA_SOURCES["novedad"]["fields"].items():
-            variables.setdefault(get_formula_variable_name("novedad", field_name, field_info), Decimal("0.00"))
+        novedad_fields = AVAILABLE_DATA_SOURCES["novedad"]["fields"]
+        if isinstance(novedad_fields, dict):
+            for field_name, field_info in novedad_fields.items():
+                if isinstance(field_info, dict):
+                    variables.setdefault(get_formula_variable_name("novedad", field_name, field_info), Decimal("0.00"))
 
         # Only values denominated in the planilla currency are safe to combine
         # directly in a formula.  Cross-currency loan deductions are converted
@@ -437,7 +440,6 @@ class EmployeeProcessingService:
 
         # Look up existing accumulated record
         from sqlalchemy import select
-        from coati_payroll.model import db
 
         acumulado = (
             db.session.execute(
