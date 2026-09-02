@@ -15,7 +15,6 @@ import pytest
 from coati_payroll.auth import proteger_passwd
 from coati_payroll.model import Usuario, db
 
-
 # ============================================================================
 # SYSTEM COMMANDS TESTS
 # ============================================================================
@@ -991,9 +990,11 @@ def test_system_status_json_and_error(app, db_session, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1019,9 +1020,11 @@ def test_system_check_json_and_error(app, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1047,9 +1050,11 @@ def test_system_info_json_and_error(app, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1075,9 +1080,11 @@ def test_database_status_json_and_error(app, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1134,6 +1141,7 @@ def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
 
     # Database commit exception triggering rollback
     from coati_payroll.model import PluginRegistry
+
     p = PluginRegistry(plugin_id="buggy_plugin", distribution_name="buggy_plugin", installed=True, active=False)
     db_session.add(p)
     db_session.commit()
@@ -1142,7 +1150,9 @@ def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
     cli._toggle_plugin_active("buggy_plugin", False, ctx)
 
     # Test not installed validation branch
-    p2 = PluginRegistry(plugin_id="uninstalled_plugin", distribution_name="uninstalled_plugin", installed=False, active=False)
+    p2 = PluginRegistry(
+        plugin_id="uninstalled_plugin", distribution_name="uninstalled_plugin", installed=False, active=False
+    )
     db_session.add(p2)
     db_session.commit()
     with pytest.raises(click.ClickException, match="Plugin no está instalado"):
@@ -1155,3 +1165,124 @@ def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
     monkeypatch.setattr(db_session, "commit", mock_commit)
     with pytest.raises(click.ClickException, match="Database integrity violation"):
         cli._toggle_plugin_active("buggy_plugin", True, ctx)
+
+
+# ============================================================================
+# DATABASE RESTORE - MYSQL AND POSTGRESQL TESTS
+# ============================================================================
+
+
+def test_database_restore_mysql_success(app, db_session, monkeypatch):
+    """Test _database_restore_mysql successfully restores a MySQL database."""
+    import subprocess
+    from coati_payroll.cli import _database_restore_mysql
+
+    # Mock subprocess.run to simulate successful restore
+    def mock_run(*args, **kwargs):
+        class Result:
+            returncode = 0
+            stderr = b""
+
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    with app.app_context():
+        with tempfile.NamedTemporaryFile(suffix=".sql", delete=False) as tmp:
+            backup_file = tmp.name
+            tmp.write(b"SQL dump content")
+
+        try:
+            db_url = "mysql://user:pass@localhost:3306/dbname"
+            # Should not raise
+            _database_restore_mysql(backup_file, db_url)
+        finally:
+            if Path(backup_file).exists():
+                Path(backup_file).unlink()
+
+
+def test_database_restore_mysql_failure(app, db_session, monkeypatch):
+    """Test _database_restore_mysql raises error on restore failure."""
+    import subprocess
+    from coati_payroll.cli import _database_restore_mysql
+
+    # Mock subprocess.run to simulate failure
+    def mock_run(*args, **kwargs):
+        class Result:
+            returncode = 1
+            stderr = b"Access denied for user 'user'@'localhost'"
+
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    with app.app_context():
+        with tempfile.NamedTemporaryFile(suffix=".sql", delete=False) as tmp:
+            backup_file = tmp.name
+            tmp.write(b"SQL dump content")
+
+        try:
+            db_url = "mysql://user:pass@localhost:3306/dbname"
+            with pytest.raises(RuntimeError, match="MySQL restore failed"):
+                _database_restore_mysql(backup_file, db_url)
+        finally:
+            if Path(backup_file).exists():
+                Path(backup_file).unlink()
+
+
+def test_database_restore_postgresql_success(app, db_session, monkeypatch):
+    """Test _database_restore_postgresql successfully restores a PostgreSQL database."""
+    import subprocess
+    from coati_payroll.cli import _database_restore_postgresql
+
+    # Mock subprocess.run to simulate successful restore
+    def mock_run(*args, **kwargs):
+        class Result:
+            returncode = 0
+            stderr = b""
+
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    with app.app_context():
+        with tempfile.NamedTemporaryFile(suffix=".sql", delete=False) as tmp:
+            backup_file = tmp.name
+            tmp.write(b"PostgreSQL dump content")
+
+        try:
+            db_url = "postgresql://user:pass@localhost:5432/dbname"
+            # Should not raise
+            _database_restore_postgresql(backup_file, db_url)
+        finally:
+            if Path(backup_file).exists():
+                Path(backup_file).unlink()
+
+
+def test_database_restore_postgresql_failure(app, db_session, monkeypatch):
+    """Test _database_restore_postgresql raises error on restore failure."""
+    import subprocess
+    from coati_payroll.cli import _database_restore_postgresql
+
+    # Mock subprocess.run to simulate failure
+    def mock_run(*args, **kwargs):
+        class Result:
+            returncode = 1
+            stderr = b"FATAL: Ident authentication failed for user 'user'"
+
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    with app.app_context():
+        with tempfile.NamedTemporaryFile(suffix=".sql", delete=False) as tmp:
+            backup_file = tmp.name
+            tmp.write(b"PostgreSQL dump content")
+
+        try:
+            db_url = "postgresql://user:pass@localhost:5432/dbname"
+            with pytest.raises(RuntimeError, match="PostgreSQL restore failed"):
+                _database_restore_postgresql(backup_file, db_url)
+        finally:
+            if Path(backup_file).exists():
+                Path(backup_file).unlink()

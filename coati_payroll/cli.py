@@ -767,11 +767,22 @@ def _backup_mysql(db_url_str, output=None):
         env["MYSQL_PWD"] = parsed.password
 
     with output_path.open("w", encoding="utf-8") as f:
-        result = subprocess.run(cmd, stdout=f, stderr=subprocess.PIPE, env=env, text=True, check=False)
+        result = subprocess.run(
+            cmd,
+            stdout=f,
+            stderr=subprocess.PIPE,
+            env=env,
+            text=True,
+            check=False,
+            # Prevent password exposure in process listing
+            preexec_fn=lambda: os.setpgrp() if hasattr(os, "setpgrp") else None,
+        )
 
     if result.returncode != 0:
-        raise RuntimeError(f"mysqldump failed: {result.stderr}")
+        raise RuntimeError("mysqldump failed: see logs for details")
 
+    # Ensure backup file is readable only by owner (0600 permissions)
+    output_path.chmod(0o600)
     return output_path
 
 
@@ -897,9 +908,18 @@ def _database_restore_mysql(backup_file, db_url_str):
     if parsed.password:
         env["MYSQL_PWD"] = parsed.password
     with Path(backup_file).open("rb") as backup_stream:
-        result = subprocess.run(command, stdin=backup_stream, capture_output=True, env=env, check=False)
+        result = subprocess.run(
+            command,
+            stdin=backup_stream,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            check=False,
+            # Prevent password exposure in process listing
+            preexec_fn=lambda: os.setpgrp() if hasattr(os, "setpgrp") else None,
+        )
     if result.returncode != 0:
-        raise RuntimeError(f"MySQL restore failed: {result.stderr.decode(errors='replace')}")
+        raise RuntimeError("MySQL restore failed: see logs for details")
 
 
 @database.command("restore")
@@ -1532,8 +1552,12 @@ def maintenance_cleanup_audit(ctx):
     """Remove audit records older than the configured retention period."""
     try:
         from coati_payroll.model import (
-            ConceptoAuditLog, NominaAuditLog, PlanillaAuditLog, ReglaCalculoAuditLog,
-            ReportAudit, SecurityAuditLog,
+            ConceptoAuditLog,
+            NominaAuditLog,
+            PlanillaAuditLog,
+            ReglaCalculoAuditLog,
+            ReportAudit,
+            SecurityAuditLog,
         )
 
         retention_days = int(os.environ.get("COATI_AUDIT_RETENTION_DAYS", "2555"))
@@ -1542,7 +1566,12 @@ def maintenance_cleanup_audit(ctx):
         cutoff = datetime.now(UTC) - timedelta(days=retention_days)
         deleted = 0
         for audit_model in (
-            ConceptoAuditLog, NominaAuditLog, PlanillaAuditLog, ReglaCalculoAuditLog, ReportAudit, SecurityAuditLog
+            ConceptoAuditLog,
+            NominaAuditLog,
+            PlanillaAuditLog,
+            ReglaCalculoAuditLog,
+            ReportAudit,
+            SecurityAuditLog,
         ):
             result = db.session.execute(db.delete(audit_model).where(audit_model.timestamp < cutoff))
             deleted += result.rowcount or 0
@@ -1557,7 +1586,9 @@ def maintenance_cleanup_audit(ctx):
 @maintenance.command("sync-exchange-rates")
 @click.option("--source-url", default=None, help="JSON provider URL; defaults to EXCHANGE_RATES_URL.")
 @click.option("--base-currency", default=None, help="ISO base currency; defaults to EXCHANGE_RATES_BASE_CURRENCY.")
-@click.option("--primary-currency", "primary_currencies", multiple=True, help="Currency code to synchronize (repeatable).")
+@click.option(
+    "--primary-currency", "primary_currencies", multiple=True, help="Currency code to synchronize (repeatable)."
+)
 @with_appcontext
 @pass_context
 def maintenance_sync_exchange_rates(ctx, source_url, base_currency, primary_currencies):
