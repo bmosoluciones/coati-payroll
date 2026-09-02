@@ -8,6 +8,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from coati_payroll.auth import proteger_passwd, validar_acceso
+from coati_payroll.audit_helpers import registrar_evento_seguridad
 from coati_payroll.enums import TipoUsuario
 from coati_payroll.forms import UserForm, ProfileForm
 from coati_payroll.i18n import _
@@ -68,6 +69,7 @@ def new():
         user.creado_por = current_user.usuario
 
         db.session.add(user)
+        registrar_evento_seguridad("user_created", current_user.usuario, objetivo=user.usuario)
         db.session.commit()
         flash(_("Usuario creado exitosamente."), "success")
         return redirect(url_for(USER_INDEX_ENDPOINT))
@@ -90,6 +92,9 @@ def edit(id_: str):
         form.empresa_ids.data = [empresa.id for empresa in user.empresas]
 
     if form.validate_on_submit():
+        old_username = user.usuario
+        old_role = user.tipo
+        old_active = user.activo
         user.usuario = form.usuario.data
         if form.password.data:
             user.acceso = proteger_passwd(form.password.data)
@@ -103,6 +108,19 @@ def edit(id_: str):
             db.session.execute(db.select(Empresa).where(Empresa.id.in_(form.empresa_ids.data or []))).scalars().all()
         )
         user.modificado_por = current_user.usuario
+
+        registrar_evento_seguridad(
+            "user_updated",
+            current_user.usuario,
+            objetivo=user.usuario,
+            detalles={
+                "role_from": old_role,
+                "role_to": user.tipo,
+                "active_from": old_active,
+                "active_to": user.activo,
+                "username_from": old_username,
+            },
+        )
 
         db.session.commit()
         flash(_("Usuario actualizado exitosamente."), "success")
@@ -127,6 +145,7 @@ def delete(id_: str):
         return redirect(url_for(USER_INDEX_ENDPOINT))
 
     db.session.delete(user)
+    registrar_evento_seguridad("user_deleted", current_user.usuario, objetivo=user.usuario)
     db.session.commit()
     flash(_("Usuario eliminado exitosamente."), "success")
     return redirect(url_for(USER_INDEX_ENDPOINT))

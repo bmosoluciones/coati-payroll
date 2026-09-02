@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-shield-check me-2"></i>{{ _('Auditoría') }}</h2>
+    <a class="btn btn-outline-primary" href="{{ url_for('audit.export_csv', source=filters.source, actor=filters.actor, target=filters.target, action=filters.action) }}">{{ _('Exportar CSV') }}</a>
+  </div>
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-md-3"><input class="form-control" name="source" placeholder="{{ _('Origen') }}" value="{{ filters.source }}"></div>
+    <div class="col-md-3"><input class="form-control" name="actor" placeholder="{{ _('Usuario') }}" value="{{ filters.actor }}"></div>
+    <div class="col-md-3"><input class="form-control" name="target" placeholder="{{ _('Usuario objetivo') }}" value="{{ filters.target }}"></div>
+    <div class="col-md-3"><input class="form-control" name="action" placeholder="{{ _('Acción') }}" value="{{ filters.action }}"></div>
+    <div class="col-md-2"><button class="btn btn-primary" type="submit">{{ _('Filtrar') }}</button></div>
+  </form>
+  <div class="card"><div class="table-responsive"><table class="table table-striped mb-0">
+    <thead><tr><th>{{ _('Fecha') }}</th><th>{{ _('Origen') }}</th><th>{{ _('Acción') }}</th><th>{{ _('Usuario') }}</th><th>{{ _('Objetivo') }}</th><th>{{ _('Resultado') }}</th><th>{{ _('Detalles') }}</th></tr></thead>
+    <tbody>{% for entry in entries %}<tr>
+      <td>{{ entry.timestamp }}</td><td>{{ entry.source }}</td><td>{{ entry.action }}</td><td>{{ entry.actor }}</td><td>{{ entry.target or '-' }}</td>
+      <td>{{ _('Correcto') if entry.success else _('Fallido') }}</td><td>{{ entry.details }}</td>
+    </tr>{% else %}<tr><td colspan="7" class="text-center">{{ _('No hay registros.') }}</td></tr>{% endfor %}</tbody>
+  </table></div></div>
+  <p class="text-muted mt-2">{{ total }} {{ _('registros') }}</p>
+</div>
+{% endblock %}

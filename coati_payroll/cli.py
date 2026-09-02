@@ -1525,6 +1525,35 @@ def maintenance_cleanup_temp(ctx):
         raise click.ClickException(str(e)) from e
 
 
+@maintenance.command("cleanup-audit")
+@with_appcontext
+@pass_context
+def maintenance_cleanup_audit(ctx):
+    """Remove audit records older than the configured retention period."""
+    try:
+        from coati_payroll.model import (
+            ConceptoAuditLog, NominaAuditLog, PlanillaAuditLog, ReglaCalculoAuditLog,
+            ReportAudit, SecurityAuditLog,
+        )
+
+        retention_days = int(os.environ.get("COATI_AUDIT_RETENTION_DAYS", "2555"))
+        if retention_days < 1:
+            raise click.ClickException("COATI_AUDIT_RETENTION_DAYS must be greater than zero.")
+        cutoff = datetime.now(UTC) - timedelta(days=retention_days)
+        deleted = 0
+        for audit_model in (
+            ConceptoAuditLog, NominaAuditLog, PlanillaAuditLog, ReglaCalculoAuditLog, ReportAudit, SecurityAuditLog
+        ):
+            result = db.session.execute(db.delete(audit_model).where(audit_model.timestamp < cutoff))
+            deleted += result.rowcount or 0
+        db.session.commit()
+        output_result(ctx, "Expired audit records removed", {"deleted": deleted, "retention_days": retention_days})
+    except Exception as e:
+        db.session.rollback()
+        output_result(ctx, f"Failed to cleanup audit records: {e}", None, False)
+        raise click.ClickException(str(e)) from e
+
+
 @maintenance.command("sync-exchange-rates")
 @click.option("--source-url", default=None, help="JSON provider URL; defaults to EXCHANGE_RATES_URL.")
 @click.option("--base-currency", default=None, help="ISO base currency; defaults to EXCHANGE_RATES_BASE_CURRENCY.")

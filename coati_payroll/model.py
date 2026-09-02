@@ -2674,6 +2674,20 @@ class ReportAudit(database.Model, BaseTabla):
     # Timestamp is inherited from BaseTabla
 
 
+class SecurityAuditLog(database.Model, BaseTabla):
+    """Immutable audit events for authentication and user administration."""
+
+    __tablename__ = "security_audit_log"
+
+    event = database.Column(database.String(50), nullable=False, index=True)
+    actor = database.Column(database.String(150), nullable=False, index=True)
+    target_username = database.Column(database.String(150), nullable=True, index=True)
+    success = database.Column(database.Boolean(), nullable=False, default=True)
+    ip_address = database.Column(database.String(64), nullable=True)
+    user_agent = database.Column(database.String(500), nullable=True)
+    details = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
+
+
 class ConceptoAuditLog(database.Model, BaseTabla):
     """Audit trail for payroll concept changes (percepciones, deducciones, prestaciones).
 

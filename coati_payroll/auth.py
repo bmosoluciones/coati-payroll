@@ -16,12 +16,13 @@ import hmac
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError, VerifyMismatchError
 from flask import Blueprint, flash, redirect, render_template, session, url_for
-from flask_login import login_user, logout_user, login_required
+from flask_login import current_user, login_user, logout_user, login_required
 
 # <-------------------------------------------------------------------------> #
 # Local modules
 # <-------------------------------------------------------------------------> #
 from coati_payroll.model import TokenCorreo, Usuario, database
+from coati_payroll.audit_helpers import registrar_evento_seguridad
 from coati_payroll.forms import (
     LoginForm,
     LoginVerificationForm,
@@ -69,6 +70,8 @@ def login():
 
         registro = autenticar_usuario(usuario_id, clave)
         if registro is not None:
+            registrar_evento_seguridad("login_success", registro.usuario, objetivo=registro.usuario)
+            database.session.commit()
             configuration = get_email_configuration()
             requires_verification = bool(
                 registro.correo_electronico
@@ -87,6 +90,8 @@ def login():
                 return response
 
         # Si llegamos aquí, el login falló
+        registrar_evento_seguridad("login_failed", usuario_id, objetivo=usuario_id, exito=False)
+        database.session.commit()
         flash(_("Usuario o contraseña incorrectos."), "error")
 
     return render_template("auth/login.html", form=form)
@@ -96,6 +101,8 @@ def login():
 @login_required
 def logout():
     """Cerrar sesión del usuario."""
+    registrar_evento_seguridad("logout", current_user.usuario, objetivo=current_user.usuario)
+    database.session.commit()
     logout_user()
     flash(_("Sesión cerrada correctamente."), "info")
     return redirect(url_for("auth.login"))

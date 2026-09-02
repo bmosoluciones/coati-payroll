@@ -1,0 +1,9 @@
+[Unit]
+Description=Coati Payroll audit retention cleanup
+
+[Service]
+Type=oneshot
+User=coati-payroll
+WorkingDirectory=/opt/coati-payroll
+EnvironmentFile=-/etc/coati-payroll/audit.env
+ExecStart=/usr/local/bin/payrollctl maintenance cleanup-audit

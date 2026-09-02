@@ -166,6 +166,14 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                     </a>
                 </li>
 
+                {% if current_user.is_authenticated and current_user.tipo in ['admin', 'audit'] %}
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('audit.index') }}">
+                        <i class="bi bi-shield-check me-2"></i><span>{{ _('Auditoría') }}</span>
+                    </a>
+                </li>
+                {% endif %}
+
                 {% for active_plugin in plugin_actives %}
                 <li class="nav-item">
                     <a class="nav-link d-flex align-items-center" href="{{ active_plugin.url }}">

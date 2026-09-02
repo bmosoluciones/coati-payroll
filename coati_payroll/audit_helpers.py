@@ -14,6 +14,7 @@ from coati_payroll.model import (
     PlanillaAuditLog,
     NominaAuditLog,
     ReglaCalculoAuditLog,
+    SecurityAuditLog,
     Percepcion,
     Deduccion,
     Prestacion,
@@ -23,6 +24,30 @@ from coati_payroll.model import (
     db,
     utc_now,
 )
+
+
+def registrar_evento_seguridad(
+    evento: str,
+    actor: str,
+    *,
+    objetivo: str | None = None,
+    exito: bool = True,
+    detalles: Optional[Dict[str, Any]] = None,
+) -> SecurityAuditLog:
+    """Record an authentication or user-administration event."""
+    from flask import has_request_context, request
+
+    entry = SecurityAuditLog(
+        event=evento,
+        actor=actor,
+        target_username=objetivo,
+        success=exito,
+        ip_address=request.remote_addr if has_request_context() else None,
+        user_agent=(request.user_agent.string[:500] if has_request_context() else None),
+        details=detalles or {},
+    )
+    db.session.add(entry)
+    return entry
 
 
 def puede_aprobar_concepto(usuario_tipo: str) -> bool:
