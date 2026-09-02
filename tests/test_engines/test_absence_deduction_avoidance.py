@@ -53,6 +53,7 @@ class TestNoveltyProcessor:
                 codigo="TEST001",
                 razon_social="Test Company SA",
                 ruc="J-12345678",
+
             )
             db_session.add(empresa)
             db_session.flush()
@@ -146,6 +147,7 @@ class TestNoveltyProcessor:
                 codigo="TEST001",
                 razon_social="Test Company SA",
                 ruc="J-12345678",
+
             )
             db_session.add(empresa)
             db_session.flush()
@@ -440,7 +442,10 @@ class TestMedicalSubsidyScenario:
             assert "SUBSIDIO_MEDICO_DIA12" not in codigos_descuento
 
             # Verify total subsidy amount
-            total_subsidio = sum(novedades.get(f"SUBSIDIO_MEDICO_DIA{day}", Decimal("0.00")) for day in [10, 11, 12])
+            total_subsidio = sum(
+                novedades.get(f"SUBSIDIO_MEDICO_DIA{day}", Decimal("0.00"))
+                for day in [10, 11, 12]
+            )
             expected_total_subsidio = (Decimal("15000.00") / Decimal("30")) * Decimal("0.80") * Decimal("3")
             assert abs(total_subsidio - expected_total_subsidio) < Decimal("0.01")
 

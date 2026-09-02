@@ -35,10 +35,14 @@ class SalaryCalculator:
         from ..validators import ValidationError
 
         if not planilla or not planilla.tipo_planilla:
-            raise ValidationError("No se puede calcular salario: planilla o tipo_planilla no disponibles.")
+            raise ValidationError(
+                "No se puede calcular salario: planilla o tipo_planilla no disponibles."
+            )
 
         if not periodo_fin or not periodo_inicio:
-            raise ValidationError("No se puede calcular salario: periodo_inicio o periodo_fin no disponibles.")
+            raise ValidationError(
+                "No se puede calcular salario: periodo_inicio o periodo_fin no disponibles."
+            )
 
         dias_periodo = (periodo_fin - periodo_inicio).days + 1
 
@@ -68,7 +72,9 @@ class SalaryCalculator:
                 config = self._get_config(planilla.empresa_id, configuracion_snapshot)
                 dias_base = Decimal(str(config.dias_mes_nomina))
                 if dias_base <= 0:
-                    raise ValidationError("Configuración inválida: dias_mes_nomina debe ser mayor a 0.")
+                    raise ValidationError(
+                        "Configuración inválida: dias_mes_nomina debe ser mayor a 0."
+                    )
                 salario_diario = salario_mensual / dias_base
                 salario_periodo = salario_diario * Decimal(str(dias_periodo))
 
@@ -83,14 +89,18 @@ class SalaryCalculator:
                 config = self._get_config(planilla.empresa_id, configuracion_snapshot)
                 dias_base = Decimal(str(config.dias_mes_nomina))
                 if dias_base <= 0:
-                    raise ValidationError("Configuración inválida: dias_mes_nomina debe ser mayor a 0.")
+                    raise ValidationError(
+                        "Configuración inválida: dias_mes_nomina debe ser mayor a 0."
+                    )
                 salario_periodo = (salario_mensual / dias_base) * Decimal(str(dias_periodo))
 
         else:
             config = self._get_config(planilla.empresa_id, configuracion_snapshot)
             dias_base = Decimal(str(config.dias_mes_nomina))
             if dias_base <= 0:
-                raise ValidationError("Configuración inválida: dias_mes_nomina debe ser mayor a 0.")
+                raise ValidationError(
+                    "Configuración inválida: dias_mes_nomina debe ser mayor a 0."
+                )
             salario_diario = salario_mensual / dias_base
             salario_periodo = salario_diario * Decimal(str(dias_periodo))
 

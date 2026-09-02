@@ -1024,12 +1024,9 @@ def test_consecutive_payroll_vacation_novelty_no_cross_processing(app, db_sessio
 
         # Make sure employee is active in the planilla
         from coati_payroll.model import db
-
-        pe = (
-            db_session.execute(db.select(PlanillaEmpleado).filter_by(planilla_id=planilla.id, empleado_id=empleado.id))
-            .scalars()
-            .first()
-        )
+        pe = db_session.execute(
+            db.select(PlanillaEmpleado).filter_by(planilla_id=planilla.id, empleado_id=empleado.id)
+        ).scalars().first()
         if not pe:
             pe = PlanillaEmpleado(
                 planilla_id=planilla.id,
@@ -1145,7 +1142,9 @@ def test_consecutive_payroll_vacation_novelty_no_cross_processing(app, db_sessio
         assert service_none._build_vacation_usage_query(empleado)[0].id == novedad_floating.id
 
 
-def test_recalculation_context_keeps_source_bound_vacation_novelties(app, db_session, planilla, empleado):
+def test_recalculation_context_keeps_source_bound_vacation_novelties(
+    app, db_session, planilla, empleado
+):
     """A recalculation must read source-bound novelties before relinking them."""
     with app.app_context():
         from coati_payroll.model import NominaNovedad, PlanillaEmpleado

@@ -271,6 +271,8 @@ class TestRecalculoNominaUnit:
 
             # Verify no orphaned novedades
             orphaned_novedades = (
-                db_session.query(NominaNovedad).filter(NominaNovedad.nomina_id == original_nomina_id).count()
+                db_session.query(NominaNovedad)
+                .filter(NominaNovedad.nomina_id == original_nomina_id)
+                .count()
             )
             assert orphaned_novedades == 0, "No novedades should be orphaned (linked to deleted nomina)"

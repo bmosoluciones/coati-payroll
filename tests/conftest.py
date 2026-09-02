@@ -132,9 +132,7 @@ def db_session(app):
             # whole test and let the fixture clean it up explicitly.
             try:
                 app.teardown_appcontext_funcs = [
-                    func
-                    for func in app.teardown_appcontext_funcs
-                    if getattr(func, "__name__", "") != "shutdown_session"
+                    func for func in app.teardown_appcontext_funcs if getattr(func, "__name__", "") != "shutdown_session"
                 ]
                 # Also neutralize any remaining teardown calls to session.remove()
                 session.remove = lambda: None
@@ -153,14 +151,9 @@ def db_session(app):
                 _db.metadata.create_all(bind=connection)
             except Exception as exc:
                 from sqlalchemy.exc import OperationalError, ProgrammingError
-
                 error_msg = str(exc).lower()
                 # If we got an "index already exists" error, try again with checkfirst=True
-                if (
-                    isinstance(exc, (OperationalError, ProgrammingError))
-                    and "index" in error_msg
-                    and "already exists" in error_msg
-                ):
+                if isinstance(exc, (OperationalError, ProgrammingError)) and "index" in error_msg and "already exists" in error_msg:
                     log.trace(f"Index already exists, retrying with checkfirst=True: {exc}")
                     # Try again with checkfirst=True to skip existing objects
                     _db.metadata.create_all(bind=connection, checkfirst=True)

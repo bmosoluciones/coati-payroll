@@ -65,5 +65,6 @@ def _scan_for_hardcoded_normative_params(root: Path) -> list[Violation]:
 def test_no_hardcoded_normative_params_outside_configuration() -> None:
     violations = _scan_for_hardcoded_normative_params(Path("coati_payroll"))
     assert not violations, (
-        "Found hardcoded normative payroll parameters outside allowed configuration files. " f"Violations: {violations}"
+        "Found hardcoded normative payroll parameters outside allowed configuration files. "
+        f"Violations: {violations}"
     )

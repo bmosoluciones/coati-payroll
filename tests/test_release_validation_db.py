@@ -8,6 +8,7 @@ import pytest
 from sqlalchemy import inspect
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
+
 pytestmark = pytest.mark.skipif(
     not os.environ.get("DATABASE_URL"),
     reason="DATABASE_URL is not defined, skipping external database validation tests.",

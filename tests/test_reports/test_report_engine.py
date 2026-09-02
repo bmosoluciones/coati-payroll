@@ -96,11 +96,26 @@ def test_custom_report_builder_valid_definition(app, db_session):
     with app.app_context():
         definition = {
             "columns": [
-                {"type": "field", "entity": "Employee", "field": "codigo_empleado"},
-                {"type": "field", "entity": "Employee", "field": "primer_nombre"},
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "codigo_empleado"
+                },
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "primer_nombre"
+                },
             ],
-            "filters": [{"field": "activo", "operator": "=", "value": True}],
-            "sorting": [{"field": "primer_apellido", "direction": "asc"}],
+            "filters": [{
+                "field": "activo",
+                "operator": "=",
+                "value": True
+            }],
+            "sorting": [{
+                "field": "primer_apellido",
+                "direction": "asc"
+            }],
         }
 
         report = Report(
@@ -163,7 +178,11 @@ def test_custom_report_builder_invalid_field(app, db_session):
     with app.app_context():
         definition = {
             "columns": [
-                {"type": "field", "entity": "Employee", "field": "invalid_field"},
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "invalid_field"
+                },
             ],
         }
 
@@ -198,9 +217,17 @@ def test_custom_report_builder_invalid_operator(app, db_session):
     with app.app_context():
         definition = {
             "columns": [
-                {"type": "field", "entity": "Employee", "field": "codigo_empleado"},
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "codigo_empleado"
+                },
             ],
-            "filters": [{"field": "activo", "operator": "invalid_op", "value": True}],
+            "filters": [{
+                "field": "activo",
+                "operator": "invalid_op",
+                "value": True
+            }],
         }
 
         report = Report(
@@ -234,7 +261,8 @@ def test_custom_report_execute_with_data(app, db_session):
     """
     with app.app_context():
         # Create test data
-        empresa = create_company(db_session, "TEST_COMP", "Test Company", "J1234")
+        empresa = create_company(db_session, "TEST_COMP", "Test Company",
+                                 "J1234")
         emp1 = create_employee(
             db_session,
             empresa_id=empresa.id,
@@ -256,11 +284,24 @@ def test_custom_report_execute_with_data(app, db_session):
         # Create report
         definition = {
             "columns": [
-                {"type": "field", "entity": "Employee", "field": "primer_nombre", "label": "Nombre"},
-                {"type": "field", "entity": "Employee", "field": "primer_apellido", "label": "Apellido"},
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "primer_nombre",
+                    "label": "Nombre"
+                },
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "primer_apellido",
+                    "label": "Apellido"
+                },
             ],
             "filters": [],
-            "sorting": [{"field": "primer_apellido", "direction": "asc"}],
+            "sorting": [{
+                "field": "primer_apellido",
+                "direction": "asc"
+            }],
         }
 
         report = Report(
@@ -429,7 +470,8 @@ def test_report_execution_manager(app, db_session):
     """
     with app.app_context():
         # Create test data
-        empresa = create_company(db_session, "TEST_COMP2", "Test Company 2", "J5678")
+        empresa = create_company(db_session, "TEST_COMP2", "Test Company 2",
+                                 "J5678")
         emp1 = create_employee(db_session, empresa_id=empresa.id)
         assert emp1
         db_session.commit()
@@ -437,7 +479,12 @@ def test_report_execution_manager(app, db_session):
         # Create report
         definition = {
             "columns": [
-                {"type": "field", "entity": "Employee", "field": "codigo_empleado", "label": "Código"},
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "codigo_empleado",
+                    "label": "Código"
+                },
             ],
             "filters": [],
             "sorting": [],
@@ -475,10 +522,24 @@ def test_custom_report_builder_invalid_columns(app, db_session):
     with app.app_context():
         definition = {
             "columns": [
-                {"type": "expression", "expression": "salario_base * 2", "label": "Double Salary"},
-                {"type": "field", "entity": "NonExistentEntity", "field": "invalid_field"},
+                {
+                    "type": "expression",
+                    "expression": "salario_base * 2",
+                    "label": "Double Salary"
+                },
+                {
+                    "type": "field",
+                    "entity": "NonExistentEntity",
+                    "field": "invalid_field"
+                }
             ],
-            "filters": [{"field": "invalid_filter_field", "operator": "=", "value": "xyz"}],
+            "filters": [
+                {
+                    "field": "invalid_filter_field",
+                    "operator": "=",
+                    "value": "xyz"
+                }
+            ]
         }
 
         report = Report(
@@ -502,11 +563,24 @@ def test_custom_report_builder_invalid_sorting(app, db_session):
     """Test custom report build_query sorts only on allowed fields and pagination."""
     with app.app_context():
         definition = {
-            "columns": [{"type": "field", "entity": "Employee", "field": "codigo_empleado", "label": "Code"}],
-            "sorting": [
-                {"field": "invalid_sort_field", "direction": "asc"},
-                {"field": "primer_apellido", "direction": "desc"},
+            "columns": [
+                {
+                    "type": "field",
+                    "entity": "Employee",
+                    "field": "codigo_empleado",
+                    "label": "Code"
+                }
             ],
+            "sorting": [
+                {
+                    "field": "invalid_sort_field",
+                    "direction": "asc"
+                },
+                {
+                    "field": "primer_apellido",
+                    "direction": "desc"
+                }
+            ]
         }
 
         report = Report(
@@ -541,12 +615,10 @@ def test_report_execution_manager_error_tracking(app, db_session, monkeypatch):
 
         # Expect manager.execute to raise ValueError and save FAILED status
         import pytest
-
         with pytest.raises(ValueError, match="System report .* not found"):
             manager.execute()
 
         from coati_payroll.model import ReportExecution
-
         execution = db_session.query(ReportExecution).filter_by(executed_by="failing_user").first()
         assert execution is not None
         assert execution.status == ReportExecutionStatus.FAILED
@@ -571,7 +643,13 @@ def test_non_admin_report_permissions(app, db_session):
         assert can_export_report(report, "hhrr") is False
 
         # Add explicit permissions
-        role_perm = ReportRole(report_id=report.id, role="hhrr", can_view=True, can_execute=True, can_export=True)
+        role_perm = ReportRole(
+            report_id=report.id,
+            role="hhrr",
+            can_view=True,
+            can_execute=True,
+            can_export=True
+        )
         db_session.add(role_perm)
         db_session.commit()
         db_session.refresh(report)

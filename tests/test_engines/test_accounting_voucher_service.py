@@ -224,6 +224,8 @@ class TestAccountingConfigurationValidation:
             assert any("INSS Laboral" in w and "débito" in w for w in warnings)
             assert any("INSS Laboral" in w and "crédito" in w for w in warnings)
 
+
+
     def test_validate_paid_vacation_policy_requires_accounts(self, app, db_session):
         """Paid vacation policy should warn when liability accounts are missing."""
         with app.app_context():
@@ -403,6 +405,7 @@ class TestAccountingVoucherGeneration:
             assert len(vac_lines) == 2
             assert any(l.codigo_cuenta == "5201" and l.debito > 0 for l in vac_lines)
             assert any(l.codigo_cuenta == "2205" and l.credito > 0 for l in vac_lines)
+
 
     def test_generate_voucher_reverses_paid_vacation_liability_on_usage(self, app, db_session):
         """Usage entries (vacation_novelty) must reverse liability in same payroll voucher."""

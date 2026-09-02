@@ -218,9 +218,7 @@ def test_vacation_liability_respects_exchange_rate(app, client, admin_user, db_s
         from coati_payroll.nomina_engine.services.accounting_voucher_service import AccountingVoucherService
 
         # Delete old comprobante
-        old_comprobante = (
-            db_session.query(ComprobanteContable).filter(ComprobanteContable.nomina_id == nomina.id).first()
-        )
+        old_comprobante = db_session.query(ComprobanteContable).filter(ComprobanteContable.nomina_id == nomina.id).first()
         if old_comprobante:
             db_session.delete(old_comprobante)
             db_session.flush()

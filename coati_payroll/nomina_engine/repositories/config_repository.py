@@ -25,7 +25,9 @@ class ConfigRepository(BaseRepository[ConfiguracionCalculos]):
 
         return not config.DESARROLLO and not config.TESTING
 
-    def _fetch_unique(self, stmt, *, empresa_id: str | None, contexto: str) -> Optional[ConfiguracionCalculos]:
+    def _fetch_unique(
+        self, stmt, *, empresa_id: str | None, contexto: str
+    ) -> Optional[ConfiguracionCalculos]:
         """Fetch at most one active config, warning on duplicate rows.
 
         Uses a deterministic ordering instead of ``scalar_one_or_none`` so a
@@ -34,7 +36,9 @@ class ConfigRepository(BaseRepository[ConfiguracionCalculos]):
         from coati_payroll.log import log
 
         configs = (
-            self.session.execute(stmt.order_by(ConfiguracionCalculos.creado.desc(), ConfiguracionCalculos.id))
+            self.session.execute(
+                stmt.order_by(ConfiguracionCalculos.creado.desc(), ConfiguracionCalculos.id)
+            )
             .scalars()
             .all()
         )

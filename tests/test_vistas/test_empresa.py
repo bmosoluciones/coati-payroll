@@ -346,7 +346,6 @@ def test_empresa_edit_locks_initial_period_when_has_applied_or_paid_nominas(app,
         assert empresa.primer_mes_nomina == 3
         assert empresa.primer_anio_nomina == 2025
 
-
 def test_empresa_toggle_active_changes_status(app, client, admin_user, db_session):
     """Test toggling company active status."""
     with app.app_context():

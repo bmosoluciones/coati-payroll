@@ -304,12 +304,8 @@ def _get_report_transactions():
         ("fecha_desde", PrestacionAcumulada.fecha_transaccion),
         ("fecha_hasta", PrestacionAcumulada.fecha_transaccion),
     )
-    operators = (
-        lambda field, value: field == value,
-        lambda field, value: field == value,
-        lambda field, value: field >= value,
-        lambda field, value: field <= value,
-    )
+    operators = (lambda field, value: field == value, lambda field, value: field == value,
+                 lambda field, value: field >= value, lambda field, value: field <= value)
     for (parameter, field), operator in zip(filters, operators):
         value = request.args.get(parameter)
         if value:

@@ -179,7 +179,6 @@ class DramatiqDriverTestCase(unittest.TestCase):
 
         # Verify the custom Flask app context middleware is registered
         from coati_payroll.queue.drivers.dramatiq_driver import FlaskAPPContextMiddleware
-
         self.assertTrue(any(isinstance(m, FlaskAPPContextMiddleware) for m in driver._broker.middlewares))
 
         self.assertEqual(fake_modules["set_broker_calls"], [driver._broker])
@@ -387,7 +386,6 @@ class DramatiqDriverTestCase(unittest.TestCase):
 
         # Stub coati_payroll.create_app on the sys.modules stub
         import sys
-
         coati_mod = sys.modules["coati_payroll"]
         coati_mod.create_app = mock_create_app
 
@@ -411,7 +409,6 @@ class DramatiqDriverTestCase(unittest.TestCase):
         mock_create_app = MagicMock(side_effect=RuntimeError("creation failed"))
 
         import sys
-
         coati_mod = sys.modules["coati_payroll"]
         coati_mod.create_app = mock_create_app
 

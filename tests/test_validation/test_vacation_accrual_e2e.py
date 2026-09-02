@@ -288,5 +288,7 @@ def test_vacation_accrual_during_biweekly_payroll_execution(app, client, admin_u
         detailed_entries = AccountingVoucherService(db_session).get_detailed_voucher_by_employee(comprobante)
         assert detailed_entries, "Expected detailed voucher entries by employee"
         assert any(
-            linea["tipo_concepto"] == "vacation_liability" for entry in detailed_entries for linea in entry["lineas"]
+            linea["tipo_concepto"] == "vacation_liability"
+            for entry in detailed_entries
+            for linea in entry["lineas"]
         ), "Expected vacation liability in detailed voucher entries"

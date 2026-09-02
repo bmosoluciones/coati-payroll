@@ -441,13 +441,9 @@ def test_finiquito_paga_vacaciones_pendientes(app, db_session):
 
         account = db_session.get(VacationAccount, account.id)
         assert Decimal(str(account.current_balance)) == Decimal("10.0000")
-        payouts_draft = (
-            db_session.execute(
-                db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
-            )
-            .scalars()
-            .all()
-        )
+        payouts_draft = db_session.execute(
+            db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
+        ).scalars().all()
         assert len(payouts_draft) == 0
 
         # Transition to APLICADO materializes the PAYOUT ledger entry
@@ -459,13 +455,9 @@ def test_finiquito_paga_vacaciones_pendientes(app, db_session):
 
         account = db_session.get(VacationAccount, account.id)
         assert Decimal(str(account.current_balance)) == Decimal("0.0000")
-        payouts = (
-            db_session.execute(
-                db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
-            )
-            .scalars()
-            .all()
-        )
+        payouts = db_session.execute(
+            db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
+        ).scalars().all()
         assert len(payouts) == 1
         assert Decimal(str(payouts[0].quantity)) == Decimal("-10.0000")
         assert payouts[0].reference_type == "liquidacion"
@@ -542,13 +534,9 @@ def test_finiquito_no_paga_vacaciones_si_policy_no_lo_permite(app, db_session):
         # No vacation income line and no PAYOUT ledger entry.
         vac_detail = [d for d in liq.detalles if d.codigo == "VACACIONES_PENDIENTES"]
         assert len(vac_detail) == 0
-        payouts = (
-            db_session.execute(
-                db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
-            )
-            .scalars()
-            .all()
-        )
+        payouts = db_session.execute(
+            db.select(VacationLedger).filter_by(entry_type=VacationLedgerType.PAYOUT, account_id=account.id)
+        ).scalars().all()
         assert len(payouts) == 0
 
 

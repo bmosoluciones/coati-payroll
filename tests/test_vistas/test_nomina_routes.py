@@ -342,7 +342,9 @@ def test_ejecutar_nomina_post_displays_warning_messages(
     with app.app_context():
         login_user(client, admin_user.usuario, "admin-password")
 
-        warning = "WARNING: Este calculo de planilla tiene menos dias de lo esperado para una periodicidad mensual."
+        warning = (
+            "WARNING: Este calculo de planilla tiene menos dias de lo esperado para una periodicidad mensual."
+        )
         nomina.procesamiento_en_background = False
         mock_ejecutar.return_value = (nomina, [], [warning])
 
@@ -1439,12 +1441,10 @@ def test_comparar_nomina_route_success(app, client, admin_user, db_session, plan
     """Test payroll comparison route GET behaviors with filters and defaults."""
     with app.app_context():
         from tests.helpers.auth import login_user
-
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create another nomina to compare with
         from coati_payroll.model import Nomina
-
         other_nomina = Nomina(
             id="NOM-OTHER-COMPARE",
             planilla_id=planilla.id,
@@ -1470,7 +1470,6 @@ def test_aplicar_vacaciones_route_get_and_post(app, client, admin_user, db_sessi
     """Test getting and posting to the vacation application route."""
     with app.app_context():
         from tests.helpers.auth import login_user
-
         login_user(client, admin_user.usuario, "admin-password")
 
         # Create a Percepcion concept
@@ -1493,7 +1492,11 @@ def test_aplicar_vacaciones_route_get_and_post(app, client, admin_user, db_sessi
         db_session.add(policy)
         db_session.commit()
 
-        acc = VacationAccount(empleado_id=empleado.id, policy_id=policy.id, current_balance=10.0)
+        acc = VacationAccount(
+            empleado_id=empleado.id,
+            policy_id=policy.id,
+            current_balance=10.0
+        )
         db_session.add(acc)
         db_session.commit()
 
@@ -1515,7 +1518,7 @@ def test_aplicar_vacaciones_route_get_and_post(app, client, admin_user, db_sessi
             data={
                 "tipo_concepto": "income",
                 "percepcion_id": "VAC_PERC_ID",
-            },
+            }
         )
         assert response_empty.status_code == 200
         assert b"Debe seleccionar al menos una solicitud de vacaciones" in response_empty.data
@@ -1528,7 +1531,7 @@ def test_aplicar_vacaciones_route_get_and_post(app, client, admin_user, db_sessi
                 "tipo_concepto": "income",
                 "percepcion_id": "VAC_PERC_ID",
             },
-            follow_redirects=True,
+            follow_redirects=True
         )
         assert response_success.status_code == 200
         assert b"Se aplicaron" in response_success.data or b"vacaciones" in response_success.data

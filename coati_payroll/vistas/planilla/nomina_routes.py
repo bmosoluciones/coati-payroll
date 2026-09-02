@@ -815,7 +815,11 @@ def _obtener_vacaciones_aprobadas_pendientes(planilla: Planilla, nomina: Nomina)
 
 def _get_nomina_for_application(nomina_id: str) -> Nomina | None:
     """Lock a payroll while its deferred application effects are materialized."""
-    return db.session.execute(db.select(Nomina).where(Nomina.id == nomina_id).with_for_update()).scalars().first()
+    return (
+        db.session.execute(db.select(Nomina).where(Nomina.id == nomina_id).with_for_update())
+        .scalars()
+        .first()
+    )
 
 
 @planilla_bp.route("/<planilla_id>/nomina/<nomina_id>/aprobar", methods=["POST"])
