@@ -856,6 +856,52 @@ def _database_restore_sqlite(backup_file, db_url_str):
     shutil.copy2(backup_path, db_path)
 
 
+def _database_restore_postgresql(backup_file, db_url_str):
+    """Restore a PostgreSQL plain SQL or custom-format dump."""
+    parsed = urlparse(db_url_str)
+    db_name = parsed.path.lstrip("/")
+    env = os.environ.copy()
+    if parsed.password:
+        env["PGPASSWORD"] = parsed.password
+    connection = []
+    if parsed.hostname:
+        connection.extend(["-h", parsed.hostname])
+    if parsed.port:
+        connection.extend(["-p", str(parsed.port)])
+    if parsed.username:
+        connection.extend(["-U", parsed.username])
+
+    backup_path = Path(backup_file)
+    if backup_path.suffix.lower() in {".dump", ".backup", ".custom"}:
+        command = ["pg_restore", *connection, "--clean", "--if-exists", "--no-owner", "-d", db_name, str(backup_path)]
+        result = subprocess.run(command, capture_output=True, text=True, env=env, check=False)
+    else:
+        command = ["psql", *connection, "--dbname", db_name, "--file", str(backup_path)]
+        result = subprocess.run(command, capture_output=True, text=True, env=env, check=False)
+    if result.returncode != 0:
+        raise RuntimeError(f"PostgreSQL restore failed: {result.stderr}")
+
+
+def _database_restore_mysql(backup_file, db_url_str):
+    """Restore a MySQL SQL dump using the native mysql client."""
+    parsed = urlparse(db_url_str)
+    command = ["mysql"]
+    if parsed.hostname:
+        command.extend(["-h", parsed.hostname])
+    if parsed.port:
+        command.extend(["-P", str(parsed.port)])
+    if parsed.username:
+        command.extend(["-u", parsed.username])
+    command.append(parsed.path.lstrip("/"))
+    env = os.environ.copy()
+    if parsed.password:
+        env["MYSQL_PWD"] = parsed.password
+    with Path(backup_file).open("rb") as backup_stream:
+        result = subprocess.run(command, stdin=backup_stream, capture_output=True, env=env, check=False)
+    if result.returncode != 0:
+        raise RuntimeError(f"MySQL restore failed: {result.stderr.decode(errors='replace')}")
+
+
 @database.command("restore")
 @click.argument("backup_file")
 @click.option("--yes", is_flag=True, help="Skip confirmation")
@@ -876,8 +922,18 @@ def database_restore(ctx, backup_file, yes):
             _database_restore_sqlite(backup_file, db_url_str)
             output_result(ctx, "Database restored successfully!")
 
+        elif "postgresql" in db_url_str or "postgres" in db_url_str:
+            click.echo(f"Restoring PostgreSQL database from: {backup_file}")
+            _database_restore_postgresql(backup_file, db_url_str)
+            output_result(ctx, "Database restored successfully!")
+
+        elif "mysql" in db_url_str:
+            click.echo(f"Restoring MySQL database from: {backup_file}")
+            _database_restore_mysql(backup_file, db_url_str)
+            output_result(ctx, "Database restored successfully!")
+
         else:
-            output_result(ctx, "Restore only supported for SQLite currently", None, False)
+            output_result(ctx, "Unsupported database type for restore", None, False)
             sys.exit(1)
 
     except Exception as e:

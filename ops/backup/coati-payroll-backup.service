@@ -1,0 +1,7 @@
+[Unit]
+Description=Coati Payroll database backup
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/coati-payroll/backup.env
+ExecStart=/usr/local/lib/coati-payroll/coati-payroll-backup.sh
