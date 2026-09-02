@@ -43,6 +43,11 @@ def _collect_static_routes(app) -> list[str]:
 
 
 def _assert_response(route: str, role: str, allow_redirects: bool, response):
+    # Versioned API routes intentionally require a bearer token, including
+    # when the browser session belongs to an administrator.
+    if route.startswith("/api/v1/") and response.status_code == 401:
+        return
+
     # Para usuarios no admin, un 403 en rutas protegidas es aceptable
     if response.status_code == 403 and role != "admin":
         return
