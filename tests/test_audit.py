@@ -99,9 +99,7 @@ def test_audit_action_filter_narrows_results(app, client, admin_user, db_session
         db_session.add(
             SecurityAuditLog(event="login_success", actor="op", target_username="x", success=True, details={})
         )
-        db_session.add(
-            SecurityAuditLog(event="logout", actor="op", target_username="x", success=True, details={})
-        )
+        db_session.add(SecurityAuditLog(event="logout", actor="op", target_username="x", success=True, details={}))
         db_session.commit()
         login_user(client, admin_user.usuario, "admin-password")
 
@@ -132,9 +130,7 @@ def test_audit_pagination_offset_is_honored(app, client, admin_user, db_session)
     with app.app_context():
         for i in range(51):
             db_session.add(
-                SecurityAuditLog(
-                    event=f"event-{i:03d}", actor="op", target_username="x", success=True, details={}
-                )
+                SecurityAuditLog(event=f"event-{i:03d}", actor="op", target_username="x", success=True, details={})
             )
         db_session.commit()
 

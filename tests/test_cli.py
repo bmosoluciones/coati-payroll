@@ -901,8 +901,6 @@ def test_maintenance_commands_cleanup_real_resources_and_reject_stub(app, db_ses
 
 def test_maintenance_cleanup_audit_removes_expired_records(app, db_session, monkeypatch):
     """cleanup-audit deletes audit records older than the retention period."""
-    import os
-
     from coati_payroll.model import SecurityAuditLog, db
 
     monkeypatch.setenv("COATI_AUDIT_RETENTION_DAYS", "2555")
