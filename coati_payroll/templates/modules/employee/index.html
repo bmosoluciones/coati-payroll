@@ -98,9 +98,9 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             <td>{{ employee.area or '-' }}</td>
                             <td>
                                 {% if employee.moneda %}
-                                    {{ employee.moneda.simbolo or employee.moneda.codigo }} {{ employee.salario_base }}
+                                    {{ money(employee.salario_base, employee.moneda.codigo if employee.moneda else 'USD') }}
                                 {% else %}
-                                    {{ employee.salario_base }}
+                                    {{ money(employee.salario_base) }}
                                 {% endif %}
                             </td>
                             <td>

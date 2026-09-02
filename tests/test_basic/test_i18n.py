@@ -2,6 +2,29 @@
 # SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 """Tests for internationalization module."""
 
+from datetime import date
+from decimal import Decimal
+
+from flask_babel import force_locale
+
+
+def test_locale_formatting_helpers_follow_active_locale(app):
+    with app.app_context():
+        from coati_payroll.i18n import local_date, money, number
+
+        with force_locale("es"):
+            spanish_money = money(Decimal("1234.50"), "USD")
+            spanish_number = number(Decimal("1234.50"))
+            spanish_date = local_date(date(2026, 9, 2))
+        with force_locale("en"):
+            english_money = money(Decimal("1234.50"), "USD")
+            english_number = number(Decimal("1234.50"))
+            english_date = local_date(date(2026, 9, 2))
+
+        assert spanish_money != english_money
+        assert spanish_number != english_number
+        assert spanish_date != english_date
+
 
 def test_i18n_basic_translation(app):
     """

@@ -6,7 +6,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
 {% extends "base.html" %}
 {% macro fmt_money(value) -%}
 {%- if value is not none and value != '' -%}
-{{ "{:,.2f}".format(value|float) }}
+{{ money(value) }}
 {%- else -%}
 N/A
 {%- endif -%}
@@ -14,7 +14,7 @@ N/A
 
 {% macro fmt_pct(value) -%}
 {%- if value is not none and value != '' -%}
-{{ "{:,.2f}".format(value|float) }}%
+{{ number(value) }}%
 {%- else -%}
 N/A
 {%- endif -%}
@@ -22,7 +22,7 @@ N/A
 
 {% macro fmt_int(value) -%}
 {%- if value is not none and value != '' -%}
-{{ "{:,}".format(value|int) }}
+{{ number(value|int) }}
 {%- else -%}
 N/A
 {%- endif -%}

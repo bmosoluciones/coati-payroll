@@ -50,7 +50,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             {{ liquidacion.empleado_id }}
                         {% endif %}
                     </div>
-                    <div><strong>{{ _('Fecha Cálculo') }}:</strong> {{ liquidacion.fecha_calculo }}</div>
+                    <div><strong>{{ _('Fecha Cálculo') }}:</strong> {{ local_date(liquidacion.fecha_calculo) }}</div>
                     <div><strong>{{ _('Último Día Pagado') }}:</strong> {{ liquidacion.ultimo_dia_pagado }}</div>
                 </div>
                 <div class="col-md-6">
@@ -89,7 +89,7 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                                     <td>{{ d.tipo }}</td>
                                     <td>{{ d.codigo }}</td>
                                     <td>{{ d.descripcion }}</td>
-                                    <td class="text-end">{{ d.monto }}</td>
+                                    <td class="text-end">{{ money(d.monto) }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
