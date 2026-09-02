@@ -15,6 +15,8 @@ Tasks are automatically registered with the available queue driver
 from __future__ import annotations
 
 import os
+import json
+from urllib.request import urlopen
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Any, cast
@@ -36,6 +38,8 @@ from coati_payroll.model import (
     PrestacionAcumulada,
     AdelantoAbono,
     InteresAdelanto,
+    Moneda,
+    TipoCambio,
 )
 from coati_payroll.nomina_engine import NominaEngine
 from coati_payroll.nomina_engine.processors.loan_processor import LoanProcessor
@@ -669,6 +673,75 @@ def generate_audit_voucher(
         return {"success": False, "error": str(e)}
 
 
+def sync_exchange_rates(
+    source_url: str | None = None,
+    base_currency: str | None = None,
+    primary_currencies: set[str] | None = None,
+) -> dict[str, Any]:
+    """Import the latest exchange rates from a configurable JSON provider.
+
+    Providers compatible with the common ``{"base": "USD", "date": "...", "rates": {...}}``
+    shape can be used. Only currencies already configured in the catalog are
+    imported, preventing an external provider from silently changing master data.
+    """
+    base = (base_currency or os.getenv("EXCHANGE_RATES_BASE_CURRENCY", "USD")).upper()
+    configured_primary = primary_currencies or {
+        code.strip().upper()
+        for code in os.getenv("EXCHANGE_RATES_PRIMARY_CURRENCIES", "EUR").split(",")
+        if code.strip()
+    }
+    url = source_url or os.getenv(
+        "EXCHANGE_RATES_URL", "https://api.frankfurter.app/latest?from={base}"
+    ).format(base=base)
+    timeout = float(os.getenv("EXCHANGE_RATES_TIMEOUT_SECONDS", "15"))
+    with urlopen(url, timeout=timeout) as response:  # noqa: S310 - URL is explicit configuration
+        payload = json.load(response)
+    rates = payload.get("rates") if isinstance(payload, dict) else None
+    if not isinstance(rates, dict) or not rates:
+        raise ValueError("Exchange-rate provider returned no rates")
+    rate_date = date.fromisoformat(str(payload.get("date", date.today().isoformat())))
+    origin = db.session.execute(db.select(Moneda).filter_by(codigo=base)).scalar_one_or_none()
+    if origin is None:
+        raise ValueError(f"Base currency '{base}' is not configured")
+
+    synced = 0
+    skipped = 0
+    try:
+        for code, raw_rate in rates.items():
+            destination_code = str(code).upper()
+            if destination_code not in configured_primary:
+                skipped += 1
+                continue
+            destination = db.session.execute(
+                db.select(Moneda).filter_by(codigo=destination_code)
+            ).scalar_one_or_none()
+            if destination is None or destination.id == origin.id:
+                skipped += 1
+                continue
+            try:
+                rate = Decimal(str(raw_rate))
+            except (ArithmeticError, ValueError, TypeError) as exc:
+                raise ValueError(f"Invalid exchange rate for {code}") from exc
+            if rate <= 0:
+                raise ValueError(f"Exchange rate for {code} must be positive")
+            record = db.session.execute(
+                db.select(TipoCambio).filter_by(
+                    moneda_origen_id=origin.id, moneda_destino_id=destination.id, fecha=rate_date
+                )
+            ).scalar_one_or_none()
+            if record is None:
+                record = TipoCambio(
+                    moneda_origen_id=origin.id, moneda_destino_id=destination.id, fecha=rate_date, tasa=rate
+                )
+                db.session.add(record)
+            else:
+                record.tasa = rate
+            synced += 1
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    return {"success": True, "base": base, "date": rate_date.isoformat(), "synced": synced, "skipped": skipped}
 def process_large_payroll(
     nomina_id: str,
     job_id: str | None,
@@ -1190,4 +1263,12 @@ generate_audit_voucher_task = queue.register_task(
     max_retries=2,
     min_backoff=60000,  # 1 minute
     max_backoff=3600000,  # 1 hour
+)
+
+sync_exchange_rates_task = queue.register_task(
+    sync_exchange_rates,
+    name="sync_exchange_rates",
+    max_retries=3,
+    min_backoff=60000,
+    max_backoff=3600000,
 )

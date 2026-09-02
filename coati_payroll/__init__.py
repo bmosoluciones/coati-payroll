@@ -32,6 +32,7 @@ from sqlalchemy import Column, DateTime, Integer, LargeBinary, Sequence, String
 # <-------------------------------------------------------------------------> #
 from coati_payroll.app import app as app_blueprint
 from coati_payroll.auth import auth
+from coati_payroll.api import api_bp
 from coati_payroll.config import DIRECTORIO_ARCHIVOS_BASE, DIRECTORIO_PLANTILLAS_BASE
 from coati_payroll.i18n import _
 from coati_payroll.model import Usuario, db
@@ -215,6 +216,7 @@ def create_app(config) -> Flask:
     limiter = configure_rate_limiting(app)
 
     app.register_blueprint(auth, url_prefix="/auth")
+    app.register_blueprint(api_bp)
     app.register_blueprint(app_blueprint, url_prefix="/")
 
     try:

@@ -1,0 +1,10 @@
+[Unit]
+Description=Coati Payroll exchange-rate synchronization
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=coati-payroll
+WorkingDirectory=/opt/coati-payroll
+EnvironmentFile=-/etc/coati-payroll/exchange-rates.env
+ExecStart=/usr/local/bin/payrollctl maintenance sync-exchange-rates

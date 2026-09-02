@@ -1167,6 +1167,35 @@ def users_create(ctx, username, password, name, email, user_type):
         sys.exit(1)
 
 
+@users.command("create-token")
+@click.argument("username")
+@click.option("--name", default="integration", show_default=True, help="Token label")
+@click.option("--scope", "scopes", multiple=True, type=click.Choice(["read", "write"]), default=("read",))
+@click.option("--expires-days", type=click.IntRange(min=1), default=None)
+@with_appcontext
+@pass_context
+def users_create_token(ctx, username, name, scopes, expires_days):
+    """Create a one-time bearer token for the REST API."""
+    try:
+        from coati_payroll.api import issue_api_token
+
+        user = db.session.execute(db.select(Usuario).filter_by(usuario=username)).scalar_one_or_none()
+        if user is None or not user.activo:
+            raise ValueError(f"Active user '{username}' not found")
+        expires_at = datetime.now(UTC) + timedelta(days=expires_days) if expires_days else None
+        _record, raw_token = issue_api_token(user, name, set(scopes), expires_at)
+        db.session.commit()
+        if ctx.json_output:
+            output_result(ctx, "API token created", {"token": raw_token, "username": username}, True)
+        else:
+            click.echo(raw_token)
+            click.echo("Store this token securely; it cannot be displayed again.")
+    except Exception as e:
+        db.session.rollback()
+        output_result(ctx, f"Failed to create API token: {e}", None, False)
+        sys.exit(1)
+
+
 def _users_disable(username):
     """Disable a user.
 
@@ -1493,6 +1522,29 @@ def maintenance_cleanup_temp(ctx):
 
     except Exception as e:
         output_result(ctx, f"Failed to cleanup temp files: {e}", None, False)
+        raise click.ClickException(str(e)) from e
+
+
+@maintenance.command("sync-exchange-rates")
+@click.option("--source-url", default=None, help="JSON provider URL; defaults to EXCHANGE_RATES_URL.")
+@click.option("--base-currency", default=None, help="ISO base currency; defaults to EXCHANGE_RATES_BASE_CURRENCY.")
+@click.option("--primary-currency", "primary_currencies", multiple=True, help="Currency code to synchronize (repeatable).")
+@with_appcontext
+@pass_context
+def maintenance_sync_exchange_rates(ctx, source_url, base_currency, primary_currencies):
+    """Import current exchange rates for configured currencies."""
+    try:
+        from coati_payroll.queue.tasks import sync_exchange_rates
+
+        result = sync_exchange_rates(
+            source_url=source_url,
+            base_currency=base_currency,
+            primary_currencies={code.upper() for code in primary_currencies} or None,
+        )
+        output_result(ctx, "Exchange rates synchronized", result)
+    except Exception as e:
+        db.session.rollback()
+        output_result(ctx, f"Failed to synchronize exchange rates: {e}", None, False)
         raise click.ClickException(str(e)) from e
 
 

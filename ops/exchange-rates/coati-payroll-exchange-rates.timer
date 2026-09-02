@@ -1,0 +1,10 @@
+[Unit]
+Description=Synchronize Coati Payroll exchange rates daily
+
+[Timer]
+OnCalendar=*-*-* 06:15:00 UTC
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target

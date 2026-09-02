@@ -193,6 +193,7 @@ class Usuario(database.Model, BaseTabla, UserMixin):
     navegadores_confiables = database.relationship(
         "NavegadorConfiable", back_populates="usuario", cascade="all, delete-orphan"
     )
+    api_tokens = database.relationship("ApiToken", back_populates="usuario", cascade="all, delete-orphan")
 
     @property
     def is_active(self) -> bool:
@@ -217,6 +218,22 @@ class Usuario(database.Model, BaseTabla, UserMixin):
             if normalized in allowed_values:
                 return normalized
         raise ValueError(f"Invalid role: {value}")
+
+
+class ApiToken(database.Model, BaseTabla):
+    """Revocable, hashed bearer token for machine-to-machine integrations."""
+
+    __tablename__ = "api_token"
+    __table_args__ = (database.UniqueConstraint("token_hash", name="uq_api_token_hash"),)
+
+    usuario_id = database.Column(database.String(26), database.ForeignKey("usuario.id"), nullable=False, index=True)
+    nombre = database.Column(database.String(100), nullable=False)
+    token_hash = database.Column(database.String(64), nullable=False, index=True)
+    alcances = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
+    expira_en = database.Column(database.DateTime, nullable=True, index=True)
+    ultimo_uso_en = database.Column(database.DateTime, nullable=True)
+    revocado_en = database.Column(database.DateTime, nullable=True)
+    usuario = database.relationship("Usuario", back_populates="api_tokens")
 
 
 # Gestión de empresas/entidades
