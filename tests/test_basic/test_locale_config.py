@@ -307,3 +307,52 @@ def test_supported_languages_are_valid_codes():
         assert len(lang) == 2
         assert lang.islower()
         assert lang.isalpha()
+
+
+def test_per_user_language_preference_wins_over_global(app, db_session, monkeypatch):
+    """Authenticated user preference overrides the global configuration."""
+    import coati_payroll.locale_config as locale_config
+    from coati_payroll.locale_config import get_language_from_db, invalidate_language_cache
+
+    invalidate_language_cache()
+
+    class _Cu:
+        is_authenticated = True
+        idioma = "es"
+
+    monkeypatch.setattr(locale_config, "current_user", _Cu())
+    with app.app_context():
+        assert get_language_from_db() == "es"
+
+
+def test_per_user_unsupported_language_falls_back(app, db_session, monkeypatch):
+    """An unsupported user language falls back to browser/global."""
+    import coati_payroll.locale_config as locale_config
+    from coati_payroll.locale_config import SUPPORTED_LANGUAGES, get_language_from_db, invalidate_language_cache
+
+    invalidate_language_cache()
+    db_session.commit()
+
+    class _Cu:
+        is_authenticated = True
+        idioma = "xx"
+
+    monkeypatch.setattr(locale_config, "current_user", _Cu())
+    with app.app_context():
+        assert get_language_from_db() in SUPPORTED_LANGUAGES
+
+
+def test_browser_accept_language_used_when_no_user_preference(app, db_session, monkeypatch):
+    """Accept-Language negotiation applies when no user preference exists."""
+    import coati_payroll.locale_config as locale_config
+    from coati_payroll.locale_config import get_language_from_db, invalidate_language_cache
+
+    invalidate_language_cache()
+
+    class _Cu:
+        is_authenticated = False
+
+    monkeypatch.setattr(locale_config, "current_user", _Cu())
+
+    with app.test_request_context(headers={"Accept-Language": "es-ES,es;q=0.9,en;q=0.8"}):
+        assert get_language_from_db() == "es"
