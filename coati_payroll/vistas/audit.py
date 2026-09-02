@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import csv
 import io
+from typing import Any, Sequence
+
 from flask import Blueprint, Response, render_template, request
 from sqlalchemy import union_all
 
@@ -23,7 +25,7 @@ from coati_payroll.rbac import require_role
 audit_bp = Blueprint("audit", __name__, url_prefix="/audit")
 
 
-def _normalize_entry(row: tuple) -> dict[str, object]:
+def _normalize_entry(row: Sequence[Any]) -> dict[str, object]:
     """Normalize audit entry from any source model."""
     timestamp, source, action, actor, target, details, success = row
     return {

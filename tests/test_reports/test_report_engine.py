@@ -574,9 +574,7 @@ def test_report_execution_scope_is_preserved_for_sync_and_async_jobs(app, db_ses
         db_session.add(report)
         db_session.commit()
 
-        manager_result, manager_total, _execution = ReportExecutionManager(
-            report, "scoped-user", {first.id}
-        ).execute()
+        manager_result, manager_total, _execution = ReportExecutionManager(report, "scoped-user", {first.id}).execute()
         async_result = generate_report(report.id, "scoped-user", {}, [first.id])
 
         assert manager_total == 1
