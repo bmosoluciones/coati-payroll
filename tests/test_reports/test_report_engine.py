@@ -553,6 +553,38 @@ def test_report_execution_manager_error_tracking(app, db_session, monkeypatch):
         assert "not found" in execution.error_message
 
 
+def test_report_execution_scope_is_preserved_for_sync_and_async_jobs(app, db_session):
+    """A report run cannot expose employees from another company."""
+    from coati_payroll.queue.tasks import generate_report
+
+    with app.app_context():
+        first = create_company(db_session, "REPORT_SCOPE_A", "Report A", "R-SCOPE-A")
+        second = create_company(db_session, "REPORT_SCOPE_B", "Report B", "R-SCOPE-B")
+        first_employee = create_employee(db_session, first.id, codigo="REPORT-A")
+        create_employee(db_session, second.id, codigo="REPORT-B")
+        report = Report(
+            name="Scoped employees",
+            type=ReportType.CUSTOM,
+            status=ReportStatus.ENABLED,
+            base_entity="Employee",
+            definition={
+                "columns": [{"type": "field", "field": "codigo_empleado", "label": "Código"}],
+            },
+        )
+        db_session.add(report)
+        db_session.commit()
+
+        manager_result, manager_total, _execution = ReportExecutionManager(
+            report, "scoped-user", {first.id}
+        ).execute()
+        async_result = generate_report(report.id, "scoped-user", {}, [first.id])
+
+        assert manager_total == 1
+        assert manager_result == [{"Código": first_employee.codigo_empleado}]
+        assert async_result["success"] is True
+        assert async_result["rows"] == 1
+
+
 def test_non_admin_report_permissions(app, db_session):
     """Test non-admin view, execute, and export role permissions."""
     with app.app_context():
