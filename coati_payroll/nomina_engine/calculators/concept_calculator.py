@@ -114,6 +114,18 @@ class ConceptCalculator:
         return min(amount, remaining).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @staticmethod
+    def apply_taxable_base_limit(
+        amount: Decimal, *, tope_base_gravable: Decimal | None, acumulado_base: Decimal | None
+    ) -> Decimal:
+        """Limit a before-tax concept to the remaining annual taxable base allowance."""
+        amount = max(Decimal("0.00"), Decimal(str(amount)))
+        if tope_base_gravable is None:
+            return amount
+        accumulated = max(Decimal("0.00"), Decimal(str(acumulado_base or 0)))
+        remaining = max(Decimal("0.00"), Decimal(str(tope_base_gravable)) - accumulated)
+        return min(amount, remaining).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    @staticmethod
     def _calculate_override(
         emp_calculo: EmpleadoCalculo,
         monto_override: Decimal | None,

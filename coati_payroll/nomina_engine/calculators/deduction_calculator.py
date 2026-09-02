@@ -87,6 +87,7 @@ class DeductionCalculator:
             detener_si_insuficiente = association_snapshot.get(
                 "detener_si_insuficiente", getattr(planilla_deduccion, "detener_si_insuficiente", False)
             )
+            antes_impuesto = snap_val.get("antes_impuesto", getattr(deduccion, "antes_impuesto", True))
 
             # Check validity dates against the live object only when there is no snapshot
             if not snapshot_entry:
@@ -111,6 +112,12 @@ class DeductionCalculator:
                 tope_base_gravable=tope_base_gravable,
                 acumulado_anual=acumulado_anual,
             )
+            if antes_impuesto:
+                monto = self.concept_calculator.apply_taxable_base_limit(
+                    monto,
+                    tope_base_gravable=tope_base_gravable,
+                    acumulado_base=variables.get("deducciones_antes_impuesto_acumulado", 0),
+                )
 
             if monto > 0:
                 if detener_si_insuficiente and monto > saldo_disponible:

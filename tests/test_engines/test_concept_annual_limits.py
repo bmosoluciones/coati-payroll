@@ -1,10 +1,12 @@
 """Regression tests for native annual concept limits."""
 
+from datetime import date
 from decimal import Decimal
 from types import SimpleNamespace
 
 from coati_payroll.model import Percepcion
 from coati_payroll.nomina_engine.calculators.concept_calculator import ConceptCalculator
+from coati_payroll.nomina_engine.calculators.deduction_calculator import DeductionCalculator
 from coati_payroll.nomina_engine.calculators.perception_calculator import PerceptionCalculator
 
 
@@ -16,6 +18,58 @@ def test_annual_limit_only_applies_the_remaining_ytd_amount():
         acumulado_anual=Decimal("200.00"),
     )
     assert amount == Decimal("50.00")
+
+
+def test_taxable_base_limit_applies_to_before_tax_deductions():
+    amount = ConceptCalculator.apply_taxable_base_limit(
+        Decimal("100.00"),
+        tope_base_gravable=Decimal("250.00"),
+        acumulado_base=Decimal("200.00"),
+    )
+    assert amount == Decimal("50.00")
+
+
+def test_deduction_calculator_applies_taxable_base_limit():
+    calculator = ConceptCalculator(config_repository=None, warnings=[])
+    deduction_calculator = DeductionCalculator(calculator, [])
+    deduction = SimpleNamespace(
+        id="ded-1",
+        codigo="DED",
+        nombre="Deduction",
+        activo=True,
+        formula_tipo="fixed",
+        monto_default=Decimal("100.00"),
+        porcentaje=None,
+        formula=None,
+        base_calculo=None,
+        vigente_desde=None,
+        valido_hasta=None,
+        techo_anual=None,
+        tope_base_gravable=Decimal("250.00"),
+        monto_exento=Decimal("0.00"),
+        antes_impuesto=True,
+    )
+    association = SimpleNamespace(
+        activo=True,
+        prioridad=1,
+        monto_predeterminado=None,
+        porcentaje=None,
+        es_obligatoria=False,
+        detener_si_insuficiente=False,
+        deduccion=deduction,
+    )
+    employee = SimpleNamespace(
+        salario_bruto=Decimal("1000.00"),
+        deducciones=[],
+        inasistencia_codigos_descuento=set(),
+        variables_calculo={"deducciones_antes_impuesto_acumulado": Decimal("200.00")},
+        empleado=SimpleNamespace(primer_nombre="Test", primer_apellido="Employee"),
+    )
+    planilla = SimpleNamespace(planilla_deducciones=[association])
+
+    result = deduction_calculator.calculate(employee, planilla, date(2026, 1, 31))
+
+    assert [item.monto for item in result] == [Decimal("50.00")]
 
 
 def test_exempt_amount_is_exposed_on_perception_item():
