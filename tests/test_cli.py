@@ -899,6 +899,52 @@ def test_maintenance_commands_cleanup_real_resources_and_reject_stub(app, db_ses
         assert "not supported" in result.output
 
 
+def test_maintenance_cleanup_audit_removes_expired_records(app, db_session, monkeypatch):
+    """cleanup-audit deletes audit records older than the retention period."""
+    import os
+
+    from coati_payroll.model import SecurityAuditLog, db
+
+    monkeypatch.setenv("COATI_AUDIT_RETENTION_DAYS", "2555")
+    runner = app.test_cli_runner()
+    with app.app_context():
+        old = SecurityAuditLog(
+            event="user_updated",
+            actor="old-actor",
+            target_username="old",
+            success=True,
+            details={},
+        )
+        recent = SecurityAuditLog(
+            event="user_updated",
+            actor="recent-actor",
+            target_username="recent",
+            success=True,
+            details={},
+        )
+        db.session.add_all([old, recent])
+        db.session.flush()
+        old.timestamp = datetime.now(UTC) - timedelta(days=3000)
+        recent.timestamp = datetime.now(UTC) - timedelta(days=1)
+        db.session.commit()
+
+        result = runner.invoke(args=["maintenance", "cleanup-audit"])
+
+        assert result.exit_code == 0
+        remaining = db.session.query(SecurityAuditLog).all()
+        assert [entry.actor for entry in remaining] == ["recent-actor"]
+        assert "Expired audit records removed" in result.output
+
+
+def test_maintenance_cleanup_audit_rejects_non_positive_retention(app, db_session, monkeypatch):
+    """cleanup-audit fails explicitly when retention is non-positive."""
+    monkeypatch.setenv("COATI_AUDIT_RETENTION_DAYS", "0")
+    runner = app.test_cli_runner()
+    result = runner.invoke(args=["maintenance", "cleanup-audit"])
+    assert result.exit_code != 0
+    assert "must be greater than zero" in result.output
+
+
 def test_plugins_group_and_main_paths(app, monkeypatch):
     """Cover dynamic plugins command and main() import paths."""
     import coati_payroll.cli as cli
