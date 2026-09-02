@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-09-02
+
+### Added
+
+- Database-backed email security for authentication
+- Scoped REST API and exchange-rate synchronization
+- Migration baseline and native database restore
+- Configurable settlement accounting for liquidations
+- Annual ceilings and exempt concept amounts in payroll
+- Per-user locale and regional formatting
+
+### Fixed
+
+- Multi-company payroll data isolation
+- Security events unified viewer and retention
+- Safe expressions PDF export and async jobs
+- Narrow optional payroll validation values
+- Audit static row typing
+- Database restore file validation
+- I18n locale-aware formatting in views
+- Liquidacion configured seniority year basis
+- Payroll taxable base limits to deductions
+- Reports enforce company scope during execution
+- Audit preserve source in unified audit exports
+- Audit identity check for CompoundSelect None guard
+- Operations remove credential exposure in backup/restore
+
+### Tests
+
+- Cover payroll, report, novelty endpoints and tenant isolation
+- Cover pg_restore for custom-format database restore
+- Cover unified viewer filters and cleanup-audit command
+- Cover async report run enqueues background task
+- Cover per-concept YTD accumulated keys
+- Cover per-user language preference and Accept-Language
+- Cover tenant scope in queued execution
+- Accept bearer authentication in route matrix
+- Satisfy lint on audit and cleanup-audit tests
+
 ## [1.12.1] - 2026-08-14
 
 ### Changed
