@@ -1348,3 +1348,66 @@ def test_database_restore_postgresql_missing_file(app, db_session):
 
     with app.app_context(), pytest.raises(FileNotFoundError, match="Backup file not found"):
         _database_restore_postgresql("missing.sql", "postgresql://user:pass@localhost/dbname")
+
+
+def test_database_restore_postgresql_custom_format_uses_pg_restore(app, db_session, monkeypatch):
+    """Test the pg_restore branch is used for custom-format backup files."""
+    import subprocess
+    from coati_payroll.cli import _database_restore_postgresql
+
+    invoked = {}
+
+    class Result:
+        returncode = 0
+        stderr = ""
+
+    def mock_run(command, *args, **kwargs):
+        invoked["command"] = command
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    with app.app_context():
+        with tempfile.NamedTemporaryFile(suffix=".dump", delete=False) as tmp:
+            backup_file = tmp.name
+            tmp.write(b"custom format dump")
+
+        try:
+            db_url = "postgresql://user:pass@localhost:5432/dbname"
+            _database_restore_postgresql(backup_file, db_url)
+        finally:
+            if Path(backup_file).exists():
+                Path(backup_file).unlink()
+
+    assert invoked["command"][0] == "pg_restore"
+    assert "--clean" in invoked["command"]
+    assert "-d" in invoked["command"]
+    assert invoked["command"][-1].endswith(".dump")
+
+
+def test_database_restore_postgresql_custom_format_failure(app, db_session, monkeypatch):
+    """Test the pg_restore branch reports failures."""
+    import subprocess
+    from coati_payroll.cli import _database_restore_postgresql
+
+    class Result:
+        returncode = 1
+        stderr = "pg_restore: error: could not connect"
+
+    def mock_run(*args, **kwargs):
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    with app.app_context():
+        with tempfile.NamedTemporaryFile(suffix=".backup", delete=False) as tmp:
+            backup_file = tmp.name
+            tmp.write(b"custom format backup")
+
+        try:
+            db_url = "postgresql://user:pass@localhost:5432/dbname"
+            with pytest.raises(RuntimeError, match="PostgreSQL restore failed"):
+                _database_restore_postgresql(backup_file, db_url)
+        finally:
+            if Path(backup_file).exists():
+                Path(backup_file).unlink()
