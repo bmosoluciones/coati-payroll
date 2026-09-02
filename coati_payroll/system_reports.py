@@ -30,6 +30,7 @@ from coati_payroll.model import (
     Nomina,
     NominaEmpleado,
     NominaDetalle,
+    Planilla,
     VacationAccount,
     VacationLedger,
 )
@@ -43,6 +44,38 @@ from coati_payroll.enums import TipoDetalle
 # Key: system_report_id
 # Value: implementation function
 SYSTEM_REPORTS: Dict[str, Callable] = {}
+
+
+def _report_company_ids(parameters: Dict[str, Any]) -> set[str] | None:
+    """Read the private company scope supplied by the report manager."""
+    value = parameters.get("_company_ids")
+    return None if value is None else set(value)
+
+
+def _scope_employee_query(statement, parameters: Dict[str, Any]):
+    """Apply report company isolation to a query containing employees."""
+    company_ids = _report_company_ids(parameters)
+    if company_ids is None:
+        return statement
+    return statement.filter(Empleado.empresa_id.in_(company_ids)) if company_ids else statement.filter(db.false())
+
+
+def _scope_company_column(statement, column, parameters: Dict[str, Any]):
+    """Filter an already-joined report query by a company column."""
+    company_ids = _report_company_ids(parameters)
+    if company_ids is None:
+        return statement
+    return statement.filter(column.in_(company_ids)) if company_ids else statement.filter(db.false())
+
+
+def _scope_payroll_query(statement, parameters: Dict[str, Any]):
+    """Apply report company isolation to a query rooted at ``Nomina``."""
+    company_ids = _report_company_ids(parameters)
+    if company_ids is None:
+        return statement
+    if not company_ids:
+        return statement.filter(db.false())
+    return statement.join(Planilla, Nomina.planilla_id == Planilla.id).filter(Planilla.empresa_id.in_(company_ids))
 
 
 def register_system_report(report_id: str):
@@ -84,7 +117,7 @@ def employee_list_report(parameters: Dict[str, Any]) -> List[Dict[str, Any]]:
         - activo (optional): Filter by active status
         - empresa_id (optional): Filter by company
     """
-    stmt = db.select(Empleado)
+    stmt = _scope_employee_query(db.select(Empleado), parameters)
 
     # Apply filters
     if "activo" in parameters:
@@ -118,7 +151,11 @@ def employee_active_inactive_report(parameters: Dict[str, Any]) -> List[Dict[str
     Shows current status of all employees with relevant dates.
     """
     results = (
-        db.session.execute(db.select(Empleado).order_by(Empleado.activo.desc(), Empleado.primer_apellido))
+        db.session.execute(
+            _scope_employee_query(db.select(Empleado), parameters).order_by(
+                Empleado.activo.desc(), Empleado.primer_apellido
+            )
+        )
         .scalars()
         .all()
     )
@@ -145,7 +182,9 @@ def employee_by_department_report(parameters: Dict[str, Any]) -> List[Dict[str, 
     """
     results = (
         db.session.execute(
-            db.select(Empleado).filter(Empleado.activo.is_(true())).order_by(Empleado.area, Empleado.primer_apellido)
+            _scope_employee_query(db.select(Empleado), parameters)
+            .filter(Empleado.activo.is_(true()))
+            .order_by(Empleado.area, Empleado.primer_apellido)
         )
         .scalars()
         .all()
@@ -174,8 +213,10 @@ def employee_hires_terminations_report(parameters: Dict[str, Any]) -> List[Dict[
     """
     fecha_inicio = _coerce_report_date(parameters.get("fecha_inicio"))
     fecha_fin = _coerce_report_date(parameters.get("fecha_fin"))
-    hires = _employees_in_date_range(Empleado.fecha_alta, fecha_inicio, fecha_fin)
-    terminations = _employees_in_date_range(Empleado.fecha_baja, fecha_inicio, fecha_fin, required=True)
+    hires = _employees_in_date_range(Empleado.fecha_alta, fecha_inicio, fecha_fin, parameters=parameters)
+    terminations = _employees_in_date_range(
+        Empleado.fecha_baja, fecha_inicio, fecha_fin, required=True, parameters=parameters
+    )
     results = [_format_employment_event(emp, "Alta", emp.fecha_alta) for emp in hires]
     results.extend(_format_employment_event(emp, "Baja", emp.fecha_baja) for emp in terminations)
     return sorted(results, key=lambda item: item["Fecha"])
@@ -186,9 +227,9 @@ def _coerce_report_date(value):
     return datetime.fromisoformat(value).date() if isinstance(value, str) else value
 
 
-def _employees_in_date_range(field, fecha_inicio, fecha_fin, required: bool = False):
+def _employees_in_date_range(field, fecha_inicio, fecha_fin, required: bool = False, parameters=None):
     """Load employees whose date field falls within an optional range."""
-    statement = db.select(Empleado)
+    statement = _scope_employee_query(db.select(Empleado), parameters or {})
     if required:
         statement = statement.filter(field.isnot(None))
     if fecha_inicio:
@@ -224,7 +265,7 @@ def payroll_by_period_report(parameters: Dict[str, Any]) -> List[Dict[str, Any]]
         - periodo_fin: End date of period
         - planilla_id (optional): Filter by payroll template
     """
-    stmt = db.select(Nomina)
+    stmt = _scope_payroll_query(db.select(Nomina), parameters)
 
     if "periodo_inicio" in parameters:
         fecha = parameters["periodo_inicio"]
@@ -271,12 +312,13 @@ def payroll_employee_detail_report(parameters: Dict[str, Any]) -> List[Dict[str,
     if not nomina_id:
         return []
 
-    results = db.session.execute(
+    statement = (
         db.select(NominaEmpleado, Empleado)
         .join(Empleado, NominaEmpleado.empleado_id == Empleado.id)
         .filter(NominaEmpleado.nomina_id == nomina_id)
-        .order_by(Empleado.primer_apellido, Empleado.primer_nombre)
-    ).all()
+    )
+    statement = _scope_employee_query(statement, parameters).order_by(Empleado.primer_apellido, Empleado.primer_nombre)
+    results = db.session.execute(statement).all()
 
     return [
         {
@@ -305,7 +347,7 @@ def payroll_perceptions_summary_report(parameters: Dict[str, Any]) -> List[Dict[
     if not nomina_id:
         return []
 
-    results = db.session.execute(
+    statement = (
         db.select(
             NominaDetalle.codigo,
             NominaDetalle.descripcion,
@@ -316,7 +358,13 @@ def payroll_perceptions_summary_report(parameters: Dict[str, Any]) -> List[Dict[
         .filter(NominaEmpleado.nomina_id == nomina_id, NominaDetalle.tipo == TipoDetalle.INGRESO)
         .group_by(NominaDetalle.codigo, NominaDetalle.descripcion)
         .order_by(NominaDetalle.codigo)
-    ).all()
+    )
+    if _report_company_ids(parameters) is not None:
+        statement = statement.join(Nomina, NominaEmpleado.nomina_id == Nomina.id).join(
+            Planilla, Nomina.planilla_id == Planilla.id
+        )
+        statement = _scope_company_column(statement, Planilla.empresa_id, parameters)
+    results = db.session.execute(statement).all()
 
     return [
         {
@@ -341,7 +389,7 @@ def payroll_deductions_summary_report(parameters: Dict[str, Any]) -> List[Dict[s
     if not nomina_id:
         return []
 
-    results = db.session.execute(
+    statement = (
         db.select(
             NominaDetalle.codigo,
             NominaDetalle.descripcion,
@@ -352,7 +400,13 @@ def payroll_deductions_summary_report(parameters: Dict[str, Any]) -> List[Dict[s
         .filter(NominaEmpleado.nomina_id == nomina_id, NominaDetalle.tipo == TipoDetalle.DEDUCCION)
         .group_by(NominaDetalle.codigo, NominaDetalle.descripcion)
         .order_by(NominaDetalle.codigo)
-    ).all()
+    )
+    if _report_company_ids(parameters) is not None:
+        statement = statement.join(Nomina, NominaEmpleado.nomina_id == Nomina.id).join(
+            Planilla, Nomina.planilla_id == Planilla.id
+        )
+        statement = _scope_company_column(statement, Planilla.empresa_id, parameters)
+    results = db.session.execute(statement).all()
 
     return [
         {
@@ -376,12 +430,14 @@ def vacation_balance_report(parameters: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Shows current vacation balances for all employees.
     """
-    results = db.session.execute(
+    statement = (
         db.select(VacationAccount, Empleado)
         .join(Empleado, VacationAccount.empleado_id == Empleado.id)
         .filter(Empleado.activo.is_(true()))
         .order_by(Empleado.primer_apellido, Empleado.primer_nombre)
-    ).all()
+    )
+    statement = _scope_employee_query(statement, parameters)
+    results = db.session.execute(statement).all()
 
     return [
         {
@@ -416,6 +472,7 @@ def vacation_taken_by_period_report(parameters: Dict[str, Any]) -> List[Dict[str
         .join(Empleado, VacationLedger.empleado_id == Empleado.id)
         .filter(VacationLedger.entry_type == "usage")
     )
+    stmt = _scope_employee_query(stmt, parameters)
 
     if fecha_inicio:
         stmt = stmt.filter(VacationLedger.fecha >= fecha_inicio)

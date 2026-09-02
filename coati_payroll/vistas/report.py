@@ -25,6 +25,7 @@ from coati_payroll.report_export import export_report_to_excel, export_report_to
 from coati_payroll.system_reports import get_system_report_metadata
 from coati_payroll.log import log
 from coati_payroll.vistas.constants import PER_PAGE
+from coati_payroll.tenant import report_empresa_ids
 
 report_bp = Blueprint("report", __name__, url_prefix="/report")
 REPORT_INDEX_ENDPOINT = "report.index"
@@ -208,7 +209,11 @@ def run_report(report_id: str):
         from coati_payroll.queue.tasks import queue
 
         task_id = queue.enqueue(
-            "generate_report", report_id=report.id, user=current_user.usuario, parameters=parameters
+            "generate_report",
+            report_id=report.id,
+            user=current_user.usuario,
+            parameters=parameters,
+            company_ids=sorted(report_empresa_ids() or []) if report_empresa_ids() is not None else None,
         )
         return jsonify({"success": True, "status": "queued", "task_id": str(task_id)}), 202
 
@@ -218,7 +223,7 @@ def run_report(report_id: str):
 
     try:
         # Execute report
-        manager = ReportExecutionManager(report, current_user.usuario)
+        manager = ReportExecutionManager(report, current_user.usuario, report_empresa_ids())
         results, total_count, execution = manager.execute(parameters, page, per_page)
 
         return jsonify(
@@ -264,7 +269,7 @@ def export_report(report_id: str, export_format: str):
 
     try:
         # Execute report (get all results, no pagination for export)
-        manager = ReportExecutionManager(report, current_user.usuario)
+        manager = ReportExecutionManager(report, current_user.usuario, report_empresa_ids())
         results, _total_count, execution = manager.execute(parameters, page=1, per_page=50000)
 
         # Export based on format

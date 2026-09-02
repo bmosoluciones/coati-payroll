@@ -742,7 +742,12 @@ def sync_exchange_rates(
     return {"success": True, "base": base, "date": rate_date.isoformat(), "synced": synced, "skipped": skipped}
 
 
-def generate_report(report_id: str, user: str, parameters: dict[str, Any] | None = None) -> dict[str, Any]:
+def generate_report(
+    report_id: str,
+    user: str,
+    parameters: dict[str, Any] | None = None,
+    company_ids: list[str] | None = None,
+) -> dict[str, Any]:
     """Execute a report through the queue for long-running integrations."""
     from coati_payroll.model import Report
     from coati_payroll.report_engine import ReportExecutionManager
@@ -751,7 +756,9 @@ def generate_report(report_id: str, user: str, parameters: dict[str, Any] | None
     if report is None:
         return {"success": False, "error": "Report not found"}
     try:
-        results, total_count, execution = ReportExecutionManager(report, user).execute(parameters or {}, 1, 50000)
+        results, total_count, execution = ReportExecutionManager(
+            report, user, set(company_ids) if company_ids is not None else None
+        ).execute(parameters or {}, 1, 50000)
         return {"success": True, "execution_id": execution.id, "rows": len(results), "total_count": total_count}
     except Exception as exc:
         db.session.rollback()

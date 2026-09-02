@@ -34,6 +34,24 @@ def accessible_empresa_ids() -> set[str] | None:
     return {empresa.id for empresa in current_user.empresas if empresa.activo}
 
 
+def report_empresa_ids() -> set[str] | None:
+    """Return the company scope that report execution must apply.
+
+    Unlike the general query helper, a multi-company user without an active
+    selection receives an empty scope.  Reports must never silently aggregate
+    all assigned companies when the UI is scoped to one selected company.
+    """
+    permitted = accessible_empresa_ids()
+    if permitted is None:
+        return None
+    selected = active_empresa_id()
+    if selected:
+        return {selected}
+    if len(permitted) == 1:
+        return permitted
+    return set()
+
+
 def accessible_empresas(*, active_only: bool = True) -> list[Empresa]:
     """Return companies visible to the current user."""
     query = db.select(Empresa).order_by(Empresa.razon_social)

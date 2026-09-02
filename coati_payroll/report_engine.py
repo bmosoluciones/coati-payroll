@@ -153,7 +153,7 @@ class CustomReportBuilder:
     - No raw SQL or arbitrary code execution
     """
 
-    def __init__(self, report: Report):
+    def __init__(self, report: Report, company_ids: set[str] | None = None):
         """Initialize the report builder.
 
         Args:
@@ -163,9 +163,34 @@ class CustomReportBuilder:
         self.definition = report.definition or {}
         self.base_entity_name = report.base_entity
         self.base_entity = ALLOWED_ENTITIES.get(self.base_entity_name)
+        self.company_ids = company_ids
 
         if not self.base_entity:
             raise ValueError(f"Invalid base entity: {self.base_entity_name}")
+
+    def _apply_company_scope(self, stmt):
+        """Restrict a custom report to the execution user's companies."""
+        if self.company_ids is None:
+            return stmt
+        if not self.company_ids:
+            return stmt.filter(db.false())
+        if self.base_entity_name == "Empresa":
+            return stmt.filter(Empresa.id.in_(self.company_ids))
+        if self.base_entity_name == "Employee":
+            return stmt.filter(Empleado.empresa_id.in_(self.company_ids))
+        if self.base_entity_name == "Planilla":
+            return stmt.filter(Planilla.empresa_id.in_(self.company_ids))
+        if self.base_entity_name == "Nomina":
+            return stmt.join(Planilla, Nomina.planilla_id == Planilla.id).filter(
+                Planilla.empresa_id.in_(self.company_ids)
+            )
+        if self.base_entity_name == "NominaEmpleado":
+            return stmt.join(Empleado, NominaEmpleado.empleado_id == Empleado.id).filter(
+                Empleado.empresa_id.in_(self.company_ids)
+            )
+        return stmt.join(Empleado, self.base_entity.empleado_id == Empleado.id).filter(
+            Empleado.empresa_id.in_(self.company_ids)
+        )
 
     def validate_definition(self) -> List[str]:
         """Validate report definition for security.
@@ -274,7 +299,7 @@ class CustomReportBuilder:
             SQLAlchemy Select statement
         """
         # Start with base entity
-        stmt = db.select(self.base_entity)
+        stmt = self._apply_company_scope(db.select(self.base_entity))
 
         stmt = self._apply_definition_filters(stmt)
         stmt = self._apply_runtime_filters(stmt, filters)
@@ -296,7 +321,9 @@ class CustomReportBuilder:
         """
         from sqlalchemy.sql.functions import count
 
-        count_stmt = self._apply_runtime_filters(self._apply_definition_filters(db.select(self.base_entity)), filters)
+        count_stmt = self._apply_runtime_filters(
+            self._apply_definition_filters(self._apply_company_scope(db.select(self.base_entity))), filters
+        )
         total_count = db.session.execute(db.select(count()).select_from(count_stmt.subquery())).scalar() or 0
         stmt = self.build_query(filters, page, per_page)
         results = db.session.execute(stmt).scalars().all()
@@ -346,7 +373,7 @@ class CustomReportBuilder:
 class ReportExecutionManager:
     """Manages report execution lifecycle and tracking."""
 
-    def __init__(self, report: Report, user: str):
+    def __init__(self, report: Report, user: str, company_ids: set[str] | None = None):
         """Initialize execution manager.
 
         Args:
@@ -355,6 +382,7 @@ class ReportExecutionManager:
         """
         self.report = report
         self.user = user
+        self.company_ids = company_ids
 
     def execute(
         self, parameters: Optional[Dict[str, Any]] = None, page: int = 1, per_page: int = 100
@@ -385,7 +413,7 @@ class ReportExecutionManager:
         try:
             if self.report.type == ReportType.CUSTOM:
                 # Execute custom report
-                builder = CustomReportBuilder(self.report)
+                builder = CustomReportBuilder(self.report, self.company_ids)
                 results, total_count = builder.execute(parameters, page, per_page)
             else:
                 # Execute system report
@@ -396,7 +424,10 @@ class ReportExecutionManager:
                     raise ValueError(f"System report '{self.report.system_report_id}' not found")
 
                 # Execute system report (they handle their own pagination)
-                results = system_report_func(parameters or {})
+                report_parameters = dict(parameters or {})
+                if self.company_ids is not None:
+                    report_parameters["_company_ids"] = tuple(self.company_ids)
+                results = system_report_func(report_parameters)
                 total_count = len(results)
 
                 # Apply pagination to system report results
