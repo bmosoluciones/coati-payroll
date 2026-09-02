@@ -23,6 +23,7 @@ from coati_payroll.model import (
     TipoPlanilla,
     Moneda,
     Liquidacion,
+    LiquidacionConcepto,
     db,
 )
 
@@ -159,6 +160,54 @@ def test_prorrateo_usa_factor_configurado(app, db_session, modo, factor, expecte
 
         # monto esperado: salario/factor * 1
         assert liq.total_bruto == expected_daily
+
+
+def test_concepto_configurado_usa_dias_anio_antiguedad(app, db_session):
+    from tests.factories.company_factory import create_company
+
+    with app.app_context():
+        empresa = create_company(db_session, codigo="E3B", razon_social="Empresa 3B", ruc="RUC3B")
+        db_session.add(
+            ConfiguracionCalculos(
+                empresa_id=empresa.id,
+                pais_id=None,
+                activo=True,
+                dias_anio_antiguedad=360,
+            )
+        )
+        empleado = Empleado(
+            empresa_id=empresa.id,
+            codigo_empleado="EMP3B",
+            primer_nombre="A",
+            primer_apellido="B",
+            identificacion_personal="ID-EMP3B",
+            fecha_alta=date(2025, 1, 1),
+            salario_base=Decimal("300.00"),
+            activo=True,
+        )
+        concepto = LiquidacionConcepto(
+            codigo="ANTIG",
+            nombre="Antigüedad",
+            esquema_json={
+                "inputs": [{"name": "anos_servicio", "type": "decimal"}],
+                "steps": [],
+                "output": "anos_servicio",
+            },
+            activo=True,
+        )
+        db_session.add_all([empleado, concepto])
+        db_session.commit()
+
+        liquidacion, errors, _warnings = ejecutar_liquidacion(
+            empleado_id=empleado.id,
+            concepto_id=concepto.id,
+            fecha_calculo=date(2026, 1, 1),
+            usuario="test",
+        )
+
+        assert errors == []
+        assert liquidacion is not None
+        assert liquidacion.detalles[-1].monto == Decimal("1.01")
 
 
 def test_deducciones_adelantos_y_recalculo_no_duplica_abonos(app, db_session):

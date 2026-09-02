@@ -201,6 +201,13 @@ class ConfiguracionCalculosForm(FlaskForm):
         description=_("Factor base cuando el modo es Laboral (por defecto 28)."),
     )
 
+    dias_anio_antiguedad = IntegerField(
+        _("Días por Año para Antigüedad"),
+        validators=[DataRequired(), NumberRange(min=1, max=366)],
+        default=365,
+        description=_("Base configurable para convertir días de servicio a años en liquidaciones."),
+    )
+
     liquidacion_prioridad_prestamos = IntegerField(
         _("Prioridad Préstamos (Liquidación)"),
         validators=[DataRequired(), NumberRange(min=1, max=9999)],

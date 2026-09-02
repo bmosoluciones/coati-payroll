@@ -141,7 +141,7 @@ class LiquidacionEngine:
         # Jurisdiction-specific severance, bonus and proportional-benefit
         # rules are supplied as the same safe formula schema used by payroll.
         # A missing schema intentionally means no extra statutory line.
-        monto_configurado = self._calcular_concepto_configurado(liquidacion, tasa_dia, total_bruto)
+        monto_configurado = self._calcular_concepto_configurado(liquidacion, tasa_dia, total_bruto, config)
         if monto_configurado > 0:
             concepto = liquidacion.concepto
             liquidacion.detalles.append(
@@ -225,7 +225,7 @@ class LiquidacionEngine:
         return liquidacion
 
     def _calcular_concepto_configurado(
-        self, liquidacion: Liquidacion, tasa_dia: Decimal, total_bruto: Decimal
+        self, liquidacion: Liquidacion, tasa_dia: Decimal, total_bruto: Decimal, config: ConfiguracionCalculos
     ) -> Decimal:
         """Evaluate the selected jurisdiction-specific liquidation rule."""
         concepto = liquidacion.concepto
@@ -234,12 +234,16 @@ class LiquidacionEngine:
             return Decimal("0.00")
         fecha_alta = self.empleado.fecha_alta or self.fecha_calculo
         dias_servicio = max(0, (self.fecha_calculo - fecha_alta).days)
+        dias_anio_antiguedad = Decimal(str(config.dias_anio_antiguedad or 0))
+        if dias_anio_antiguedad <= 0:
+            self.errors.append("Configuración inválida: dias_anio_antiguedad debe ser mayor que cero.")
+            return Decimal("0.00")
         inputs = {
             "salario_mensual": Decimal(str(self.empleado.salario_base or 0)),
             "salario_diario": tasa_dia,
             "dias_por_pagar": Decimal(str(liquidacion.dias_por_pagar)),
             "dias_servicio": Decimal(str(dias_servicio)),
-            "anos_servicio": Decimal(str(dias_servicio)) / Decimal("365.25"),
+            "anos_servicio": Decimal(str(dias_servicio)) / dias_anio_antiguedad,
             "total_bruto": total_bruto,
             "total_deducciones": Decimal("0.00"),
         }
