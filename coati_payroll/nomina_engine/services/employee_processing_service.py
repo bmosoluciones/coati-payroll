@@ -440,7 +440,6 @@ class EmployeeProcessingService:
 
         # Look up existing accumulated record
         from sqlalchemy import select
-        from coati_payroll.model import db
 
         acumulado = (
             db.session.execute(
