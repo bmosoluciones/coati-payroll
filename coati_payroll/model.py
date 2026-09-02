@@ -184,7 +184,13 @@ class Usuario(database.Model, BaseTabla, UserMixin):
     tipo = database.Column(database.String(20), nullable=False, default=TipoUsuario.HHRR.value)
     activo = database.Column(database.Boolean(), default=True)
     ultimo_acceso = database.Column(database.DateTime, nullable=True)
+    intentos_login_fallidos = database.Column(database.Integer, nullable=False, default=0)
+    bloqueado_hasta = database.Column(database.DateTime, nullable=True)
     empresas = database.relationship("Empresa", secondary=usuario_empresa, back_populates="usuarios")
+    tokens_correo = database.relationship("TokenCorreo", back_populates="usuario", cascade="all, delete-orphan")
+    navegadores_confiables = database.relationship(
+        "NavegadorConfiable", back_populates="usuario", cascade="all, delete-orphan"
+    )
 
     @property
     def is_active(self) -> bool:
@@ -1857,6 +1863,72 @@ class ConfiguracionGlobal(database.Model, BaseTabla):
 
     # Additional global settings can be stored as JSON
     configuracion_adicional = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
+
+
+class ConfiguracionCorreo(database.Model, BaseTabla):
+    """Database-backed SMTP and email-login security configuration.
+
+    SMTP credentials are stored encrypted by ``coati_payroll.email_service``;
+    this model never exposes a plaintext password to templates or logs.
+    The application treats the first row as the singleton configuration.
+    """
+
+    __tablename__ = "configuracion_correo"
+
+    smtp_host = database.Column(database.String(255), nullable=True)
+    smtp_port = database.Column(database.Integer, nullable=False, default=587)
+    smtp_username = database.Column(database.String(255), nullable=True)
+    smtp_password_encrypted = database.Column(database.LargeBinary, nullable=True)
+    smtp_use_tls = database.Column(database.Boolean, nullable=False, default=True)
+    smtp_use_ssl = database.Column(database.Boolean, nullable=False, default=False)
+    sender_email = database.Column(database.String(255), nullable=True)
+    sender_name = database.Column(database.String(150), nullable=False, default="Coati Payroll")
+    activo = database.Column(database.Boolean, nullable=False, default=False)
+
+    # Email verification is deliberately separate from TOTP/MFA. It is an
+    # optional step-up check only for credentials presented by an unknown browser.
+    proteger_inicio_sesion_origen_desconocido = database.Column(
+        database.Boolean, nullable=False, default=False
+    )
+    codigo_login_expira_minutos = database.Column(database.Integer, nullable=False, default=10)
+    navegador_confiable_dias = database.Column(database.Integer, nullable=False, default=30)
+
+
+class TokenCorreo(database.Model, BaseTabla):
+    """Single-use password-reset or login-verification token."""
+
+    __tablename__ = "token_correo"
+    __table_args__ = (
+        database.UniqueConstraint("token_hash", name="uq_token_correo_hash"),
+        database.Index("ix_token_correo_usuario_proposito", "usuario_id", "proposito"),
+    )
+
+    usuario_id = database.Column(database.String(26), database.ForeignKey("usuario.id"), nullable=False, index=True)
+    token_hash = database.Column(database.String(128), nullable=False, index=True)
+    proposito = database.Column(database.String(40), nullable=False, index=True)
+    expira_en = database.Column(database.DateTime, nullable=False, index=True)
+    usado_en = database.Column(database.DateTime, nullable=True)
+    intentos_fallidos = database.Column(database.Integer, nullable=False, default=0)
+    ip_solicitud = database.Column(database.String(64), nullable=True)
+    user_agent = database.Column(database.String(512), nullable=True)
+
+    usuario = database.relationship("Usuario", back_populates="tokens_correo")
+
+
+class NavegadorConfiable(database.Model, BaseTabla):
+    """A revocable, expiring browser credential bound to one user."""
+
+    __tablename__ = "navegador_confiable"
+    __table_args__ = (database.UniqueConstraint("token_hash", name="uq_navegador_confiable_hash"),)
+
+    usuario_id = database.Column(database.String(26), database.ForeignKey("usuario.id"), nullable=False, index=True)
+    token_hash = database.Column(database.String(128), nullable=False, index=True)
+    expira_en = database.Column(database.DateTime, nullable=False, index=True)
+    ultimo_uso_en = database.Column(database.DateTime, nullable=True)
+    revocado_en = database.Column(database.DateTime, nullable=True)
+    user_agent_hash = database.Column(database.String(64), nullable=True)
+
+    usuario = database.relationship("Usuario", back_populates="navegadores_confiables")
 
 
 # Configuration for calculation parameters

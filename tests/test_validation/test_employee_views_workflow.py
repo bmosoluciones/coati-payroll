@@ -38,6 +38,8 @@ def test_employee_new_post_creates_employee(app, client, db_session):
         # Use HHRR user (write access)
         hr_user = create_user(db_session, "hr-emp", "password", tipo=TipoUsuario.HHRR)
         empresa, moneda = _create_empresa_moneda(db_session)
+        hr_user.empresas.append(empresa)
+        db_session.commit()
 
         login_user(client, hr_user.usuario, "password")
 
@@ -71,6 +73,8 @@ def test_employee_edit_and_delete_workflow(app, client, db_session):
     with app.app_context():
         hr_user = create_user(db_session, "hr-emp2", "password", tipo=TipoUsuario.HHRR)
         empresa, moneda = _create_empresa_moneda(db_session)
+        hr_user.empresas.append(empresa)
+        db_session.commit()
 
         emp = Empleado(
             empresa_id=empresa.id,
@@ -130,6 +134,8 @@ def test_employee_edit_view_shows_salary_change_button(app, client, db_session):
     with app.app_context():
         hr_user = create_user(db_session, "hr-emp3", "password", tipo=TipoUsuario.HHRR)
         empresa, moneda = _create_empresa_moneda(db_session)
+        hr_user.empresas.append(empresa)
+        db_session.commit()
         emp = Empleado(
             empresa_id=empresa.id,
             codigo_empleado="EMP-VAL-003",
@@ -160,6 +166,8 @@ def test_employee_salary_change_flow_updates_and_creates_history(app, client, db
     with app.app_context():
         hr_user = create_user(db_session, "hr-emp4", "password", tipo=TipoUsuario.HHRR)
         empresa, moneda_nio = _create_empresa_moneda(db_session)
+        hr_user.empresas.append(empresa)
+        db_session.commit()
 
         emp = Empleado(
             empresa_id=empresa.id,

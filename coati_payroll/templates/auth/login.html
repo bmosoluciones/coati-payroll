@@ -189,6 +189,9 @@ SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
                             {{ form.submit(class_='btn btn-primary btn-lg') }}
                         </div>
                     </form>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('auth.forgot_password') }}">{{ _('¿Olvidaste tu contraseña?') }}</a>
+                    </div>
                 </div>
             </div>
         </div>

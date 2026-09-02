@@ -1,0 +1,34 @@
+{#-
+SPDX-License-Identifier: Apache-2.0
+SPDX-FileCopyrightText: 2025 - 2026 BMO Soluciones, S.A.
+-#}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ _('Verificar inicio de sesión') }} - Coati Payroll</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body class="login-page">
+    <main class="login-form-wrapper container py-5" style="max-width: 520px;">
+        <h1 class="h3 mb-3">{{ _('Verificar inicio de sesión') }}</h1>
+        <p class="text-muted">{{ _('Este navegador no está registrado. Introduce el código de 6 dígitos enviado a tu correo.') }}</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                <label class="form-label" for="{{ form.codigo.id }}">{{ form.codigo.label.text }}</label>
+                {{ form.codigo(class="form-control", inputmode="numeric", autocomplete="one-time-code", autofocus=true) }}
+                {% for error in form.codigo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">{{ _('Cancelar') }}</a>
+        </form>
+    </main>
+</body>
+</html>

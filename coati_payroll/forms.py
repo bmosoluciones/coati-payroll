@@ -31,6 +31,7 @@ from wtforms import (
 from wtforms.validators import (
     DataRequired,
     Email,
+    EqualTo,
     Length,
     NumberRange,
     Optional,
@@ -60,6 +61,73 @@ class LoginForm(FlaskForm):
     email = StringField(_("Usuario o correo electrónico"), validators=[DataRequired(), Length(max=150)])
     password = PasswordField(_("Contraseña"), validators=[DataRequired(), Length(min=6)])
     submit = SubmitField(_("Entrar"))
+
+
+class PasswordRecoveryRequestForm(FlaskForm):
+    """Request a password-reset link without exposing account existence."""
+
+    identificador = StringField(
+        _("Usuario o correo electrónico"),
+        validators=[DataRequired(), Length(max=150)],
+    )
+    submit = SubmitField(_("Enviar instrucciones"))
+
+
+class PasswordResetForm(FlaskForm):
+    """Set a new password using a one-time email token."""
+
+    nueva_contrasena = PasswordField(
+        _("Nueva contraseña"),
+        validators=[DataRequired(), Length(min=8, max=128)],
+    )
+    confirmar_contrasena = PasswordField(
+        _("Confirmar contraseña"),
+        validators=[DataRequired(), EqualTo("nueva_contrasena", message=_("Las contraseñas no coinciden."))],
+    )
+    submit = SubmitField(_("Restablecer contraseña"))
+
+
+class LoginVerificationForm(FlaskForm):
+    """Verify the six-digit code sent for an unknown browser."""
+
+    codigo = StringField(
+        _("Código de verificación"),
+        validators=[DataRequired(), Regexp(r"^\d{6}$", message=_("El código debe tener 6 dígitos."))],
+    )
+    submit = SubmitField(_("Verificar inicio de sesión"))
+
+
+class ConfiguracionCorreoForm(FlaskForm):
+    """Configure SMTP delivery and unknown-browser email verification."""
+
+    smtp_host = StringField(_("Servidor SMTP"), validators=[Optional(), Length(max=255)])
+    smtp_port = IntegerField(_("Puerto SMTP"), validators=[DataRequired(), NumberRange(min=1, max=65535)])
+    smtp_username = StringField(_("Usuario SMTP"), validators=[Optional(), Length(max=255)])
+    smtp_password = PasswordField(
+        _("Contraseña SMTP"),
+        validators=[Optional(), Length(max=255)],
+        description=_("Déjelo vacío para conservar la contraseña almacenada."),
+    )
+    sender_email = StringField(_("Correo remitente"), validators=[Optional(), Email(), Length(max=255)])
+    sender_name = StringField(_("Nombre del remitente"), validators=[DataRequired(), Length(max=150)])
+    smtp_use_tls = BooleanField(_("Usar TLS"), default=True)
+    smtp_use_ssl = BooleanField(_("Usar SSL"), default=False)
+    activo = BooleanField(_("Habilitar envío de correo"), default=False)
+    proteger_inicio_sesion_origen_desconocido = BooleanField(
+        _("Proteger inicio de sesión desde navegador desconocido"),
+        default=False,
+    )
+    codigo_login_expira_minutos = IntegerField(
+        _("Expiración del código (minutos)"),
+        validators=[DataRequired(), NumberRange(min=5, max=60)],
+        default=10,
+    )
+    navegador_confiable_dias = IntegerField(
+        _("Duración del navegador confiable (días)"),
+        validators=[DataRequired(), NumberRange(min=1, max=365)],
+        default=30,
+    )
+    submit = SubmitField(_("Guardar configuración"))
 
 
 # --------------------------------------------------------------------------------------
