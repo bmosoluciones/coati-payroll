@@ -23,9 +23,9 @@ from coati_payroll.rbac import require_role
 audit_bp = Blueprint("audit", __name__, url_prefix="/audit")
 
 
-def _normalize_entry(row: tuple, source: str) -> dict[str, object]:
+def _normalize_entry(row: tuple) -> dict[str, object]:
     """Normalize audit entry from any source model."""
-    timestamp, action, actor, target, details, success = row
+    timestamp, source, action, actor, target, details, success = row
     return {
         "timestamp": timestamp,
         "source": source,
@@ -50,6 +50,7 @@ def _get_filtered_query(limit: int | None = None, offset: int | None = None):
     if not source_filter or source_filter == "security":
         q = db.select(
             SecurityAuditLog.timestamp,
+            db.literal("security").label("source"),
             SecurityAuditLog.event,
             SecurityAuditLog.actor,
             SecurityAuditLog.target_username,
@@ -68,6 +69,7 @@ def _get_filtered_query(limit: int | None = None, offset: int | None = None):
     if not source_filter or source_filter == "report":
         q = db.select(
             ReportAudit.timestamp,
+            db.literal("report").label("source"),
             ReportAudit.action,
             ReportAudit.performed_by,
             db.literal(None),
@@ -84,6 +86,7 @@ def _get_filtered_query(limit: int | None = None, offset: int | None = None):
     if not source_filter or source_filter == "concept":
         q = db.select(
             ConceptoAuditLog.timestamp,
+            db.literal("concept").label("source"),
             ConceptoAuditLog.accion,
             ConceptoAuditLog.usuario,
             db.literal(None),
@@ -100,6 +103,7 @@ def _get_filtered_query(limit: int | None = None, offset: int | None = None):
     if not source_filter or source_filter == "planilla":
         q = db.select(
             PlanillaAuditLog.timestamp,
+            db.literal("planilla").label("source"),
             PlanillaAuditLog.accion,
             PlanillaAuditLog.usuario,
             db.literal(None),
@@ -116,6 +120,7 @@ def _get_filtered_query(limit: int | None = None, offset: int | None = None):
     if not source_filter or source_filter == "nomina":
         q = db.select(
             NominaAuditLog.timestamp,
+            db.literal("nomina").label("source"),
             NominaAuditLog.accion,
             NominaAuditLog.usuario,
             db.literal(None),
@@ -132,6 +137,7 @@ def _get_filtered_query(limit: int | None = None, offset: int | None = None):
     if not source_filter or source_filter == "rule":
         q = db.select(
             ReglaCalculoAuditLog.timestamp,
+            db.literal("rule").label("source"),
             ReglaCalculoAuditLog.accion,
             ReglaCalculoAuditLog.usuario,
             db.literal(None),
@@ -168,19 +174,7 @@ def _entries(limit: int | None = None, offset: int | None = None) -> list[dict[s
 
     for row in db.session.execute(query).all():
         # Determine source based on non-null fields
-        timestamp, action, actor, target, details, success = row
-        # Try to determine source from filters or iterate
-        entries.append(
-            {
-                "timestamp": timestamp,
-                "source": request.args.get("source", "unknown"),
-                "action": action,
-                "actor": actor,
-                "target": target,
-                "details": details or {},
-                "success": success,
-            }
-        )
+        entries.append(_normalize_entry(row))
 
     return entries
 
@@ -223,11 +217,11 @@ def export_csv():
     query = _get_filtered_query()
     if query is not None:
         for row in db.session.execute(query).all():
-            timestamp, action, actor, target, details, success = row
+            timestamp, source, action, actor, target, details, success = row
             writer.writerow(
                 [
                     timestamp,
-                    request.args.get("source", "all"),
+                    source,
                     action,
                     actor,
                     target,
