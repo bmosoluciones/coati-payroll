@@ -212,6 +212,9 @@ def edit_concept(concept_type: str, concept_id: str):
         "monto_default": concept.monto_default,
         "porcentaje": concept.porcentaje,
         "base_calculo": concept.base_calculo,
+        "techo_anual": getattr(concept, "techo_anual", None),
+        "tope_base_gravable": getattr(concept, "tope_base_gravable", None),
+        "monto_exento": getattr(concept, "monto_exento", None),
         "invertir_asiento_contable": getattr(concept, "invertir_asiento_contable", None),
         "mostrar_como_ingreso_reportes": getattr(concept, "mostrar_como_ingreso_reportes", None),
         "es_inasistencia": getattr(concept, "es_inasistencia", None),
@@ -243,6 +246,9 @@ def edit_concept(concept_type: str, concept_id: str):
             "monto_default": concept.monto_default,
             "porcentaje": concept.porcentaje,
             "base_calculo": concept.base_calculo,
+            "techo_anual": getattr(concept, "techo_anual", None),
+            "tope_base_gravable": getattr(concept, "tope_base_gravable", None),
+            "monto_exento": getattr(concept, "monto_exento", None),
             "invertir_asiento_contable": getattr(concept, "invertir_asiento_contable", None),
             "mostrar_como_ingreso_reportes": getattr(concept, "mostrar_como_ingreso_reportes", None),
             "es_inasistencia": getattr(concept, "es_inasistencia", None),
@@ -332,6 +338,11 @@ def populate_concept_from_form(concept, form):
 
     if hasattr(form, "unidad_calculo") and form.unidad_calculo.data:
         concept.unidad_calculo = form.unidad_calculo.data
+
+    for field_name in ("techo_anual", "tope_base_gravable", "monto_exento"):
+        if hasattr(form, field_name):
+            value = getattr(form, field_name).data
+            setattr(concept, field_name, Decimal(str(value)) if value is not None else None)
 
     if hasattr(form, "recurrente"):
         concept.recurrente = form.recurrente.data

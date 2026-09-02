@@ -94,6 +94,14 @@ class AccumulationProcessor:
         accumulated_totals["total_neto_acumulado"] = (
             Decimal(str(accumulated_totals.get("total_neto_acumulado", 0))) + emp_calculo.salario_neto
         )
+        for perception_item in emp_calculo.percepciones:
+            accumulated_totals[f"percepcion_{perception_item.codigo}_acumulado"] = Decimal(
+                str(accumulated_totals.get(f"percepcion_{perception_item.codigo}_acumulado", 0))
+            ) + perception_item.monto
+        for deduction_item in emp_calculo.deducciones:
+            accumulated_totals[f"deduccion_{deduction_item.codigo}_acumulado"] = Decimal(
+                str(accumulated_totals.get(f"deduccion_{deduction_item.codigo}_acumulado", 0))
+            ) + deduction_item.monto
         acumulado.datos_adicionales = accumulated_totals
 
         # Sum up before-tax deductions and taxes

@@ -619,6 +619,12 @@ class Percepcion(database.Model, BaseTabla):
     )
     unidad_calculo = database.Column(database.String(20), nullable=True)  # ej: 'horas', 'dias', None
 
+    # Annual social-security/tax ceiling and non-taxable allowance.  A NULL
+    # value keeps the legacy unlimited behavior.
+    techo_anual = database.Column(database.Numeric(14, 2), nullable=True)
+    tope_base_gravable = database.Column(database.Numeric(14, 2), nullable=True)
+    monto_exento = database.Column(database.Numeric(14, 2), nullable=True, default=Decimal("0.00"))
+
     # Control contable
     contabilizable = database.Column(database.Boolean(), default=True, nullable=False)
     invertir_asiento_contable = database.Column(database.Boolean(), default=False, nullable=False)
@@ -684,6 +690,11 @@ class Deduccion(database.Model, BaseTabla):
     # Base y unidad de cálculo
     base_calculo = database.Column(database.String(50), nullable=True)
     unidad_calculo = database.Column(database.String(20), nullable=True)
+
+    # Annual ceilings are evaluated with the employee's YTD accumulation.
+    techo_anual = database.Column(database.Numeric(14, 2), nullable=True)
+    tope_base_gravable = database.Column(database.Numeric(14, 2), nullable=True)
+    monto_exento = database.Column(database.Numeric(14, 2), nullable=True, default=Decimal("0.00"))
 
     # Control contable
     contabilizable = database.Column(database.Boolean(), default=True, nullable=False)

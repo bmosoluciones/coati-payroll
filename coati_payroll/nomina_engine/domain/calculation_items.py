@@ -18,6 +18,7 @@ class DeduccionItem(NamedTuple):
     es_obligatoria: bool
     deduccion_id: str | None = None
     tipo: str = "deduccion"  # deduccion, prestamo, adelanto
+    monto_exento: Decimal = Decimal("0.00")
 
 
 class PercepcionItem(NamedTuple):
@@ -29,6 +30,8 @@ class PercepcionItem(NamedTuple):
     prioridad: int
     gravable: bool
     percepcion_id: str | None = None
+    monto_exento: Decimal = Decimal("0.00")
+    monto_gravable: Decimal | None = None
 
 
 class PrestacionItem(NamedTuple):

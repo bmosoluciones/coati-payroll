@@ -79,6 +79,10 @@ class DeductionCalculator:
             formula = snap_val.get("formula", deduccion.formula)
             base_calculo = snap_val.get("base_calculo", getattr(deduccion, "base_calculo", None))
             unidad_calculo = snap_val.get("unidad_calculo", getattr(deduccion, "unidad_calculo", None))
+            techo_anual = snap_val.get("techo_anual", getattr(deduccion, "techo_anual", None))
+            tope_base_gravable = snap_val.get("tope_base_gravable", getattr(deduccion, "tope_base_gravable", None))
+            variables = getattr(emp_calculo, "variables_calculo", {})
+            acumulado_anual = variables.get(f"deduccion_{deduccion.codigo}_acumulado", 0)
             association_snapshot = snap_val.get("asociacion") or {}
             detener_si_insuficiente = association_snapshot.get(
                 "detener_si_insuficiente", getattr(planilla_deduccion, "detener_si_insuficiente", False)
@@ -103,6 +107,9 @@ class DeductionCalculator:
                 codigo_concepto=deduccion.codigo,
                 base_calculo=base_calculo,
                 unidad_calculo=unidad_calculo,
+                techo_anual=techo_anual,
+                tope_base_gravable=tope_base_gravable,
+                acumulado_anual=acumulado_anual,
             )
 
             if monto > 0:
@@ -138,6 +145,13 @@ class DeductionCalculator:
                     prioridad=planilla_deduccion.prioridad,
                     es_obligatoria=planilla_deduccion.es_obligatoria,
                     deduccion_id=deduccion.id,
+                    monto_exento=min(
+                        monto_aplicar,
+                        max(
+                            Decimal("0.00"),
+                            Decimal(str(snap_val.get("monto_exento", getattr(deduccion, "monto_exento", 0)) or 0)),
+                        ),
+                    ),
                 )
                 emp_calculo.deducciones.append(item)
                 saldo_disponible -= monto_aplicar

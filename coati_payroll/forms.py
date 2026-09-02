@@ -586,6 +586,18 @@ class PercepcionForm(FlaskForm):
         validators=[Optional()],
         description=_(REPORT_UNIT_DESCRIPTION),
     )
+    techo_anual = DecimalField(
+        _("Techo Anual"), validators=[Optional(), NumberRange(min=0)],
+        description=_("Máximo acumulado anual para este concepto; vacío significa sin límite."),
+    )
+    tope_base_gravable = DecimalField(
+        _("Tope de Base Gravable"), validators=[Optional(), NumberRange(min=0)],
+        description=_("Límite anual alternativo para la base gravable."),
+    )
+    monto_exento = DecimalField(
+        _("Monto Exento"), validators=[Optional(), NumberRange(min=0)],
+        description=_("Parte del concepto que no incrementa la base gravable en cada período."),
+    )
     gravable = BooleanField(
         _("Gravable"),
         default=True,
@@ -758,6 +770,18 @@ class DeduccionForm(FlaskForm):
         ],
         validators=[Optional()],
         description=_(REPORT_UNIT_DESCRIPTION),
+    )
+    techo_anual = DecimalField(
+        _("Techo Anual"), validators=[Optional(), NumberRange(min=0)],
+        description=_("Máximo acumulado anual para este concepto; vacío significa sin límite."),
+    )
+    tope_base_gravable = DecimalField(
+        _("Tope de Base Gravable"), validators=[Optional(), NumberRange(min=0)],
+        description=_("Límite anual alternativo para la base gravable."),
+    )
+    monto_exento = DecimalField(
+        _("Monto Exento"), validators=[Optional(), NumberRange(min=0)],
+        description=_("Monto de la deducción excluido de la base gravable cuando aplique."),
     )
     antes_impuesto = BooleanField(
         _("Antes de Impuesto"),

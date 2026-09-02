@@ -52,6 +52,9 @@ class ConceptCalculator:
         codigo_concepto: str | None = None,
         base_calculo: str | None = None,
         unidad_calculo: str | None = None,
+        techo_anual: Decimal | None = None,
+        tope_base_gravable: Decimal | None = None,
+        acumulado_anual: Decimal | None = None,
     ) -> Decimal:
         """Calculate concept amount."""
         normalized_formula_tipo = FormulaType.normalize(formula_tipo)
@@ -67,6 +70,13 @@ class ConceptCalculator:
                 base_calculo,
             )
 
+        monto_calculado = self.apply_annual_limits(
+            monto_calculado,
+            techo_anual=techo_anual,
+            tope_base_gravable=tope_base_gravable,
+            acumulado_anual=acumulado_anual,
+        )
+
         # Ensure calculated amounts are never negative
         if monto_calculado < 0:
             self.warnings.append(
@@ -77,6 +87,31 @@ class ConceptCalculator:
             return Decimal("0.00")
 
         return monto_calculado
+
+    @staticmethod
+    def apply_annual_limits(
+        amount: Decimal,
+        *,
+        techo_anual: Decimal | None,
+        tope_base_gravable: Decimal | None,
+        acumulado_anual: Decimal | None,
+    ) -> Decimal:
+        """Limit a concept to its remaining annual YTD allowance.
+
+        ``techo_anual`` limits the concept's own annual stream.  The
+        ``tope_base_gravable`` is deliberately not applied here: it limits
+        the taxable portion of a perception and must be compared with the
+        employee's annual taxable base, not with the concept's own stream.
+        ``acumulado_anual`` is the amount already applied before the current
+        payroll.
+        """
+        amount = max(Decimal("0.00"), Decimal(str(amount)))
+        caps = [Decimal(str(techo_anual))] if techo_anual is not None else []
+        if not caps:
+            return amount
+        accumulated = max(Decimal("0.00"), Decimal(str(acumulado_anual or 0)))
+        remaining = max(Decimal("0.00"), min(caps) - accumulated)
+        return min(amount, remaining).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @staticmethod
     def _calculate_override(
@@ -249,7 +284,7 @@ class ConceptCalculator:
         """Return deductions that reduce the taxable amount for the period."""
         return sum(
             (
-                ded.monto
+                max(Decimal("0.00"), ded.monto - getattr(ded, "monto_exento", Decimal("0.00")))
                 for ded in emp_calculo.deducciones
                 if ded.deduccion_id
                 and (metadata := self._get_deduccion_metadata(ded.deduccion_id) or {}).get("antes_impuesto")

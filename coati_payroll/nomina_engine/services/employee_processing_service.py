@@ -302,6 +302,9 @@ class EmployeeProcessingService:
             variables["ir_retenido_acumulado"] = Decimal(str(acumulado.impuesto_retenido_acumulado or 0))
             variables["salario_acumulado_mes"] = Decimal(str(acumulado.salario_acumulado_mes or 0))
             accumulated_totals = acumulado.datos_adicionales or {}
+            for key, value in accumulated_totals.items():
+                if key.endswith("_acumulado"):
+                    variables[key] = Decimal(str(value or 0))
             variables["total_percepciones_acumulado"] = Decimal(
                 str(accumulated_totals.get("total_percepciones_acumulado", 0))
             )
