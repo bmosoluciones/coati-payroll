@@ -5,4 +5,3 @@
 NovedadService absence-default unit tests moved to
 `tests/test_basic/test_absence_defaults.py` to avoid heavy module imports.
 """
-

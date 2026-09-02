@@ -31,7 +31,6 @@ from coati_payroll.vistas.planilla.services.nomina_service import NominaService
 from coati_payroll.nomina_engine.services.snapshot_service import SnapshotService
 from coati_payroll.queue.drivers.dramatiq_driver import DramatiqDriver
 
-
 # ============================================================================
 # FIXTURES
 # ============================================================================
@@ -176,9 +175,7 @@ class TestCalcularPeriodoSugerido:
             assert inicio == date(2024, 2, 1)
             assert fin == date(2024, 2, 29)
 
-    def test_no_falla_con_multiples_nominas_activas(
-        self, app, db_session, planilla, planilla_empleado, admin_user
-    ):
+    def test_no_falla_con_multiples_nominas_activas(self, app, db_session, planilla, planilla_empleado, admin_user):
         """Method must return latest period suggestion without MultipleResultsFound."""
         with app.app_context():
             nomina_enero = Nomina(
@@ -517,9 +514,7 @@ class TestEjecutarNomina:
 class TestRecalcularNomina:
     """Tests for NominaService.recalcular_nomina method."""
 
-    def test_snapshot_context_rejects_changed_association_override(
-        self, app, db_session, planilla
-    ):
+    def test_snapshot_context_rejects_changed_association_override(self, app, db_session, planilla):
         """Historical recalculation must fail closed when an association override changes."""
         with app.app_context():
             deduction = Deduccion(

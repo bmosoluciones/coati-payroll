@@ -24,7 +24,15 @@ from coati_payroll.nomina_engine.domain.calculation_items import DeduccionItem
 from coati_payroll.nomina_engine.validators import NominaEngineError
 from coati_payroll.formula_engine import FormulaEngineError
 from coati_payroll.model import (
-    Empresa, Moneda, TipoPlanilla, Planilla, Empleado, PlanillaEmpleado, Deduccion, PlanillaDeduccion, db
+    Empresa,
+    Moneda,
+    TipoPlanilla,
+    Planilla,
+    Empleado,
+    PlanillaEmpleado,
+    Deduccion,
+    PlanillaDeduccion,
+    db,
 )
 
 
@@ -87,9 +95,7 @@ class TestRegressionPreventionCalculations:
             ("dias", Decimal("1000.00"), Decimal("7"), Decimal("100"), Decimal("233.33")),
         ],
     )
-    def test_fractional_rates_round_only_after_concept_total(
-        self, formula_tipo, base, novedad, porcentaje, expected
-    ):
+    def test_fractional_rates_round_only_after_concept_total(self, formula_tipo, base, novedad, porcentaje, expected):
         """Rounding a rate before multiplication must not change the pay amount."""
         calculator = ConceptCalculator(config_repository=None, warnings=[])
         calculator.configuracion_snapshot = {
@@ -285,7 +291,7 @@ class TestRegressionPreventionCalculations:
                 razon_social="Regression Prev Corp 3",
                 ruc="J-98765434",
                 primer_mes_nomina=1,
-                primer_anio_nomina=2024
+                primer_anio_nomina=2024,
             )
             db_session.add(empresa)
             db_session.flush()

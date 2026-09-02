@@ -2176,7 +2176,7 @@ class TestDeductionsCalculationImprovements:
                 razon_social="Test Acc Ex Corp",
                 ruc="1234567-8",
                 primer_mes_nomina=1,
-                primer_anio_nomina=2024
+                primer_anio_nomina=2024,
             )
             db_session.add(empresa)
             db_session.flush()
@@ -2232,7 +2232,7 @@ class TestDeductionsCalculationImprovements:
                 deducciones_antes_impuesto_acumulado=Decimal("8000.00"),
                 impuesto_retenido_acumulado=Decimal("5000.00"),
                 periodos_procesados=6,
-                ultimo_periodo_procesado=date(2024, 6, 30)
+                ultimo_periodo_procesado=date(2024, 6, 30),
             )
             db_session.add(acumulado_db)
             db_session.flush()
@@ -2259,7 +2259,7 @@ class TestDeductionsCalculationImprovements:
                 periodo_inicio=date(2024, 7, 1),
                 periodo_fin=date(2024, 7, 31),
                 fecha_calculo=date(2024, 7, 31),
-                bootstrap_context={"is_initial_period": False}
+                bootstrap_context={"is_initial_period": False},
             )
 
             # Values must be loaded from accumulated_db exactly! No overwriting to 0!
@@ -2268,7 +2268,9 @@ class TestDeductionsCalculationImprovements:
             assert variables["deducciones_antes_impuesto_acumulado"] == Decimal("8000.00")
             assert variables["ir_retenido_acumulado"] == Decimal("5000.00")
             assert variables["periodos_procesados"] == Decimal("6")
-            assert variables["meses_trabajados"] == Decimal("6")  # reference July -> 6 months elapsed transcurridos before July
+            assert variables["meses_trabajados"] == Decimal(
+                "6"
+            )  # reference July -> 6 months elapsed transcurridos before July
             assert variables["salario_neto_acumulado"] == Decimal("112000.00")  # 120000 - 8000
 
     def test_initial_period_accumulated_variables_defaults(self, app, db_session):
@@ -2289,7 +2291,7 @@ class TestDeductionsCalculationImprovements:
                 razon_social="Test Acc Corp",
                 ruc="1234567-9",
                 primer_mes_nomina=1,
-                primer_anio_nomina=2024
+                primer_anio_nomina=2024,
             )
             db_session.add(empresa)
             db_session.flush()
@@ -2326,7 +2328,7 @@ class TestDeductionsCalculationImprovements:
                 fecha_alta=date(2023, 6, 1),
                 salario_base=Decimal("15000.00"),
                 salario_acumulado=Decimal("90000.00"),  # starts with 90k accumulated salary
-                impuesto_acumulado=Decimal("4500.00"),   # starts with 4.5k accumulated tax
+                impuesto_acumulado=Decimal("4500.00"),  # starts with 4.5k accumulated tax
                 moneda_id=moneda.id,
                 empresa_id=empresa.id,
                 activo=True,
@@ -2375,7 +2377,7 @@ class TestDeductionsCalculationImprovements:
                 periodo_inicio=date(2024, 2, 1),
                 periodo_fin=date(2024, 2, 29),
                 fecha_calculo=date(2024, 2, 29),
-                bootstrap_context={"is_initial_period": False}
+                bootstrap_context={"is_initial_period": False},
             )
 
             # Should default to 0.00 and NOT cause KeyError or crash
@@ -2450,7 +2452,7 @@ class TestDeductionsCalculationImprovements:
                 "deducciones_antes_impuesto_acumulado": Decimal("0.00"),
                 "periodos_procesados": Decimal("0.00"),
                 "meses_trabajados": Decimal("0.00"),
-                "salario_neto_acumulado": Decimal("0.00")
+                "salario_neto_acumulado": Decimal("0.00"),
             }
 
             # Prepopulate one deduction already applied in deduction sequence

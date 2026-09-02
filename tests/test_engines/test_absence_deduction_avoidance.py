@@ -53,7 +53,6 @@ class TestNoveltyProcessor:
                 codigo="TEST001",
                 razon_social="Test Company SA",
                 ruc="J-12345678",
-                
             )
             db_session.add(empresa)
             db_session.flush()
@@ -147,7 +146,6 @@ class TestNoveltyProcessor:
                 codigo="TEST001",
                 razon_social="Test Company SA",
                 ruc="J-12345678",
-                
             )
             db_session.add(empresa)
             db_session.flush()
@@ -199,7 +197,7 @@ class TestMedicalSubsidyScenario:
 
     def test_medical_subsidy_with_absence_and_perception(self, app, db_session):
         """Test medical subsidy: absence deducts day, perception adds 80% compensation.
-        
+
         This is a real-world scenario where:
         1. Employee is absent (es_inasistencia=True, descontar_pago_inasistencia=True)
         2. A perception (subsidio médico) compensates with 80% of daily salary
@@ -442,22 +440,19 @@ class TestMedicalSubsidyScenario:
             assert "SUBSIDIO_MEDICO_DIA12" not in codigos_descuento
 
             # Verify total subsidy amount
-            total_subsidio = sum(
-                novedades.get(f"SUBSIDIO_MEDICO_DIA{day}", Decimal("0.00"))
-                for day in [10, 11, 12]
-            )
+            total_subsidio = sum(novedades.get(f"SUBSIDIO_MEDICO_DIA{day}", Decimal("0.00")) for day in [10, 11, 12])
             expected_total_subsidio = (Decimal("15000.00") / Decimal("30")) * Decimal("0.80") * Decimal("3")
             assert abs(total_subsidio - expected_total_subsidio) < Decimal("0.01")
 
     def test_medical_subsidy_biweekly_60_percent(self, app, db_session):
         """Test medical subsidy case: 5 days absence with 60% subsidy in biweekly payroll.
-        
+
         Real case scenario:
         - Monthly salary: 30,000.00
         - Biweekly salary: 15,000.00
         - Daily salary: 1,000.00
         - First fortnight: 5 days with medical subsidy at 60%
-        
+
         Expected calculation:
         - Base salary: 15,000.00
         - Absence (5 days): -5,000.00
@@ -552,7 +547,7 @@ class TestMedicalSubsidyScenario:
             salario_diario = Decimal("1000.00")  # 30000 / 30
             dias_ausencia = Decimal("5.00")
             porcentaje_subsidio = Decimal("0.60")
-            
+
             # Expected values
             descuento_ausencia = salario_diario * dias_ausencia  # 5,000.00
             salario_despues_ausencia = salario_quincenal - descuento_ausencia  # 10,000.00
@@ -631,5 +626,3 @@ class TestMedicalSubsidyScenario:
             print(f"Subsidio (60%): {subsidio_monto}")
             print(f"Total Ingreso Esperado: {total_ingreso_esperado}")
             print(f"==============================\n")
-
-

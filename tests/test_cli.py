@@ -15,7 +15,6 @@ import pytest
 from coati_payroll.auth import proteger_passwd
 from coati_payroll.model import Usuario, db
 
-
 # ============================================================================
 # SYSTEM COMMANDS TESTS
 # ============================================================================
@@ -991,9 +990,11 @@ def test_system_status_json_and_error(app, db_session, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1019,9 +1020,11 @@ def test_system_check_json_and_error(app, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1047,9 +1050,11 @@ def test_system_info_json_and_error(app, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1075,9 +1080,11 @@ def test_database_status_json_and_error(app, monkeypatch):
 
     # Monkeypatch CLIContext to force JSON output
     original_init = cli.CLIContext.__init__
+
     def patched_init(self):
         original_init(self)
         self.json_output = True
+
     monkeypatch.setattr(cli.CLIContext, "__init__", patched_init)
 
     runner = app.test_cli_runner()
@@ -1134,6 +1141,7 @@ def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
 
     # Database commit exception triggering rollback
     from coati_payroll.model import PluginRegistry
+
     p = PluginRegistry(plugin_id="buggy_plugin", distribution_name="buggy_plugin", installed=True, active=False)
     db_session.add(p)
     db_session.commit()
@@ -1142,7 +1150,9 @@ def test_toggle_plugin_error_handling(app, db_session, monkeypatch):
     cli._toggle_plugin_active("buggy_plugin", False, ctx)
 
     # Test not installed validation branch
-    p2 = PluginRegistry(plugin_id="uninstalled_plugin", distribution_name="uninstalled_plugin", installed=False, active=False)
+    p2 = PluginRegistry(
+        plugin_id="uninstalled_plugin", distribution_name="uninstalled_plugin", installed=False, active=False
+    )
     db_session.add(p2)
     db_session.commit()
     with pytest.raises(click.ClickException, match="Plugin no está instalado"):

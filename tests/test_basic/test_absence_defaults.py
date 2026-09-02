@@ -95,4 +95,3 @@ def test_resolve_absence_flags_looks_up_deduccion():
     )
     assert es_inasistencia is False
     assert descontar_pago is True
-

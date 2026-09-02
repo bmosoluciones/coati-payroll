@@ -216,13 +216,15 @@ def test_vacation_liability_respects_exchange_rate(app, client, admin_user, db_s
         # Regenerate accounting voucher to include vacation liability lines
         # (now that vacation ledger entries exist after apply)
         from coati_payroll.nomina_engine.services.accounting_voucher_service import AccountingVoucherService
-        
+
         # Delete old comprobante
-        old_comprobante = db_session.query(ComprobanteContable).filter(ComprobanteContable.nomina_id == nomina.id).first()
+        old_comprobante = (
+            db_session.query(ComprobanteContable).filter(ComprobanteContable.nomina_id == nomina.id).first()
+        )
         if old_comprobante:
             db_session.delete(old_comprobante)
             db_session.flush()
-        
+
         # Regenerate with vacation entries included
         voucher_service = AccountingVoucherService(db_session)
         voucher_service.generate_audit_voucher(nomina, planilla, fecha_calculo, admin_user.usuario)

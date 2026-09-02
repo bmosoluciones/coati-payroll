@@ -410,12 +410,30 @@ class AccountingVoucherService:
             return orden, null_account_count, total_debitos, total_creditos
 
         nombre = snapshot_entry.get("nombre", getattr(entity, "nombre", "")) if snapshot_entry else entity.nombre
-        codigo = snapshot_entry.get("codigo", getattr(entity, "codigo", detalle.codigo)) if snapshot_entry else entity.codigo
+        codigo = (
+            snapshot_entry.get("codigo", getattr(entity, "codigo", detalle.codigo)) if snapshot_entry else entity.codigo
+        )
         if tipo_concepto == "benefit":
-            debe_codigo = snapshot_entry.get("codigo_cuenta_debe", getattr(entity, "codigo_cuenta_debe", None)) if snapshot_entry else entity.codigo_cuenta_debe
-            haber_codigo = snapshot_entry.get("codigo_cuenta_haber", getattr(entity, "codigo_cuenta_haber", None)) if snapshot_entry else entity.codigo_cuenta_haber
-            debe_desc = (snapshot_entry.get("descripcion_cuenta_debe") or nombre) if debe_codigo and snapshot_entry else (entity.descripcion_cuenta_debe or entity.nombre if entity.codigo_cuenta_debe else None)
-            haber_desc = (snapshot_entry.get("descripcion_cuenta_haber") or nombre) if haber_codigo and snapshot_entry else (entity.descripcion_cuenta_haber or entity.nombre if entity.codigo_cuenta_haber else None)
+            debe_codigo = (
+                snapshot_entry.get("codigo_cuenta_debe", getattr(entity, "codigo_cuenta_debe", None))
+                if snapshot_entry
+                else entity.codigo_cuenta_debe
+            )
+            haber_codigo = (
+                snapshot_entry.get("codigo_cuenta_haber", getattr(entity, "codigo_cuenta_haber", None))
+                if snapshot_entry
+                else entity.codigo_cuenta_haber
+            )
+            debe_desc = (
+                (snapshot_entry.get("descripcion_cuenta_debe") or nombre)
+                if debe_codigo and snapshot_entry
+                else (entity.descripcion_cuenta_debe or entity.nombre if entity.codigo_cuenta_debe else None)
+            )
+            haber_desc = (
+                (snapshot_entry.get("descripcion_cuenta_haber") or nombre)
+                if haber_codigo and snapshot_entry
+                else (entity.descripcion_cuenta_haber or entity.nombre if entity.codigo_cuenta_haber else None)
+            )
         else:
             if snapshot_entry:
                 if invertir:
@@ -429,7 +447,9 @@ class AccountingVoucherService:
                     debe_desc = snapshot_entry.get("descripcion_cuenta_debe") or nombre
                     haber_desc = snapshot_entry.get("descripcion_cuenta_haber") or nombre
             else:
-                debe_codigo, haber_codigo, debe_desc, haber_desc = self._resolve_contabilizable_accounts(entity, invertir)
+                debe_codigo, haber_codigo, debe_desc, haber_desc = self._resolve_contabilizable_accounts(
+                    entity, invertir
+                )
 
         detalle_monto = round_money(detalle.monto)
 

@@ -72,7 +72,7 @@ def test_rate_limiting_configured(app):
 
     Verifies that Flask-Limiter is initialized and configured
     with appropriate storage backend.
-    
+
     Note: In testing mode, rate limiting is disabled to avoid blocking
     multiple login attempts in tests. The limiter is still initialized
     but RATELIMIT_ENABLED is set to False.

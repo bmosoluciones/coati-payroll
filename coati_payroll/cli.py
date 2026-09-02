@@ -1446,9 +1446,7 @@ def maintenance_cleanup_temp(ctx):
 def maintenance_run_jobs(ctx):
     """Fail explicitly: background jobs must run in a Dramatiq worker."""
     del ctx
-    raise click.ClickException(
-        "maintenance run-jobs is not supported; start a Dramatiq worker to process queued jobs."
-    )
+    raise click.ClickException("maintenance run-jobs is not supported; start a Dramatiq worker to process queued jobs.")
 
 
 # ============================================================================
