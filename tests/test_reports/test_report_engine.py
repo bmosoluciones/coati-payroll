@@ -554,7 +554,7 @@ def test_custom_report_builder_invalid_columns(app, db_session):
         errors = builder.validate_definition()
 
         assert len(errors) > 0
-        assert any("Custom expressions are not yet supported" in error for error in errors)
+        assert not any("Custom expressions are not yet supported" in error for error in errors)
         assert any("Entity 'NonExistentEntity' is not allowed" in error for error in errors)
         assert any("Filter field 'invalid_filter_field' is not allowed" in error for error in errors)
 

@@ -1,0 +1,8 @@
+[Unit]
+Description=Coati Payroll report export cleanup
+
+[Service]
+Type=oneshot
+User=coati-payroll
+WorkingDirectory=/opt/coati-payroll
+ExecStart=/usr/local/bin/payrollctl maintenance cleanup-temp

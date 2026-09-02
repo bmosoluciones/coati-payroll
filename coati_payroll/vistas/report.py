@@ -21,7 +21,7 @@ from coati_payroll.report_engine import (
     can_execute_report,
     can_export_report,
 )
-from coati_payroll.report_export import export_report_to_excel, export_report_to_csv
+from coati_payroll.report_export import export_report_to_excel, export_report_to_csv, export_report_to_pdf
 from coati_payroll.system_reports import get_system_report_metadata
 from coati_payroll.log import log
 from coati_payroll.vistas.constants import PER_PAGE
@@ -204,6 +204,14 @@ def run_report(report_id: str):
     # Get parameters from request
     parameters = request.get_json() or {}
 
+    if parameters.pop("async", False):
+        from coati_payroll.queue.tasks import queue
+
+        task_id = queue.enqueue(
+            "generate_report", report_id=report.id, user=current_user.usuario, parameters=parameters
+        )
+        return jsonify({"success": True, "status": "queued", "task_id": str(task_id)}), 202
+
     # Get pagination parameters
     page = parameters.pop("page", 1)
     per_page = parameters.pop("per_page", 100)
@@ -264,6 +272,8 @@ def export_report(report_id: str, export_format: str):
             file_path = export_report_to_excel(report.name, results)
         elif export_format == "csv":
             file_path = export_report_to_csv(report.name, results)
+        elif export_format == "pdf":
+            file_path = export_report_to_pdf(report.name, results)
         else:
             return jsonify({"error": "Invalid format"}), 400
 

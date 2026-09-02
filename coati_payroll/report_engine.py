@@ -27,6 +27,8 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 # Third party libraries
 # <-------------------------------------------------------------------------> #
 from coati_payroll.enums import ReportType, ReportExecutionStatus
+from coati_payroll.formula_engine import ExpressionEvaluator
+from coati_payroll.formula_engine.exceptions import CalculationError
 from coati_payroll.model import (
     db,
     Report,
@@ -191,9 +193,17 @@ class CustomReportBuilder:
                     errors.append(f"Field '{field}' is not allowed for entity '{entity}'")
 
             elif col_type == "expression":
-                # For now, we don't support custom expressions to maintain security
-                # This would require a safe expression evaluator
-                errors.append("Custom expressions are not yet supported")
+                expression = col.get("expression")
+                if not isinstance(expression, str) or not expression.strip():
+                    errors.append("Expression columns require a non-empty expression")
+                    continue
+                try:
+                    ExpressionEvaluator(
+                        {field: Decimal("0") for fields in ALLOWED_FIELDS.values() for field in fields},
+                        strict_mode=True,
+                    ).evaluate(expression)
+                except (CalculationError, ValueError, TypeError) as exc:
+                    errors.append(f"Invalid expression: {exc}")
 
         # Validate filters
         filters = self.definition.get("filters", [])
@@ -298,6 +308,11 @@ class CustomReportBuilder:
         output = []
         for row in results:
             row_dict = {}
+            variables: dict[str, Decimal] = {}
+            for allowed_field in ALLOWED_FIELDS.get(self.base_entity_name, []):
+                allowed_value = getattr(row, allowed_field, None)
+                if isinstance(allowed_value, (Decimal, int, float)) and not isinstance(allowed_value, bool):
+                    variables[allowed_field] = Decimal(str(allowed_value))
             for col in columns:
                 if col.get("type") != "field":
                     continue
@@ -309,6 +324,16 @@ class CustomReportBuilder:
                 elif isinstance(value, datetime):
                     value = value.isoformat()
                 row_dict[label] = value
+            for col in columns:
+                if col.get("type") != "expression":
+                    continue
+                expression = col.get("expression", "")
+                label = col.get("label", expression)
+                try:
+                    value = ExpressionEvaluator(variables, strict_mode=True).evaluate(expression)
+                    row_dict[label] = float(value) if isinstance(value, Decimal) else value
+                except (CalculationError, ValueError, TypeError) as exc:
+                    raise ValueError(f"Invalid report expression '{expression}': {exc}") from exc
             output.append(row_dict)
         return output
 

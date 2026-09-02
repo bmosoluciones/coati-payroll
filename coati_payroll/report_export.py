@@ -14,6 +14,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+from html import escape
 
 # <-------------------------------------------------------------------------> #
 # Third party libraries
@@ -26,6 +27,13 @@ try:
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
+
+try:
+    from weasyprint import HTML
+
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
 
 
 # <-------------------------------------------------------------------------> #
@@ -160,6 +168,29 @@ class ReportExporter:
         log.info("Report exported to: %s", output_path)
         return output_path
 
+    def to_pdf(self, output_path: Optional[str] = None) -> str:
+        """Export the tabular report as a printable PDF."""
+        if not WEASYPRINT_AVAILABLE:
+            raise ImportError("weasyprint is required for PDF export")
+        output_path = self._resolve_output_path(output_path, ".pdf")
+        headers = list(self.results[0].keys()) if self.results else []
+        header_html = "".join(f"<th>{escape(str(header))}</th>" for header in headers)
+        body_html = "".join(
+            "<tr>" + "".join(f"<td>{escape(str(row.get(header, '')))}</td>" for header in headers) + "</tr>"
+            for row in self.results
+        )
+        html = f"""<html><head><meta charset='utf-8'><style>
+        @page {{ size: A4 landscape; margin: 1cm; }} body {{ font-family: sans-serif; font-size: 9pt; }}
+        h1 {{ font-size: 16pt; }} table {{ border-collapse: collapse; width: 100%; }}
+        th, td {{ border: 1px solid #999; padding: 4px; text-align: left; }} th {{ background: #366092; color: white; }}
+        </style></head><body><h1>{escape(self.report_name)}</h1>
+        <p>Generated: {escape(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}</p>
+        <table><thead><tr>{header_html}</tr></thead><tbody>{body_html}</tbody></table>
+        </body></html>"""
+        HTML(string=html).write_pdf(output_path)
+        log.info("Report exported to PDF: %s", output_path)
+        return output_path
+
 
 def export_report_to_excel(report_name: str, results: List[Dict[str, Any]], output_path: Optional[str] = None) -> str:
     """Convenience function to export report to Excel.
@@ -189,3 +220,8 @@ def export_report_to_csv(report_name: str, results: List[Dict[str, Any]], output
     """
     exporter = ReportExporter(report_name, results)
     return exporter.to_csv(output_path)
+
+
+def export_report_to_pdf(report_name: str, results: List[Dict[str, Any]], output_path: Optional[str] = None) -> str:
+    """Convenience function to export a report to PDF."""
+    return ReportExporter(report_name, results).to_pdf(output_path)

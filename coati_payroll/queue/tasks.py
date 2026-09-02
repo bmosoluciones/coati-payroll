@@ -742,6 +742,24 @@ def sync_exchange_rates(
         db.session.rollback()
         raise
     return {"success": True, "base": base, "date": rate_date.isoformat(), "synced": synced, "skipped": skipped}
+
+
+def generate_report(report_id: str, user: str, parameters: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Execute a report through the queue for long-running integrations."""
+    from coati_payroll.model import Report
+    from coati_payroll.report_engine import ReportExecutionManager
+
+    report = db.session.get(Report, report_id)
+    if report is None:
+        return {"success": False, "error": "Report not found"}
+    try:
+        results, total_count, execution = ReportExecutionManager(report, user).execute(parameters or {}, 1, 50000)
+        return {"success": True, "execution_id": execution.id, "rows": len(results), "total_count": total_count}
+    except Exception as exc:
+        db.session.rollback()
+        return {"success": False, "error": str(exc)}
+
+
 def process_large_payroll(
     nomina_id: str,
     job_id: str | None,
@@ -1269,6 +1287,14 @@ sync_exchange_rates_task = queue.register_task(
     sync_exchange_rates,
     name="sync_exchange_rates",
     max_retries=3,
+    min_backoff=60000,
+    max_backoff=3600000,
+)
+
+generate_report_task = queue.register_task(
+    generate_report,
+    name="generate_report",
+    max_retries=2,
     min_backoff=60000,
     max_backoff=3600000,
 )
