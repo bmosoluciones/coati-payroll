@@ -181,6 +181,8 @@ class Usuario(database.Model, BaseTabla, UserMixin):
     nombre = database.Column(database.String(100))
     apellido = database.Column(database.String(100))
     correo_electronico = database.Column(database.String(150))
+    # Per-user language override.  NULL means use the installation default.
+    idioma = database.Column(database.String(10), nullable=True)
     tipo = database.Column(database.String(20), nullable=False, default=TipoUsuario.HHRR.value)
     activo = database.Column(database.Boolean(), default=True)
     ultimo_acceso = database.Column(database.DateTime, nullable=True)

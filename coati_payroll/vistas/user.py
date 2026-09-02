@@ -59,6 +59,7 @@ def new():
         user.nombre = form.nombre.data
         user.apellido = form.apellido.data
         user.correo_electronico = form.correo_electronico.data
+        user.idioma = form.idioma.data or None
         user.tipo = form.tipo.data
         user.activo = form.activo.data
         user.empresas = list(
@@ -95,6 +96,7 @@ def edit(id_: str):
         user.nombre = form.nombre.data
         user.apellido = form.apellido.data
         user.correo_electronico = form.correo_electronico.data
+        user.idioma = form.idioma.data or None
         user.tipo = form.tipo.data
         user.activo = form.activo.data
         user.empresas = list(
@@ -141,6 +143,7 @@ def profile():
         current_user.nombre = form.nombre.data
         current_user.apellido = form.apellido.data
         current_user.correo_electronico = form.correo_electronico.data
+        current_user.idioma = form.idioma.data or None
 
         # Handle password change if any password field has data
         password_change_attempted = form.current_password.data or form.new_password.data or form.confirm_password.data

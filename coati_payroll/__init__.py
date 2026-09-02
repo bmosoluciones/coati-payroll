@@ -295,6 +295,13 @@ def create_app(config) -> Flask:
         except Exception:
             return {"tenant_empresas": [], "active_empresa_id": None}
 
+    @app.context_processor
+    def inject_i18n_helpers():
+        """Expose locale-aware formatting helpers to every template."""
+        from coati_payroll.i18n import local_date, money, number
+
+        return {"locale": get_locale, "money": money, "local_date": local_date, "number": number}
+
     # Register CLI commands
     from coati_payroll.cli import register_cli_commands
 

@@ -12,7 +12,7 @@ from typing import Any
 # <-------------------------------------------------------------------------> #
 # Third party libraries
 # <-------------------------------------------------------------------------> #
-from flask_babel import gettext, lazy_gettext, ngettext
+from flask_babel import format_currency, format_date, format_decimal, gettext, lazy_gettext, ngettext
 
 # <-------------------------------------------------------------------------> #
 # Local modules
@@ -42,3 +42,18 @@ def _n(singular: str, plural: str, n: int) -> str:
 def _l(text: str) -> str | Any:
     """Mark text for lazy translation (useful in forms)."""
     return lazy_gettext(text)
+
+
+def money(value: Any, currency: str = "USD") -> str:
+    """Format a monetary value using the active user's regional locale."""
+    return format_currency(value or 0, currency)
+
+
+def local_date(value: Any, format: str = "medium") -> str:
+    """Format a date according to the active locale."""
+    return format_date(value, format=format)
+
+
+def number(value: Any) -> str:
+    """Format a number with locale-specific decimal and grouping marks."""
+    return format_decimal(value or 0)

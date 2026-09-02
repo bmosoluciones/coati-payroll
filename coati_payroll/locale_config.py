@@ -13,7 +13,8 @@ from threading import Lock
 # <-------------------------------------------------------------------------> #
 # Third party libraries
 # <-------------------------------------------------------------------------> #
-from flask import current_app
+from flask import current_app, request
+from flask_login import current_user
 
 # <-------------------------------------------------------------------------> #
 # Local modules
@@ -40,6 +41,24 @@ def get_language_from_db() -> str:
         str: Language code ('en' or 'es')
     """
     global _language_cache
+
+    # A user preference always wins over the installation cache.  The cache is
+    # deliberately only used for the global fallback because otherwise the
+    # first request would leak its language to every other user.
+    try:
+        if current_user.is_authenticated and current_user.idioma in SUPPORTED_LANGUAGES:
+            return current_user.idioma
+    except (AttributeError, RuntimeError):
+        pass
+
+    # Honor an explicit browser preference before the global fallback.  This
+    # provides a useful first-run experience without changing persisted config.
+    try:
+        browser_language = request.accept_languages.best_match(SUPPORTED_LANGUAGES)
+        if browser_language:
+            return browser_language
+    except RuntimeError:
+        pass
 
     # Check cache first (thread-safe)
     with _cache_lock:

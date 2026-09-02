@@ -146,6 +146,11 @@ class UserForm(FlaskForm):
         _("Correo electrónico"),
         validators=[Optional(), Email(), Length(max=150)],
     )
+    idioma = SelectField(
+        _("Idioma preferido"),
+        choices=[("", _("Usar idioma de la instalación")), ("es", "Español"), ("en", "English")],
+        validators=[Optional()],
+    )
     tipo = SelectField(
         _("Tipo de usuario"),
         choices=[
@@ -221,6 +226,11 @@ class ProfileForm(FlaskForm):
     correo_electronico = StringField(
         _("Correo electrónico"),
         validators=[Optional(), Email(), Length(max=150)],
+    )
+    idioma = SelectField(
+        _("Idioma preferido"),
+        choices=[("", _("Usar idioma de la instalación")), ("es", "Español"), ("en", "English")],
+        validators=[Optional()],
     )
     current_password = PasswordField(_("Contraseña actual"), validators=[Optional(), Length(min=6)])
     new_password = PasswordField(_("Nueva contraseña"), validators=[Optional(), Length(min=6)])
