@@ -67,7 +67,7 @@ as-is, without warranties of fitness for any particular purpose.
 
 ### Requirements
 
-- Python 3.11 or higher
+- Python 3.12 or higher
 - pip (Python package manager)
 
 ### Steps
