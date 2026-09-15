@@ -1196,7 +1196,9 @@ class Liquidacion(database.Model, BaseTabla):
     empleado = database.relationship("Empleado")
     concepto = database.relationship("LiquidacionConcepto")
     comprobante_contable = database.relationship("ComprobanteContable", back_populates="liquidacion", uselist=False)
-    detalles = database.relationship("LiquidacionDetalle", back_populates="liquidacion", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    detalles = database.relationship(
+        "LiquidacionDetalle", back_populates="liquidacion", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
 
 
 class LiquidacionDetalle(database.Model, BaseTabla):
