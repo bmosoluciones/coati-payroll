@@ -12,6 +12,8 @@ from types import SimpleNamespace
 from coati_payroll.model import Planilla, ConfiguracionCalculos
 from ..repositories.config_repository import ConfigRepository
 
+INVALID_DIAS_MES_CONFIG_MSG = "Configuración inválida: dias_mes_nomina debe ser mayor a 0."
+
 
 class SalaryCalculator:
     """Calculator for salary period calculations."""
@@ -68,7 +70,7 @@ class SalaryCalculator:
                 config = self._get_config(planilla.empresa_id, configuracion_snapshot)
                 dias_base = Decimal(str(config.dias_mes_nomina))
                 if dias_base <= 0:
-                    raise ValidationError("Configuración inválida: dias_mes_nomina debe ser mayor a 0.")
+                    raise ValidationError(INVALID_DIAS_MES_CONFIG_MSG)
                 salario_diario = salario_mensual / dias_base
                 salario_periodo = salario_diario * Decimal(str(dias_periodo))
 
@@ -83,14 +85,14 @@ class SalaryCalculator:
                 config = self._get_config(planilla.empresa_id, configuracion_snapshot)
                 dias_base = Decimal(str(config.dias_mes_nomina))
                 if dias_base <= 0:
-                    raise ValidationError("Configuración inválida: dias_mes_nomina debe ser mayor a 0.")
+                    raise ValidationError(INVALID_DIAS_MES_CONFIG_MSG)
                 salario_periodo = (salario_mensual / dias_base) * Decimal(str(dias_periodo))
 
         else:
             config = self._get_config(planilla.empresa_id, configuracion_snapshot)
             dias_base = Decimal(str(config.dias_mes_nomina))
             if dias_base <= 0:
-                raise ValidationError("Configuración inválida: dias_mes_nomina debe ser mayor a 0.")
+                raise ValidationError(INVALID_DIAS_MES_CONFIG_MSG)
             salario_diario = salario_mensual / dias_base
             salario_periodo = salario_diario * Decimal(str(dias_periodo))
 

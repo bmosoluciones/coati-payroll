@@ -18,6 +18,8 @@ down_revision = "20260902_baseline"
 branch_labels = None
 depends_on = None
 
+FK_EMPRESA_ID = "empresa.id"
+
 
 def _create_if_missing(table_name, *columns):
     """Create a new association table on databases without the new schema."""
@@ -34,14 +36,14 @@ def upgrade():
         sa.Column("usuario_id", sa.String(length=26), nullable=False),
         sa.Column("empresa_id", sa.String(length=26), nullable=False),
         sa.ForeignKeyConstraint(["usuario_id"], ["usuario.id"]),
-        sa.ForeignKeyConstraint(["empresa_id"], ["empresa.id"]),
+        sa.ForeignKeyConstraint(["empresa_id"], [FK_EMPRESA_ID]),
         sa.PrimaryKeyConstraint("usuario_id", "empresa_id"),
     )
     _create_if_missing(
         "empresa_percepcion",
         sa.Column("empresa_id", sa.String(length=26), nullable=False),
         sa.Column("concept_id", sa.String(length=26), nullable=False),
-        sa.ForeignKeyConstraint(["empresa_id"], ["empresa.id"]),
+        sa.ForeignKeyConstraint(["empresa_id"], [FK_EMPRESA_ID]),
         sa.ForeignKeyConstraint(["concept_id"], ["percepcion.id"]),
         sa.PrimaryKeyConstraint("empresa_id", "concept_id"),
     )
@@ -49,7 +51,7 @@ def upgrade():
         "empresa_deduccion",
         sa.Column("empresa_id", sa.String(length=26), nullable=False),
         sa.Column("concept_id", sa.String(length=26), nullable=False),
-        sa.ForeignKeyConstraint(["empresa_id"], ["empresa.id"]),
+        sa.ForeignKeyConstraint(["empresa_id"], [FK_EMPRESA_ID]),
         sa.ForeignKeyConstraint(["concept_id"], ["deduccion.id"]),
         sa.PrimaryKeyConstraint("empresa_id", "concept_id"),
     )
@@ -57,7 +59,7 @@ def upgrade():
         "empresa_prestacion",
         sa.Column("empresa_id", sa.String(length=26), nullable=False),
         sa.Column("concept_id", sa.String(length=26), nullable=False),
-        sa.ForeignKeyConstraint(["empresa_id"], ["empresa.id"]),
+        sa.ForeignKeyConstraint(["empresa_id"], [FK_EMPRESA_ID]),
         sa.ForeignKeyConstraint(["concept_id"], ["prestacion.id"]),
         sa.PrimaryKeyConstraint("empresa_id", "concept_id"),
     )

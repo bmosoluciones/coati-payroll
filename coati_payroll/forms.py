@@ -46,6 +46,10 @@ from coati_payroll.i18n import _l as _
 
 CALCULATION_RULE_LABEL = "Regla de Cálculo"
 REPORT_UNIT_DESCRIPTION = "Unidad informativa para reportes/UI; no cambia el cálculo."
+EMPRESAS_AUTORIZADAS_LABEL = "Empresas autorizadas"
+EMPRESAS_AUTORIZADAS_DESC = (
+    "Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."
+)
 
 
 class LoginForm(FlaskForm):
@@ -679,12 +683,10 @@ class PercepcionForm(FlaskForm):
     )
     activo = BooleanField(_("Activo"), default=True)
     empresa_ids = SelectMultipleField(
-        _("Empresas autorizadas"),
+        _(EMPRESAS_AUTORIZADAS_LABEL),
         validators=[Optional()],
         coerce=str,
-        description=_(
-            "Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."
-        ),
+        description=_(EMPRESAS_AUTORIZADAS_DESC),
     )
     submit = SubmitField(_("Guardar"))
 
@@ -871,12 +873,10 @@ class DeduccionForm(FlaskForm):
     )
     activo = BooleanField(_("Activo"), default=True)
     empresa_ids = SelectMultipleField(
-        _("Empresas autorizadas"),
+        _(EMPRESAS_AUTORIZADAS_LABEL),
         validators=[Optional()],
         coerce=str,
-        description=_(
-            "Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."
-        ),
+        description=_(EMPRESAS_AUTORIZADAS_DESC),
     )
     submit = SubmitField(_("Guardar"))
 
@@ -1248,12 +1248,10 @@ class PrestacionForm(FlaskForm):
     )
     activo = BooleanField(_("Activo"), default=True)
     empresa_ids = SelectMultipleField(
-        _("Empresas autorizadas"),
+        _(EMPRESAS_AUTORIZADAS_LABEL),
         validators=[Optional()],
         coerce=str,
-        description=_(
-            "Vacío significa que el concepto es global; de lo contrario solo aplica a las empresas seleccionadas."
-        ),
+        description=_(EMPRESAS_AUTORIZADAS_DESC),
     )
     submit = SubmitField(_("Guardar"))
 
