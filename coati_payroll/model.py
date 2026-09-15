@@ -93,13 +93,16 @@ FK_PRESTACION_ID = "prestacion.id"
 FK_EMPLEADO_ID = "empleado.id"
 FK_NOMINA_ID = "nomina.id"
 FK_REPORT_ID = "report.id"
+FK_USUARIO_ID = "usuario.id"
+FK_LIQUIDACION_ID = "liquidacion.id"
+CASCADE_ALL_DELETE_ORPHAN = "all, delete-orphan"
 
 
 # Explicit tenant memberships. Empty membership means no access for non-admins;
 # administrators are intentionally handled as unrestricted by tenant.py.
 usuario_empresa = database.Table(
     "usuario_empresa",
-    database.Column("usuario_id", database.String(26), database.ForeignKey("usuario.id"), primary_key=True),
+    database.Column("usuario_id", database.String(26), database.ForeignKey(FK_USUARIO_ID), primary_key=True),
     database.Column("empresa_id", database.String(26), database.ForeignKey(FK_EMPRESA_ID), primary_key=True),
 )
 
@@ -189,11 +192,11 @@ class Usuario(database.Model, BaseTabla, UserMixin):
     intentos_login_fallidos = database.Column(database.Integer, nullable=False, default=0)
     bloqueado_hasta = database.Column(database.DateTime, nullable=True)
     empresas = database.relationship("Empresa", secondary=usuario_empresa, back_populates="usuarios")
-    tokens_correo = database.relationship("TokenCorreo", back_populates="usuario", cascade="all, delete-orphan")
+    tokens_correo = database.relationship("TokenCorreo", back_populates="usuario", cascade=CASCADE_ALL_DELETE_ORPHAN)
     navegadores_confiables = database.relationship(
-        "NavegadorConfiable", back_populates="usuario", cascade="all, delete-orphan"
+        "NavegadorConfiable", back_populates="usuario", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
-    api_tokens = database.relationship("ApiToken", back_populates="usuario", cascade="all, delete-orphan")
+    api_tokens = database.relationship("ApiToken", back_populates="usuario", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
     @property
     def is_active(self) -> bool:
@@ -226,7 +229,7 @@ class ApiToken(database.Model, BaseTabla):
     __tablename__ = "api_token"
     __table_args__ = (database.UniqueConstraint("token_hash", name="uq_api_token_hash"),)
 
-    usuario_id = database.Column(database.String(26), database.ForeignKey("usuario.id"), nullable=False, index=True)
+    usuario_id = database.Column(database.String(26), database.ForeignKey(FK_USUARIO_ID), nullable=False, index=True)
     nombre = database.Column(database.String(100), nullable=False)
     token_hash = database.Column(database.String(64), nullable=False, index=True)
     alcances = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
@@ -416,16 +419,16 @@ class Empleado(database.Model, BaseTabla):
         back_populates="empleado",
     )
     novedades_registradas = database.relationship(
-        "NominaNovedad", back_populates="empleado", cascade="all,delete-orphan"
+        "NominaNovedad", back_populates="empleado", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
     historial_salarios = database.relationship(
-        "HistorialSalario", back_populates="empleado", cascade="all,delete-orphan"
+        "HistorialSalario", back_populates="empleado", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
-    vacaciones = database.relationship("VacacionEmpleado", back_populates="empleado", cascade="all,delete-orphan")
+    vacaciones = database.relationship("VacacionEmpleado", back_populates="empleado", cascade=CASCADE_ALL_DELETE_ORPHAN)
     vacaciones_descansadas = database.relationship(
-        "VacacionDescansada", back_populates="empleado", cascade="all,delete-orphan"
+        "VacacionDescansada", back_populates="empleado", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
-    adelantos = database.relationship("Adelanto", back_populates="empleado", cascade="all,delete-orphan")
+    adelantos = database.relationship("Adelanto", back_populates="empleado", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
     # Datos adicionales (JSON)
     datos_adicionales = database.Column(MutableDict.as_mutable(OrjsonType), nullable=True, default=dict)
@@ -593,7 +596,7 @@ class Planilla(database.Model, BaseTabla):
     audit_logs = database.relationship(
         "PlanillaAuditLog",
         back_populates="planilla",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_ALL_DELETE_ORPHAN,
     )
 
 
@@ -677,7 +680,7 @@ class Percepcion(database.Model, BaseTabla):
         "ConceptoAuditLog",
         back_populates="percepcion",
         foreign_keys="ConceptoAuditLog.percepcion_id",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_ALL_DELETE_ORPHAN,
     )
 
 
@@ -750,7 +753,7 @@ class Deduccion(database.Model, BaseTabla):
         "ConceptoAuditLog",
         back_populates="deduccion",
         foreign_keys="ConceptoAuditLog.deduccion_id",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_ALL_DELETE_ORPHAN,
     )
 
 
@@ -825,16 +828,16 @@ class Prestacion(database.Model, BaseTabla):
     empresas = database.relationship("Empresa", secondary=empresa_prestacion, backref="prestaciones_autorizadas")
     nomina_detalles = database.relationship("NominaDetalle", back_populates="prestacion")
     prestaciones_acumuladas = database.relationship(
-        "PrestacionAcumulada", back_populates="prestacion", cascade="all,delete-orphan"
+        "PrestacionAcumulada", back_populates="prestacion", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
     cargas_iniciales = database.relationship(
-        "CargaInicialPrestacion", back_populates="prestacion", cascade="all,delete-orphan"
+        "CargaInicialPrestacion", back_populates="prestacion", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
     audit_logs = database.relationship(
         "ConceptoAuditLog",
         back_populates="prestacion",
         foreign_keys="ConceptoAuditLog.prestacion_id",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_ALL_DELETE_ORPHAN,
     )
 
 
@@ -1022,7 +1025,7 @@ class Nomina(database.Model, BaseTabla):
     audit_logs = database.relationship(
         "NominaAuditLog",
         back_populates="nomina",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_ALL_DELETE_ORPHAN,
     )
     comparaciones_actual = database.relationship(
         "NominaComparacion",
@@ -1193,14 +1196,16 @@ class Liquidacion(database.Model, BaseTabla):
     empleado = database.relationship("Empleado")
     concepto = database.relationship("LiquidacionConcepto")
     comprobante_contable = database.relationship("ComprobanteContable", back_populates="liquidacion", uselist=False)
-    detalles = database.relationship("LiquidacionDetalle", back_populates="liquidacion", cascade="all,delete-orphan")
+    detalles = database.relationship(
+        "LiquidacionDetalle", back_populates="liquidacion", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
 
 
 class LiquidacionDetalle(database.Model, BaseTabla):
     __tablename__ = "liquidacion_detalle"
 
     liquidacion_id = database.Column(
-        database.String(26), database.ForeignKey("liquidacion.id"), nullable=False, index=True
+        database.String(26), database.ForeignKey(FK_LIQUIDACION_ID), nullable=False, index=True
     )
     tipo = database.Column(database.String(15), nullable=False)  # income | deduction | benefit
     codigo = database.Column(database.String(50), nullable=False)
@@ -1288,7 +1293,7 @@ class ComprobanteContable(database.Model, BaseTabla):
 
     nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=True, unique=True)
     liquidacion_id = database.Column(
-        database.String(26), database.ForeignKey("liquidacion.id"), nullable=True, unique=True
+        database.String(26), database.ForeignKey(FK_LIQUIDACION_ID), nullable=True, unique=True
     )
 
     # Header information
@@ -1319,7 +1324,7 @@ class ComprobanteContable(database.Model, BaseTabla):
     lineas = database.relationship(
         "ComprobanteContableLinea",
         back_populates="comprobante",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_ALL_DELETE_ORPHAN,
         order_by="ComprobanteContableLinea.orden",
     )
 
@@ -1577,8 +1582,8 @@ class Adelanto(database.Model, BaseTabla):
     empleado = database.relationship("Empleado", back_populates="adelantos")
     deduccion = database.relationship("Deduccion", back_populates="adelantos")
     moneda = database.relationship("Moneda")
-    abonos = database.relationship("AdelantoAbono", back_populates="adelanto", cascade="all,delete-orphan")
-    intereses = database.relationship("InteresAdelanto", back_populates="adelanto", cascade="all,delete-orphan")
+    abonos = database.relationship("AdelantoAbono", back_populates="adelanto", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    intereses = database.relationship("InteresAdelanto", back_populates="adelanto", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
 
 # Control de abonos/pagos a adelantos
@@ -1599,7 +1604,7 @@ class AdelantoAbono(database.Model, BaseTabla):
         index=True,
     )
     nomina_id = database.Column(database.String(26), database.ForeignKey(FK_NOMINA_ID), nullable=True)
-    liquidacion_id = database.Column(database.String(26), database.ForeignKey("liquidacion.id"), nullable=True)
+    liquidacion_id = database.Column(database.String(26), database.ForeignKey(FK_LIQUIDACION_ID), nullable=True)
     fecha_abono = database.Column(database.Date, nullable=False, default=date.today)
     monto_abonado = database.Column(database.Numeric(14, 2), nullable=False, default=Decimal("0.00"))
     saldo_anterior = database.Column(database.Numeric(14, 2), nullable=False, default=Decimal("0.00"))
@@ -1783,7 +1788,7 @@ class ReglaCalculo(database.Model, BaseTabla):
     audit_logs = database.relationship(
         "ReglaCalculoAuditLog",
         back_populates="regla_calculo",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_ALL_DELETE_ORPHAN,
     )
 
 
@@ -1943,7 +1948,7 @@ class TokenCorreo(database.Model, BaseTabla):
         database.Index("ix_token_correo_usuario_proposito", "usuario_id", "proposito"),
     )
 
-    usuario_id = database.Column(database.String(26), database.ForeignKey("usuario.id"), nullable=False, index=True)
+    usuario_id = database.Column(database.String(26), database.ForeignKey(FK_USUARIO_ID), nullable=False, index=True)
     token_hash = database.Column(database.String(128), nullable=False, index=True)
     proposito = database.Column(database.String(40), nullable=False, index=True)
     expira_en = database.Column(database.DateTime, nullable=False, index=True)
@@ -1961,7 +1966,7 @@ class NavegadorConfiable(database.Model, BaseTabla):
     __tablename__ = "navegador_confiable"
     __table_args__ = (database.UniqueConstraint("token_hash", name="uq_navegador_confiable_hash"),)
 
-    usuario_id = database.Column(database.String(26), database.ForeignKey("usuario.id"), nullable=False, index=True)
+    usuario_id = database.Column(database.String(26), database.ForeignKey(FK_USUARIO_ID), nullable=False, index=True)
     token_hash = database.Column(database.String(128), nullable=False, index=True)
     expira_en = database.Column(database.DateTime, nullable=False, index=True)
     ultimo_uso_en = database.Column(database.DateTime, nullable=True)
@@ -2579,9 +2584,9 @@ class Report(database.Model, BaseTabla):
     category = database.Column(database.String(50), nullable=True, index=True)
 
     # Relationships
-    permissions = database.relationship("ReportRole", back_populates="report", cascade="all,delete-orphan")
-    executions = database.relationship("ReportExecution", back_populates="report", cascade="all,delete-orphan")
-    audit_entries = database.relationship("ReportAudit", back_populates="report", cascade="all,delete-orphan")
+    permissions = database.relationship("ReportRole", back_populates="report", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    executions = database.relationship("ReportExecution", back_populates="report", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    audit_entries = database.relationship("ReportAudit", back_populates="report", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
 
 class ReportRole(database.Model, BaseTabla):

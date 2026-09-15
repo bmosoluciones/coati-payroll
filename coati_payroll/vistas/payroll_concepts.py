@@ -194,7 +194,6 @@ def create_concept(concept_type: str):
 def edit_concept(concept_type: str, concept_id: str):
     """Generic edit view for payroll concepts."""
     config = get_concept_config(concept_type)
-    config["model"]
     form_class = config["form"]
 
     concept = _get_scoped_concept(concept_type, concept_id)
@@ -558,7 +557,6 @@ def reject_concept_route(concept_type: str, concept_id: str):
 def view_audit_log_route(concept_type: str, concept_id: str):
     """View audit log for a specific concept."""
     config = get_concept_config(concept_type)
-    config["model"]
 
     concept = _get_scoped_concept(concept_type, concept_id)
     if not concept:

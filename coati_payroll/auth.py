@@ -52,6 +52,8 @@ PENDING_LOGIN_USER_KEY = "pending_login_user_id"
 PENDING_LOGIN_TOKEN_KEY = "pending_login_token_id"
 MAX_FAILED_LOGIN_ATTEMPTS = 5
 LOGIN_LOCKOUT_MINUTES = 15
+AUTH_LOGIN_ENDPOINT = "auth.login"
+AUTH_FORGOT_PASSWORD_ENDPOINT = "auth.forgot_password"
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -106,7 +108,7 @@ def logout():
     database.session.commit()
     logout_user()
     flash(_("Sesión cerrada correctamente."), "info")
-    return redirect(url_for("auth.login"))
+    return redirect(url_for(AUTH_LOGIN_ENDPOINT))
 
 
 # ---------------------------------------------------------------------------------------
@@ -233,7 +235,7 @@ def forgot_password():
                 database.session.rollback()
         # Deliberately identical for unknown users, missing email, and delivery failure.
         flash(_("Si la cuenta existe y tiene un correo configurado, recibirás instrucciones."), "info")
-        return redirect(url_for("auth.forgot_password"))
+        return redirect(url_for(AUTH_FORGOT_PASSWORD_ENDPOINT))
     return render_template("auth/forgot_password.html", form=form)
 
 
@@ -243,14 +245,14 @@ def reset_password(token: str):
     token_record = find_email_token(token, PASSWORD_RESET_PURPOSE)
     if token_record is None or token_record.usuario is None or not token_record.usuario.activo:
         flash(_("El enlace de recuperación no es válido o ya expiró."), "error")
-        return redirect(url_for("auth.forgot_password"))
+        return redirect(url_for(AUTH_FORGOT_PASSWORD_ENDPOINT))
 
     form = PasswordResetForm()
     if form.validate_on_submit():
         token_record = find_email_token(token, PASSWORD_RESET_PURPOSE)
         if token_record is None or token_record.usuario is None:
             flash(_("El enlace de recuperación no es válido o ya expiró."), "error")
-            return redirect(url_for("auth.forgot_password"))
+            return redirect(url_for(AUTH_FORGOT_PASSWORD_ENDPOINT))
         usuario = cast(Usuario, token_record.usuario)
         usuario.acceso = proteger_passwd(form.nueva_contrasena.data)
         usuario.intentos_login_fallidos = 0
@@ -259,7 +261,7 @@ def reset_password(token: str):
         revoke_trusted_browsers(usuario)
         database.session.commit()
         flash(_("Contraseña actualizada. Ya puedes iniciar sesión."), "success")
-        return redirect(url_for("auth.login"))
+        return redirect(url_for(AUTH_LOGIN_ENDPOINT))
     return render_template("auth/reset_password.html", form=form)
 
 
@@ -269,7 +271,7 @@ def verify_login():
     user_id = session.get(PENDING_LOGIN_USER_KEY)
     token_id = session.get(PENDING_LOGIN_TOKEN_KEY)
     if not user_id or not token_id:
-        return redirect(url_for("auth.login"))
+        return redirect(url_for(AUTH_LOGIN_ENDPOINT))
 
     usuario = database.session.get(Usuario, user_id)
     token_record = database.session.get(TokenCorreo, token_id)
@@ -286,7 +288,7 @@ def verify_login():
         session.pop(PENDING_LOGIN_USER_KEY, None)
         session.pop(PENDING_LOGIN_TOKEN_KEY, None)
         flash(_("El código de verificación no es válido o ya expiró."), "error")
-        return redirect(url_for("auth.login"))
+        return redirect(url_for(AUTH_LOGIN_ENDPOINT))
 
     form = LoginVerificationForm()
     if form.validate_on_submit():

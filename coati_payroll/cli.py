@@ -38,6 +38,8 @@ from coati_payroll.log import log
 from coati_payroll.plugin_manager import discover_installed_plugins, load_plugin_module, sync_plugin_registry
 from coati_payroll.wsgi_server import serve as wsgi_server
 
+MSG_DATABASE_RESTORED_SUCCESS = "Database restored successfully!"
+
 
 # Global context to store CLI options
 class CLIContext:
@@ -945,17 +947,17 @@ def database_restore(ctx, backup_file, yes):
         if db_url_str.startswith("sqlite"):
             click.echo(f"Restoring SQLite database from: {backup_file}")
             _database_restore_sqlite(backup_file, db_url_str)
-            output_result(ctx, "Database restored successfully!")
+            output_result(ctx, MSG_DATABASE_RESTORED_SUCCESS)
 
         elif "postgresql" in db_url_str or "postgres" in db_url_str:
             click.echo(f"Restoring PostgreSQL database from: {backup_file}")
             _database_restore_postgresql(backup_file, db_url_str)
-            output_result(ctx, "Database restored successfully!")
+            output_result(ctx, MSG_DATABASE_RESTORED_SUCCESS)
 
         elif "mysql" in db_url_str:
             click.echo(f"Restoring MySQL database from: {backup_file}")
             _database_restore_mysql(backup_file, db_url_str)
-            output_result(ctx, "Database restored successfully!")
+            output_result(ctx, MSG_DATABASE_RESTORED_SUCCESS)
 
         else:
             output_result(ctx, "Unsupported database type for restore", None, False)
