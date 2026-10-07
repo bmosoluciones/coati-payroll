@@ -58,7 +58,7 @@ class ConceptCalculator:
     ) -> Decimal:
         """Calculate concept amount."""
         normalized_formula_tipo = FormulaType.normalize(formula_tipo)
-        monto_calculado = self._calculate_override(emp_calculo, monto_override, porcentaje_override)
+        monto_calculado = self._calculate_override(emp_calculo, monto_override, porcentaje_override, base_calculo)
         if monto_calculado is None:
             monto_calculado = self._calculate_by_formula_type(
                 emp_calculo,
@@ -130,12 +130,20 @@ class ConceptCalculator:
         emp_calculo: EmpleadoCalculo,
         monto_override: Decimal | None,
         porcentaje_override: Decimal | None,
+        base_calculo: str | None = None,
     ) -> Decimal | None:
         """Calculate a value from an explicit override, when provided."""
         if monto_override is not None:
             return Decimal(str(monto_override))
         if porcentaje_override is not None:
-            return (emp_calculo.salario_base * Decimal(str(porcentaje_override)) / Decimal("100")).quantize(
+            base = emp_calculo.salario_base
+            if base_calculo == "salario_gravable":
+                base = emp_calculo.salario_gravable
+            elif base_calculo == "salario_bruto":
+                base = emp_calculo.salario_bruto
+            elif base_calculo == "salario_neto":
+                base = emp_calculo.salario_neto
+            return (base * Decimal(str(porcentaje_override)) / Decimal("100")).quantize(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
         return None
@@ -153,9 +161,20 @@ class ConceptCalculator:
         """Dispatch formula calculation to the appropriate strategy."""
         match formula_tipo:
             case FormulaType.FIJO:
+                if codigo_concepto and codigo_concepto in emp_calculo.novedades:
+                    return Decimal(str(emp_calculo.novedades[codigo_concepto])).quantize(
+                        Decimal("0.01"), rounding=ROUND_HALF_UP
+                    )
                 return Decimal(str(monto_default or 0)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             case FormulaType.PORCENTAJE_SALARIO | FormulaType.PORCENTAJE:
-                return self._calculate_percentage(emp_calculo.salario_base, porcentaje)
+                base = emp_calculo.salario_base
+                if base_calculo == "salario_gravable":
+                    base = emp_calculo.salario_gravable
+                elif base_calculo == "salario_bruto":
+                    base = emp_calculo.salario_bruto
+                elif base_calculo == "salario_neto":
+                    base = emp_calculo.salario_neto
+                return self._calculate_percentage(base, porcentaje)
             case FormulaType.PORCENTAJE_BRUTO:
                 return self._calculate_percentage(emp_calculo.salario_bruto, porcentaje)
             case FormulaType.HORAS:

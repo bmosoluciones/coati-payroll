@@ -15,6 +15,9 @@ let tableCounter = 0;
 let inputsSortable = null;
 let stepsSortable = null;
 
+// Loading state flag to prevent preview updates/mutations during schema load
+let isLoadingSchema = false;
+
 function initializeSortable() {
     // Initialize sortable for inputs
     const inputsContainer = document.getElementById('inputs-container');
@@ -46,6 +49,8 @@ function initializeSortable() {
 }
 
 function loadSchemaToEditor() {
+    isLoadingSchema = true;
+
     // Load meta
     if (schema.meta) {
         document.getElementById('meta-name').value = schema.meta.name || '';
@@ -79,6 +84,9 @@ function loadSchemaToEditor() {
     // Load output
     updateOutputSelect();
     document.getElementById('output-variable').value = schema.output || '';
+
+    isLoadingSchema = false;
+    updateJsonPreview();
 }
 
 function addInput(data = null) {
@@ -588,6 +596,7 @@ function collectSchemaFromEditor() {
 }
 
 function updateJsonPreview() {
+    if (isLoadingSchema) return;
     const schema = collectSchemaFromEditor();
     document.getElementById('json-preview').value = JSON.stringify(schema, null, 2);
     updateOutputSelect();
@@ -599,12 +608,16 @@ function generateTestInputs() {
     container.innerHTML = '';
 
     schema.inputs.forEach(input => {
+        let defaultValue = 0;
+        if (input.default !== undefined && !isNaN(input.default)) {
+            defaultValue = input.default;
+        }
         const html = `
             <div class="mb-2">
                 <label class="form-label small">${input.name}</label>
                 <input type="number" class="form-control form-control-sm test-input"
                        data-name="${input.name}"
-                       value="${input.default || 0}" step="0.01">
+                       value="${defaultValue}" step="0.01">
             </div>
         `;
         container.insertAdjacentHTML('beforeend', html);

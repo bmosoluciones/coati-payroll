@@ -21,6 +21,7 @@ from sqlalchemy.sql.functions import count
 # Local modules
 # <-------------------------------------------------------------------------> #
 from coati_payroll.model import db, Empleado, Empresa, Planilla, Nomina
+from coati_payroll.rate_limiting import limiter
 
 app = Blueprint("app", __name__)
 
@@ -50,6 +51,7 @@ def index():
 
 
 @app.route("/health", methods=["GET"])
+@limiter.exempt
 def health():
     """Health check endpoint for container orchestration.
 
@@ -60,6 +62,7 @@ def health():
 
 
 @app.route("/ready", methods=["GET"])
+@limiter.exempt
 def ready():
     """Readiness check endpoint for container orchestration.
 
@@ -80,6 +83,7 @@ def ready():
 
 
 @app.route("/manifest.json", methods=["GET"])
+@limiter.exempt
 def manifest():
     """Serve the PWA web app manifest with correct icon URLs."""
     data = {

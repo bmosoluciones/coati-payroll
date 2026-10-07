@@ -45,6 +45,7 @@ class FormulaType(StrEnum):
             return None
         if isinstance(value, FormulaType):
             return value
+        val_str = str(value).lower()
         legacy_map = {
             "fijo": cls.FIJO,
             "porcentaje": cls.PORCENTAJE,
@@ -57,7 +58,11 @@ class FormulaType(StrEnum):
             "horas": cls.HORAS,
             "dias": cls.DIAS,
         }
-        return legacy_map.get(value, cls(value) if value in cls._value2member_map_ else None)
+        if val_str in legacy_map:
+            return legacy_map[val_str]
+        if str(value).upper() in cls._member_map_:
+            return cls[str(value).upper()]
+        return cls(value) if value in cls._value2member_map_ else None
 
 
 class StepType(StrEnum):

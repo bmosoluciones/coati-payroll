@@ -38,3 +38,74 @@ def test_tax_with_before_tax_flag_does_not_reduce_the_taxable_base_again():
     )
 
     assert calculator._calculate_pre_tax_deductions(employee_calculation) == Decimal("100.00")
+
+
+def test_percentage_with_salario_gravable_base_calculo():
+    """ConceptCalculator calculates percentage on salario_gravable when base_calculo is specified."""
+    calculator = ConceptCalculator(config_repository=None, warnings=[])
+    emp = SimpleNamespace(
+        salario_base=Decimal("10000.00"),
+        salario_gravable=Decimal("15000.00"),
+        salario_bruto=Decimal("18000.00"),
+        salario_neto=Decimal("12000.00"),
+        novedades={},
+    )
+    # INSS Laboral (7%) on salario_gravable (15,000 * 0.07 = 1,050.00)
+    result = calculator.calculate(
+        emp_calculo=emp,
+        formula_tipo="PORCENTAJE",
+        monto_default=None,
+        porcentaje=Decimal("7.00"),
+        formula=None,
+        monto_override=None,
+        porcentaje_override=None,
+        codigo_concepto="INSS_LABORAL",
+        base_calculo="salario_gravable",
+    )
+    assert result == Decimal("1050.00")
+
+
+def test_percentage_with_salario_bruto_base_calculo():
+    """ConceptCalculator calculates percentage on salario_bruto when base_calculo is specified."""
+    calculator = ConceptCalculator(config_repository=None, warnings=[])
+    emp = SimpleNamespace(
+        salario_base=Decimal("10000.00"),
+        salario_gravable=Decimal("15000.00"),
+        salario_bruto=Decimal("20000.00"),
+        salario_neto=Decimal("12000.00"),
+        novedades={},
+    )
+    result = calculator.calculate(
+        emp_calculo=emp,
+        formula_tipo="PORCENTAJE",
+        monto_default=None,
+        porcentaje=Decimal("10.00"),
+        formula=None,
+        monto_override=None,
+        porcentaje_override=None,
+        codigo_concepto="DED_BRUTO",
+        base_calculo="salario_bruto",
+    )
+    assert result == Decimal("2000.00")
+
+
+def test_fixed_concept_uses_period_novelty():
+    """ConceptCalculator with FormulaType.FIJO returns the registered novelty amount."""
+    calculator = ConceptCalculator(config_repository=None, warnings=[])
+    emp = SimpleNamespace(
+        salario_base=Decimal("10000.00"),
+        salario_gravable=Decimal("10000.00"),
+        salario_bruto=Decimal("10000.00"),
+        novedades={"COMISIONES": Decimal("2500.50")},
+    )
+    result = calculator.calculate(
+        emp_calculo=emp,
+        formula_tipo="FIJO",
+        monto_default=Decimal("0.00"),
+        porcentaje=None,
+        formula=None,
+        monto_override=None,
+        porcentaje_override=None,
+        codigo_concepto="COMISIONES",
+    )
+    assert result == Decimal("2500.50")
