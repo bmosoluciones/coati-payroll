@@ -609,7 +609,7 @@ function generateTestInputs() {
 
     schema.inputs.forEach(input => {
         let defaultValue = 0;
-        if (input.default !== undefined && !isNaN(input.default)) {
+        if (input.default !== undefined && input.default !== '' && !Number.isNaN(Number(input.default))) {
             defaultValue = input.default;
         }
         const html = `
