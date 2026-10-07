@@ -626,9 +626,15 @@ function generateTestInputs() {
 
 function copyJson() {
     const textarea = document.getElementById('json-preview');
-    navigator.clipboard.writeText(textarea.value).then(() => {
-        alert('JSON copied to clipboard');
-    });
+    if (!textarea) return;
+    navigator.clipboard.writeText(textarea.value)
+        .then(() => {
+            alert('JSON copied to clipboard');
+        })
+        .catch(err => {
+            console.error('Failed to copy JSON:', err);
+            alert('Failed to copy JSON to clipboard');
+        });
 }
 
 function formatJson() {
