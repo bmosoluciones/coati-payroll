@@ -161,10 +161,9 @@ class ConceptCalculator:
         """Dispatch formula calculation to the appropriate strategy."""
         match formula_tipo:
             case FormulaType.FIJO:
-                if codigo_concepto and codigo_concepto in emp_calculo.novedades:
-                    return Decimal(str(emp_calculo.novedades[codigo_concepto])).quantize(
-                        Decimal("0.01"), rounding=ROUND_HALF_UP
-                    )
+                novedades = getattr(emp_calculo, "novedades", None) or {}
+                if codigo_concepto and codigo_concepto in novedades:
+                    return Decimal(str(novedades[codigo_concepto])).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
                 return Decimal(str(monto_default or 0)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             case FormulaType.PORCENTAJE_SALARIO | FormulaType.PORCENTAJE:
                 base = emp_calculo.salario_base
