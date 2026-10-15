@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.1] - 2026-10-15
+
+### Fixed
+
+- Percentage concepts now use their configured calculation base, and fixed concepts apply period novelties.
+- Health, readiness, and manifest endpoints are exempt from rate limiting.
+- Schema editor previews remain correct after loading; clipboard failures and numeric defaults are handled safely.
+- Fixed concepts tolerate calculation objects without a novelty map.
+
+### Changed
+
+- The mypy target now matches the project's minimum supported Python version, 3.12.
+
+### Tests
+
+- Cover configurable percentage bases, fixed-concept novelties, full payroll flows, and PostgreSQL/MySQL schema creation.
+
 ## [1.13.0] - 2026-09-02
 
 ### Added
